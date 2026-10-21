@@ -3,7 +3,7 @@ import re, sys
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 ALLOWED_SKILLS = {"writing", "recording", "cutting", "review", "design", "animation", "editor"}
-MEDIA = {"editor-demo.gif", "teleprompter-demo.gif", "edge-trimming.gif", "take-files.png", "project-files.png", "edit-plan-architecture.png", "take-report-architecture.png", "tries-to-cut.png", "agent-cut-layers.png", "teleprompter-layers.png"}
+MEDIA = {"editor-demo.gif", "teleprompter-demo.gif", "edge-trimming.gif", "take-files.png", "project-files.png", "edit-plan-architecture.png", "take-report-architecture.png", "tries-to-cut.png", "agent-cut-layers.png", "teleprompter-layers.png", "design-starters.png"}
 
 def check(root=ROOT):
     errors = []

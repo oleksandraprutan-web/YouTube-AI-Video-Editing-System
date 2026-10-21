@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Compare values on the same scale</title><style>
+:root{--paper:#fafaf8;--ink:#202321;--muted:#626760;--line:#d9ddd6;--wash:#edf0e9;--accent:#394b40;--font:Arial,Helvetica,sans-serif}
+*{box-sizing:border-box}html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font)}
+.board{position:relative;width:1920px;height:1080px;padding:82px 96px;overflow:hidden;background:var(--paper)}
+header{border-top:3px solid var(--ink);padding-top:32px;width:1728px}h1{font-size:76px;line-height:1.06;letter-spacing:-3px;margin:0;max-width:1650px}header p{font-size:30px;line-height:1.4;color:var(--muted);margin:22px 0 0}
+.content{position:absolute;left:96px;top:300px;width:1120px;bottom:112px}h2{font-size:42px;line-height:1.14;margin:0 0 22px;letter-spacing:-1px}p,li{font-size:30px;line-height:1.4;margin:0}small,.caption{font-size:24px;line-height:1.4;color:var(--muted)}
+.card{border:2px solid var(--line);border-radius:20px;background:#fff;padding:36px}.dark{background:var(--ink);color:var(--paper);border-color:var(--ink)}.dark .caption{color:#d3d9d2}
+.number{font-size:24px;letter-spacing:2px;margin-bottom:32px;color:var(--muted)}.dark .number{color:#d3d9d2}.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+footer{position:absolute;left:96px;bottom:48px;font-size:22px;color:var(--muted);max-width:1110px}
+.guide{display:none;position:absolute;right:64px;bottom:64px;width:576px;height:432px;border:2px dashed #777;background:#eee8;color:#555;padding:25px;font-size:28px}body.guides .guide{display:block}
+.flow{display:grid;grid-template-columns:1fr 60px 1fr 60px 1fr;align-items:center;margin-top:70px}.flow .card{min-height:285px;padding:28px}.arrow{text-align:center;font-size:50px}.flow h2{font-size:35px}.flow p{font-size:27px}
+.rule{margin-top:40px;padding:26px 0;border-top:2px solid var(--line);font-size:30px}.rows{display:grid;gap:24px}.step{display:grid;grid-template-columns:80px 1fr;gap:24px;padding:24px 0;border-bottom:2px solid var(--line)}.step b{font-size:52px;color:var(--accent)}
+pre{font:30px/1.7 ui-monospace,monospace;white-space:pre-wrap;margin:0}code{font-family:ui-monospace,monospace}.line{display:block;padding:0 16px}.focus{background:#e0e8dd;color:#233626;border-left:5px solid #394b40}.chip{font-size:24px;border:1px solid var(--line);border-radius:30px;padding:10px 20px;display:inline-block;margin-bottom:24px}
+</style></head>
+<body><main class="board"><header><h1>Compare values on the same scale</h1><p>Illustrative data · units per sample · higher is more.</p></header><section class="content"><div class="card"><svg viewBox="0 0 1044 480" width="1044" height="480" role="img" aria-labelledby="chart-title chart-desc"><title id="chart-title">Illustrative comparison</title><desc id="chart-desc">Sample A is 40 units, B is 65 and C is 85. All bars start at zero on a scale to 100.</desc><g stroke="#d9ddd6" stroke-width="2"><path d="M220 40V390M420 40V390M620 40V390M820 40V390M1020 40V390"/></g><g fill="#626760" font-family="Arial" font-size="26"><text x="210" y="435">0</text><text x="400" y="435">25</text><text x="600" y="435">50</text><text x="800" y="435">75</text><text x="990" y="435">100</text></g><g fill="#202321" font-family="Arial" font-size="32"><text x="0" y="110">Sample A</text><text x="0" y="230">Sample B</text><text x="0" y="350">Sample C</text></g><rect x="220" y="65" width="320" height="65" rx="6" fill="#abb6a9"/><rect x="220" y="185" width="520" height="65" rx="6" fill="#71816e"/><rect x="220" y="305" width="680" height="65" rx="6" fill="#394b40"/><g fill="white" font-family="Arial" font-size="30" font-weight="bold"><text x="470" y="108">40</text><text x="670" y="228">65</text><text x="830" y="348">85</text></g></svg></div><div class="rule">A shared baseline makes the difference readable.</div></section><aside class="guide" aria-hidden="true">Camera safe area<br>576 × 432</aside><footer>Example numbers only • Replace values, scale, units, accessible description, and source together.</footer></main>
+<script>
+// Static starter: the renderer can seek without changing the approved layout.
+// Add narration-driven animation only after board review.
+window.seek = function(seconds) { return Math.max(0, Number(seconds) || 0); };
+if (new URLSearchParams(location.search).has('guides')) document.body.classList.add('guides');
+</script></body></html>

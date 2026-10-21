@@ -11,3 +11,7 @@ Code/templates are MIT. These demonstration images and GIFs are supplied for doc
 - take-report-architecture.png, edit-plan-architecture.png: report/plan flow
 - teleprompter-layers.png, agent-cut-layers.png: processing layers
 - tries-to-cut.png: counts from one example project
+
+## Design starter preview
+
+`design-starters.png` is a browser capture of the newly authored unbranded HTML starter gallery. It contains synthetic example content and no source-library media. It is covered by the repository's MIT code/template license.
