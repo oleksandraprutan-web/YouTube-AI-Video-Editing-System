@@ -1,6 +1,12 @@
-# AI Video Editing System
+<p align="center">
+  <a href="https://tein.ai"><img src="docs/branding/tein-ai-banner.svg" alt="TEIN AI — Join the waitlist for open-source AI workflows" width="960"></a>
+</p>
+
+# YouTube AI Video Editing System
 
 **An open-source workflow for recording, AI-assisted editing, design, Claude Design, animation, motion graphics, and the final editor handoff.**
+
+<p align="center"><strong>Want more open-source AI filmmaking workflows?</strong><br>Join the TEIN AI waitlist for updates on new workflows, tools, and releases.<br><a href="https://tein.ai"><strong>Join the TEIN AI waitlist →</strong></a></p>
 
 Eyeline connects the script you read, the takes you record, the source clips you cut, and the visuals you design. The workflow keeps its decisions in readable Markdown and JSON so you can use your own AI agent, change the rules, and keep editing by hand.
 
@@ -28,8 +34,8 @@ This is an early public release, not an unattended one-click editor. Cutting dec
 Install **Python 3.10+** and **uv** from their official installers. Chrome or Edge is recommended for browser speech recognition. No API key is required to launch either app.
 
 ```bash
-git clone https://github.com/sirioberati/AI-Video-Editing-System.git
-cd AI-Video-Editing-System
+git clone https://github.com/sirioberati/YouTube-AI-Video-Editing-System.git
+cd YouTube-AI-Video-Editing-System
 
 # Teleprompter — open http://localhost:5317
 python3 apps/teleprompter/server.py
@@ -143,4 +149,10 @@ Everything in `skills/` is a **placeholder**, written for this public repository
 
 The apps run locally. Browser speech recognition may use your browser vendor's service; QR code and font resources load from public CDNs. Whisper models and Python dependencies download on first use. Sending a transcript to an AI agent or Claude Design follows that tool's data policy. LAN display mode is opt-in and intended only for a trusted private network. See [privacy](docs/privacy.md).
 
-**License:** code and newly authored templates are MIT. Supplied demonstration images and GIFs are documented separately in [media credits](docs/media/README.md). Third-party software and model weights retain their own licenses.
+**License:** code and newly authored templates are MIT. TEIN branding is excluded from the MIT grant; its owner retains all rights. Supplied demonstration images and GIFs are documented separately in [media credits](docs/media/README.md). Third-party software and model weights retain their own licenses.
+
+## More open-source workflows from TEIN AI
+
+Get updates on new AI filmmaking workflows, tools, and releases.
+
+**[Join the TEIN AI waitlist →](https://tein.ai)**
