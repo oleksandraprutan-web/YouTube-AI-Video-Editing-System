@@ -1,0 +1,2961 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Eyeline Teleprompter</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Eyeline">
+<meta name="theme-color" content="#0e1113">
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js" onload="window.dispatchEvent(new Event('qrready'))"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: studio-dark single look. Editor = script pane + settings rail.
+   Prompter = full-bleed text column scrolling past a fixed eyeline band. */
+:root{
+  color-scheme: dark;
+  --ink:#0e1113;          /* studio black, faint blue-green like prompter glass */
+  --ink-92:rgba(14,17,19,.94);
+  --surface:#15191c;
+  --raised:#1c2125;
+  --line:#2a3136;
+  --paper:#ece8df;        /* unread script */
+  --bright:#ffffff;
+  --muted:#8a949a;
+  --said:rgba(236,232,223,.26);
+  --cue:#d9a441;          /* gaffer-tape amber: cues + eyeline marker */
+  --cue-soft:rgba(217,164,65,.22);
+  --cue-faint:rgba(217,164,65,.06);
+  --tally:#ff4438;        /* camera tally light: mic is live */
+  --tally-glow:rgba(255,68,56,.55);
+  --tally-soft:rgba(255,68,56,.3);
+  --tally-faint:rgba(255,68,56,.08);
+  --on-tally:#ffffff;
+  --ok:#6cc59a;           /* linked device */
+  --font-read:"Atkinson Hyperlegible Next","Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0;overscroll-behavior:none}
+body{background:var(--ink);color:var(--paper);font:400 15px/1.5 var(--font-read);-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--cue);outline-offset:2px}
+kbd{font:500 11px/1 var(--font-mono);padding:3px 5px;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;color:var(--muted);background:var(--ink)}
+
+/* ---------- Editor ---------- */
+#editor{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr)}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:18px 24px}
+.brand{display:flex;align-items:center;gap:12px}
+.mark{width:0;height:0;border-left:15px solid var(--cue);border-block:10px solid transparent}
+.brand h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.01em;line-height:1.1}
+.brand p{margin:2px 0 0;font:400 11px/1.2 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:8px;border:1px solid var(--line);background:var(--raised);cursor:pointer;font-size:14px;white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--cue);border-color:var(--cue);color:var(--ink);font-weight:700}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.primary kbd{background:transparent;border-color:rgba(14,17,19,.35);color:var(--ink)}
+
+.workspace{min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px;padding:0 24px 24px}
+.script-pane{display:flex;flex-direction:column;gap:8px;min-height:0;min-width:0}
+.label{margin:0;font:500 11px/1 var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+#script{flex:1;min-height:0;width:100%;resize:none;padding:20px 22px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font:400 18px/1.65 var(--font-read);color:var(--paper)}
+#script:focus{outline:none;border-color:var(--cue)}
+#script.drop{border-style:dashed;border-color:var(--cue);background:var(--cue-faint)}
+.hint{margin:0;color:var(--muted);font-size:13px;max-width:70ch}
+.hint b{color:var(--cue);font-weight:500}
+
+.rail{overflow:auto;min-height:0;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.group{padding:16px 18px;display:grid;gap:12px;border-bottom:1px solid var(--line)}
+.group:last-child{border-bottom:0}
+.seg{display:grid;grid-template-columns:1fr 1fr;padding:3px;border-radius:9px;background:var(--ink);border:1px solid var(--line)}
+.seg button{padding:7px 8px;border:0;border-radius:6px;background:transparent;cursor:pointer;color:var(--muted);font-size:14px}
+.seg button[aria-checked="true"]{background:var(--raised);color:var(--paper);box-shadow:inset 0 0 0 1px var(--line)}
+.field{display:grid;gap:6px}
+.field label{display:flex;justify-content:space-between;gap:8px;font-size:14px}
+.field output{font:400 12px/1.6 var(--font-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+select{width:100%;padding:8px 10px;border-radius:7px;border:1px solid var(--line);background:var(--raised)}
+input[type=range]{width:100%;accent-color:var(--cue)}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:14px;cursor:pointer}
+.check input{accent-color:var(--cue);margin-top:3px}
+.note{margin:0;font-size:13px;color:var(--muted)}
+.note.warn{color:var(--cue)}
+.stats{margin:0;display:grid;gap:6px}
+.stats div{display:flex;justify-content:space-between;gap:8px;font-size:14px}
+.stats dt{color:var(--muted)}
+.stats dd{margin:0;font:500 13px/1.5 var(--font-mono);font-variant-numeric:tabular-nums}
+.keys{margin:0;padding:0;list-style:none;display:grid;gap:7px;font-size:13px;color:var(--muted)}
+.keys li{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.chapters{margin:0;padding:0;list-style:none;display:grid;gap:2px}
+.chapters button{display:grid;grid-template-columns:3.2em minmax(0,1fr) auto auto;align-items:baseline;gap:8px;width:100%;padding:7px 8px;border:0;border-radius:6px;background:transparent;cursor:pointer;text-align:left;font-size:13px;color:var(--paper)}
+.chapters button:hover{background:var(--raised)}
+.chapters .num{font:500 11px/1 var(--font-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--cue)}
+.chapters .t{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.chapters .dur{font:400 12px/1 var(--font-mono);font-variant-numeric:tabular-nums;color:var(--muted)}
+.chapters .cov{font:500 11px/1 var(--font-mono);font-variant-numeric:tabular-nums;color:var(--muted)}
+.chapters .cov.full{color:var(--ok)}
+.chapters .is-now button{background:var(--cue-faint);box-shadow:inset 0 0 0 1px var(--cue-soft)}
+.chapters .is-done .t{color:var(--muted)}
+
+.pair{display:flex;gap:12px;align-items:flex-start}
+.qr{flex:none;width:112px;padding:8px;border-radius:8px;background:#fff}
+.qr svg{display:block;width:100%;height:auto}
+.pair-text{display:grid;gap:8px;min-width:0}
+code{font:500 13px/1.4 var(--font-mono);color:var(--paper);background:var(--ink);border:1px solid var(--line);padding:3px 6px;border-radius:5px;word-break:break-all;user-select:all;-webkit-user-select:all}
+.note.ok{color:var(--ok)}
+#toast{position:fixed;left:50%;bottom:24px;translate:-50% 0;max-width:min(560px,calc(100% - 32px));padding:11px 16px;border-radius:9px;background:var(--raised);border:1px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.4);font-size:14px;z-index:20;transition:opacity .25s,translate .25s}
+#toast.out{opacity:0;translate:-50% 8px;pointer-events:none}
+
+@media (max-width:820px){
+  html,body{height:auto}
+  #editor{height:auto}
+  .workspace{grid-template-columns:minmax(0,1fr);padding:0 16px 24px}
+  .bar{padding:16px}
+  #script{min-height:55vh}
+}
+
+/* ---------- Prompter ---------- */
+#prompter{position:fixed;inset:0;background:var(--ink);overflow:hidden;z-index:10}
+#progress{position:absolute;top:0;left:0;right:0;height:3px;background:var(--line);z-index:6}
+#progress span{display:block;height:100%;width:0;background:var(--cue);transition:width .3s}
+#stage{position:absolute;inset:0;overflow:hidden;touch-action:none}
+#flip{position:absolute;inset:0}
+#flip.mirror{transform:scaleX(-1)}
+#scroller{position:absolute;left:0;right:0;top:0;will-change:transform}
+#text{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;position:relative;margin:0 auto;width:var(--col,80%);font-size:min(var(--size,58px),11vw);line-height:1.38;font-weight:500;letter-spacing:.005em;color:var(--paper);overflow-wrap:break-word}
+#text .para{margin-bottom:.95em}
+#text .w{cursor:pointer;transition:color .22s ease;text-decoration:underline transparent;text-decoration-thickness:.07em;text-underline-offset:.2em}
+#text .w:hover{color:var(--bright)}
+#text .w.said{color:var(--said)}
+#text .w.now{color:var(--bright);text-decoration-color:var(--cue)}
+#text .cue-line{font:500 .3em/1.4 var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--cue);margin-bottom:.6em;transition:opacity .3s}
+#text .cue{font:500 .36em/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--cue);border:1px solid var(--cue-soft);border-radius:.4em;padding:.25em .5em;vertical-align:.35em;transition:opacity .3s}
+#text .cue-line.chapter{font-size:.36em;margin-top:.5em;padding-top:1.3em;border-top:1px solid var(--cue-soft)}
+#text .cue-line.said,#text .cue.said{opacity:.35}
+#text .end{font:500 .3em/1.4 var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding-top:1em}
+#fade{position:absolute;left:0;right:0;top:0;height:var(--fade-h,25%);background:linear-gradient(var(--ink) 15%,transparent);pointer-events:none;z-index:2}
+#eyeband{position:absolute;left:0;right:0;top:var(--eye-top,30%);height:var(--eye-h,80px);background:linear-gradient(90deg,var(--cue-soft),var(--cue-faint) 18%,var(--cue-faint) 82%,var(--cue-soft));border-block:1px solid var(--cue-soft);pointer-events:none;z-index:3}
+#eyeband::before{content:"";position:absolute;left:14px;top:50%;translate:0 -50%;border-left:18px solid var(--cue);border-block:12px solid transparent}
+
+#hud{position:absolute;left:0;right:0;bottom:0;z-index:5;display:grid;gap:12px;padding:40px 20px calc(16px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--ink-92) 42%);transition:background .4s}
+.hud-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:7px 11px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font:500 12px/1 var(--font-mono);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.pill i{width:9px;height:9px;border-radius:50%;background:var(--muted)}
+.pill.live i{background:var(--tally);animation:tally 1.6s infinite}
+.pill.wait i{background:var(--cue)}
+.pill.warn{border-color:var(--tally);color:var(--tally)}
+.pill.warn i{background:var(--tally)}
+@keyframes tally{0%{box-shadow:0 0 0 0 var(--tally-glow)}70%{box-shadow:0 0 0 8px transparent}100%{box-shadow:0 0 0 0 transparent}}
+#heard{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;direction:rtl;text-align:left;font:400 13px/1.4 var(--font-mono);color:var(--muted)}
+#heard bdi{direction:ltr}
+.meters{display:flex;gap:16px;font:500 13px/1 var(--font-mono);font-variant-numeric:tabular-nums;color:var(--muted)}
+.meters b{color:var(--paper);font-weight:500}
+.chap{display:inline-flex;align-items:center;min-width:0;max-width:min(52ch,100%);padding:7px 11px;border-radius:999px;border:1px solid var(--cue-soft);background:var(--surface);color:var(--cue);font:500 12px/1 var(--font-mono);letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+.chap span{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.chap:hover,.chap[aria-expanded="true"]{border-color:var(--cue)}
+#chapMenu{position:absolute;left:20px;bottom:calc(100% - 28px);width:min(460px,calc(100% - 40px));max-height:min(60vh,560px);overflow:auto;padding:6px;border-radius:12px;background:var(--raised);border:1px solid var(--line);box-shadow:0 20px 50px rgba(0,0,0,.5)}
+#chapMenu .chapters button:hover{background:var(--surface)}
+.devtag{font:500 12px/1 var(--font-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ok);white-space:nowrap}
+#waiting{position:absolute;left:50%;top:42%;translate:-50% -50%;z-index:7;width:min(560px,calc(100% - 32px));display:grid;gap:10px;text-align:center}
+#waiting p{margin:0}
+#waitingText{font-size:20px;line-height:1.5;color:var(--paper);text-wrap:balance}
+.role-screen .main-only,.role-screen #hud,.role-screen #progress,.role-screen #notice{display:none!important}
+#ipadPanel{position:absolute;right:20px;bottom:calc(100% - 28px);width:min(360px,calc(100% - 40px));padding:16px;border-radius:12px;background:var(--raised);border:1px solid var(--line);box-shadow:0 20px 50px rgba(0,0,0,.5);display:grid;gap:12px}
+#tapHint{position:absolute;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));translate:-50% 0;z-index:7;max-width:calc(100% - 32px);padding:9px 15px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font:400 13px/1.3 var(--font-mono);color:var(--muted);text-align:center}
+.controls{transition:opacity .35s}
+.controls button{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--raised);cursor:pointer;font-size:14px;white-space:nowrap}
+.controls button:hover{border-color:var(--muted)}
+.controls button.primary{background:var(--cue);border-color:var(--cue);color:var(--ink);font-weight:700;min-width:11.5em;justify-content:center}
+.controls button.primary kbd{background:transparent;border-color:rgba(14,17,19,.35);color:var(--ink)}
+.controls button[aria-pressed="true"]{border-color:var(--cue);color:var(--cue)}
+.controls .sep{flex:1}
+#hud.quiet{background:transparent}
+#hud.quiet .controls{opacity:0;pointer-events:none}
+#hud.quiet .status-row{opacity:.55}
+#notice{position:absolute;left:50%;top:50%;translate:-50% -50%;z-index:7;width:min(520px,calc(100% - 32px));padding:20px 22px;border-radius:12px;background:var(--raised);border:1px solid var(--line);box-shadow:0 20px 50px rgba(0,0,0,.5);display:grid;gap:12px}
+#notice p{margin:0;font-size:16px;line-height:1.5}
+#notice .row{display:flex;gap:8px;flex-wrap:wrap}
+
+@media (max-width:640px){
+  #text{width:min(100% - 32px,var(--col,80%))!important}
+  .meters{gap:10px}
+  #heard{flex-basis:100%;order:3}
+  #eyeband::before{left:4px;border-left-width:12px;border-block-width:8px}
+}
+/* takes: level meter, pace warning, countdown, summary */
+.lvl{display:inline-flex;align-items:center}
+.lvl-bar{position:relative;width:92px;height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+#lvlFill{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--ok)}
+#lvlPeak{position:absolute;top:0;bottom:0;left:0;width:2px;background:var(--paper)}
+.lvl.hot #lvlFill{background:var(--cue)}
+.lvl.clip #lvlFill,.lvl.clip #lvlPeak{background:var(--tally)}
+#paceTag{font:500 12px/1 var(--font-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--tally);white-space:nowrap}
+#eyeband.fast{background:linear-gradient(90deg,var(--tally-soft),var(--tally-faint) 18%,var(--tally-faint) 82%,var(--tally-soft));border-color:var(--tally-soft)}
+#eyeband.fast::before{border-left-color:var(--tally)}
+#countdown{position:absolute;inset:0;z-index:4;display:grid;place-items:center;pointer-events:none}
+#countNum{font:700 min(42vh,42vw)/1 var(--font-read);color:var(--cue);text-shadow:0 0 60px rgba(0,0,0,.6)}
+#text.hide-cues .cue,#text.hide-cues .cue-line{display:none}
+.proj{display:flex;align-items:center;gap:8px}
+.proj .label{white-space:nowrap}
+.proj select{min-width:12em;max-width:22em}
+.proj-name{margin:0;font-size:17px;font-weight:700;overflow-wrap:anywhere}
+.row-btns{display:flex;gap:8px;flex-wrap:wrap}
+.row-btns .btn{padding:7px 12px;font-size:13px}
+input[type=text]{width:100%;padding:9px 11px;border-radius:7px;border:1px solid var(--line);background:var(--ink);color:var(--paper);font-size:15px}
+input[type=text]:focus{outline:none;border-color:var(--cue)}
+.modal{position:fixed;inset:0;z-index:31;display:grid;place-items:center;padding:16px;background:rgba(0,0,0,.55)}
+.modal form{margin:0;width:min(520px,100%)}
+#summary{position:fixed;inset:0;z-index:30;display:grid;place-items:center;padding:16px;background:rgba(0,0,0,.55)}
+.sum-card{width:min(660px,100%);max-height:calc(100vh - 32px);overflow:auto;display:grid;gap:14px;padding:22px 24px;border-radius:14px;background:var(--raised);border:1px solid var(--line);box-shadow:0 30px 70px rgba(0,0,0,.55)}
+.sum-card h2{margin:0;font-size:22px;line-height:1.2}
+.sum-stats{margin:0;display:flex;flex-wrap:wrap;gap:6px 18px;font:500 13px/1.4 var(--font-mono);color:var(--muted)}
+.sum-stats b{color:var(--paper);font-weight:500}
+.sum-list{margin:0;padding:0;list-style:none;display:grid;gap:2px}
+.sum-list button{display:grid;grid-template-columns:4.4em 6.6em minmax(0,1fr);align-items:baseline;gap:10px;width:100%;padding:8px;border:0;border-radius:6px;background:transparent;text-align:left;cursor:pointer;font-size:14px;color:var(--paper)}
+.sum-list button:hover{background:var(--surface)}
+.sum-list .tm{font:500 12px/1.5 var(--font-mono);font-variant-numeric:tabular-nums;color:var(--muted)}
+.sum-list .kd{font:500 11px/1.6 var(--font-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--cue)}
+.sum-list .tx{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.sum-actions{display:flex;gap:8px;flex-wrap:wrap}
+/* iPhone monitor */
+#monitor{min-height:100%;display:flex;flex-direction:column;gap:16px;padding:calc(18px + env(safe-area-inset-top,0px)) 18px calc(18px + env(safe-area-inset-bottom,0px));background:var(--ink)}
+/* Recording state: impossible to miss from across the room */
+.m-recbar{display:flex;align-items:center;justify-content:center;gap:12px;padding:18px 14px;border-radius:14px;border:2px solid var(--line);background:var(--surface);font:700 clamp(17px,5.4vw,24px)/1.15 var(--font-mono);letter-spacing:.06em;text-transform:uppercase;text-align:center;color:var(--muted)}
+.m-recbar i{flex:none;width:18px;height:18px;border-radius:50%;background:var(--muted)}
+.m-recbar.rec{background:var(--tally);border-color:var(--tally);color:var(--on-tally)}
+.m-recbar.rec i{background:var(--on-tally);animation:recpulse 1.1s infinite}
+.m-recbar.practice{border-color:var(--cue);color:var(--cue)}
+.m-recbar.practice i{background:var(--cue)}
+.m-recbar.ready{border-color:var(--ok);color:var(--ok)}
+.m-recbar.ready i{background:var(--ok)}
+.m-recbar.warn{border-color:var(--tally);color:var(--tally)}
+.m-recbar.warn i{background:var(--tally)}
+@keyframes recpulse{50%{opacity:.2}}
+#monitor.is-rec{box-shadow:inset 0 0 0 6px var(--tally)}
+.m-mic p{margin:0}
+.m-mic .lineup{display:flex;align-items:baseline;gap:10px;font-size:17px}
+.m-mic .label{flex:none}
+#mMicName{font-weight:700;overflow-wrap:anywhere}
+@media (prefers-reduced-motion:reduce){.m-recbar.rec i{animation:none}}
+#mClock{margin:0;text-align:center;font:500 clamp(54px,19vw,120px)/1 var(--font-mono);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.m-card{display:grid;gap:8px;padding:14px;border-radius:12px;background:var(--surface);border:1px solid var(--line)}
+.m-card .label{color:var(--cue)}
+.m-bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+#mChapBar{display:block;height:100%;width:0;background:var(--cue)}
+.m-sub{margin:0;font-size:14px;color:var(--muted)}
+.m-pace{display:flex;align-items:baseline;gap:8px;font-size:15px;color:var(--muted)}
+.m-pace b{font:500 34px/1 var(--font-mono);color:var(--paper)}
+.m-pace.warn b,.m-pace.warn span{color:var(--tally)}
+.m-meter{position:relative;height:16px;border-radius:8px;background:var(--line);overflow:hidden}
+#mLvl{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--ok)}
+#mPeak{position:absolute;top:0;bottom:0;left:0;width:3px;background:var(--paper)}
+.m-level.hot #mLvl{background:var(--cue)}
+.m-level.clip #mLvl,.m-level.clip #mPeak{background:var(--tally)}
+.m-level.off .m-meter{opacity:.35}
+.m-scale{display:flex;justify-content:space-between;font:400 11px/1 var(--font-mono);color:var(--muted)}
+.m-feed{flex:1;min-height:180px;grid-template-rows:auto minmax(0,1fr)}
+.m-events{margin:0;padding:0;list-style:none;display:grid;align-content:start;gap:4px;overflow:auto}
+.m-events li{display:grid;grid-template-columns:3.6em 6.4em minmax(0,1fr);gap:8px;align-items:baseline;padding:6px 6px;border-radius:6px;font-size:14px}
+.m-events li.fresh{animation:fresh 1.6s ease-out}
+@keyframes fresh{from{background:var(--cue-soft)}to{background:transparent}}
+.m-events .tm{font:500 12px/1.5 var(--font-mono);font-variant-numeric:tabular-nums;color:var(--muted)}
+.m-events .kd{font:500 11px/1.6 var(--font-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.m-events .kd.retake,.m-events .kd.jumped-back{color:var(--tally)}
+.m-events .kd.marked{color:var(--cue)}
+.m-events .kd.started,.m-events .kd.saved{color:var(--ok)}
+.m-events .tx{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.m-events .m-empty{display:block;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.m-events li.fresh{animation:none}}
+.linkish{border:0;background:none;padding:6px 0;color:var(--muted);text-decoration:underline;font-size:14px;cursor:pointer}
+@media (pointer:coarse){
+  .controls button{min-height:46px;padding:10px 16px;font-size:16px;touch-action:manipulation}
+  .controls kbd,.btn kbd{display:none}
+  .pill,.chap{padding:10px 14px}
+}
+@media (prefers-reduced-motion:reduce){
+  .pill.live i{animation:none}
+  #text .w{transition:none}
+}
+</style>
+</head>
+<body>
+
+<div id="editor">
+  <header class="bar">
+    <div class="brand">
+      <span class="mark" aria-hidden="true"></span>
+      <div>
+        <h1>Eyeline</h1>
+        <p>Teleprompter that follows your voice</p>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="proj" id="projBar" hidden>
+        <label for="projectPick" class="label">Project</label>
+        <select id="projectPick" class="btn"></select>
+        <button id="newProjectBtn" class="btn" type="button">New project</button>
+      </div>
+      <button id="openBtn" class="btn" type="button">Open .md / .txt</button>
+      <input id="fileInput" type="file" accept=".md,.markdown,.txt,text/plain,text/markdown" hidden>
+      <button id="tidyBtn" class="btn" type="button">Tidy markdown</button>
+      <button id="startBtn" class="btn primary" type="button">Start prompting <kbd>⌘↵</kbd></button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <section class="script-pane">
+      <label for="script" class="label">Script</label>
+      <textarea id="script" spellcheck="true" placeholder="Paste your script here, or drop a .md / .txt file on this box."></textarea>
+      <p class="hint">Put directions in <b>[square brackets]</b>. They show on screen in amber, and the prompter won't wait for you to say them. A direction that says <b>Chapter</b> becomes a chapter you can jump to. Markdown is cleaned up for the prompter automatically, and tables with a Voiceover column keep only the voiceover.</p>
+    </section>
+
+    <aside class="rail" aria-label="Prompter settings">
+      <section class="group" id="projGroup" hidden>
+        <h2 class="label">Project</h2>
+        <p id="projName" class="proj-name"></p>
+        <p id="projStats" class="note"></p>
+        <p id="projSaved" class="note"></p>
+        <div class="row-btns">
+          <button type="button" class="btn" id="projFinder">Show in Finder</button>
+          <button type="button" class="btn" id="projRename">Rename</button>
+        </div>
+      </section>
+
+      <section class="group">
+        <h2 class="label">Scroll by</h2>
+        <div class="seg" role="radiogroup" aria-label="Scroll mode">
+          <button type="button" role="radio" id="modeVoice" data-mode="voice">My voice</button>
+          <button type="button" role="radio" id="modeAuto" data-mode="auto">Fixed speed</button>
+        </div>
+        <div id="voiceOpts" class="field">
+          <label for="lang">Language you'll speak</label>
+          <select id="lang">
+            <option value="en-US">English (US)</option>
+            <option value="en-GB">English (UK)</option>
+            <option value="en-AU">English (Australia)</option>
+            <option value="en-CA">English (Canada)</option>
+            <option value="en-IN">English (India)</option>
+            <option value="it-IT">Italiano</option>
+            <option value="es-ES">Español (España)</option>
+            <option value="es-MX">Español (México)</option>
+            <option value="fr-FR">Français</option>
+            <option value="de-DE">Deutsch</option>
+            <option value="pt-BR">Português (Brasil)</option>
+          </select>
+          <p id="srNote" class="note warn" hidden>This browser can't follow your voice. Open this file in Chrome, Edge or Safari, or use Fixed speed.</p>
+        </div>
+        <div id="autoOpts" class="field" hidden>
+          <label for="autoWpm">Speed <output id="autoWpmOut" for="autoWpm"></output></label>
+          <input id="autoWpm" type="range" min="80" max="260" step="5">
+        </div>
+      </section>
+
+      <section class="group" id="takeGroup">
+        <h2 class="label">Takes</h2>
+        <label class="check"><input type="checkbox" id="record"> Record my voice and save each take</label>
+        <label class="check"><input type="checkbox" id="chirp"> Sync beep at the start and end of each take (lines the take up with the camera)</label>
+        <div class="field">
+          <label for="micId">Recording mic</label>
+          <select id="micId"><option value="">System default</option></select>
+        </div>
+        <div class="field">
+          <label for="cdSel">Countdown before a take</label>
+          <select id="cdSel"><option value="0">Off</option><option value="3">3 seconds</option><option value="5">5 seconds</option></select>
+        </div>
+        <div class="field">
+          <label for="targetWpm">Warn me when faster than <output id="targetWpmOut" for="targetWpm"></output></label>
+          <input id="targetWpm" type="range" min="120" max="220" step="5">
+        </div>
+        <p id="takeNote" class="note">Takes are saved inside the open project: the audio, captions of everything you said, clean script captions and an edit map. After each take the project's edit plan picks the best reading of every line, ready for an AI agent to cut.</p>
+      </section>
+
+      <section class="group" id="devGroup" hidden>
+        <h2 class="label">iPad and iPhone</h2>
+        <div class="pair">
+          <div id="qr" class="qr" hidden></div>
+          <div class="pair-text">
+            <p class="note">On your iPad or iPhone, scan this with the Camera app, or type this into Safari:</p>
+            <code id="lanUrl"></code>
+          </div>
+        </div>
+        <p class="note">An iPad shows the words. An iPhone becomes a monitor: take timer, mic level, pace, and a live list of retakes and flubs.</p>
+        <p id="devStatus" class="note"></p>
+        <h3 class="label">How the iPad shows it</h3>
+        <div class="field">
+          <label for="ipSize">Text size <output data-ip-out="size"></output></label>
+          <input id="ipSize" data-ip="size" type="range" min="28" max="140" step="2">
+        </div>
+        <div class="field">
+          <label for="ipWidth">Column width <output data-ip-out="width"></output></label>
+          <input id="ipWidth" data-ip="width" type="range" min="40" max="100" step="2">
+        </div>
+        <div class="field">
+          <label for="ipEye">Eyeline height <output data-ip-out="eyeline"></output></label>
+          <input id="ipEye" data-ip="eyeline" type="range" min="15" max="60" step="1">
+        </div>
+        <label class="check"><input type="checkbox" id="ipMirror" data-ip="mirror"> Mirror the iPad for teleprompter glass</label>
+        <label class="check"><input type="checkbox" id="ipCues" data-ip="cues"> Show [directions] on the iPad too</label>
+      </section>
+
+      <section class="group">
+        <h2 class="label">Display</h2>
+        <div class="field">
+          <label for="size">Text size <output id="sizeOut" for="size"></output></label>
+          <input id="size" type="range" min="28" max="120" step="2">
+        </div>
+        <div class="field">
+          <label for="width">Column width <output id="widthOut" for="width"></output></label>
+          <input id="width" type="range" min="40" max="100" step="2">
+        </div>
+        <div class="field">
+          <label for="eyeline">Eyeline height <output id="eyelineOut" for="eyeline"></output></label>
+          <input id="eyeline" type="range" min="15" max="60" step="1">
+        </div>
+        <label class="check"><input type="checkbox" id="mirror"> Mirror text for teleprompter glass</label>
+        <label class="check"><input type="checkbox" id="showHeard"> Show what the mic hears</label>
+      </section>
+
+      <section class="group">
+        <h2 class="label">This script</h2>
+        <dl class="stats">
+          <div><dt>Spoken words</dt><dd id="statWords">0</dd></div>
+          <div><dt>Cues</dt><dd id="statCues">0</dd></div>
+          <div><dt>Read time at 150 wpm</dt><dd id="statTime">0:00</dd></div>
+        </dl>
+        <p id="lastTake" class="note" hidden></p>
+      </section>
+
+      <section class="group" id="chapGroup" hidden>
+        <h2 class="label" id="chapHeading">Chapters</h2>
+        <p class="note">Click one to start prompting from there. Times are at 150 wpm.</p>
+        <ol class="chapters" id="chapList"></ol>
+      </section>
+
+      <section class="group">
+        <h2 class="label">While prompting</h2>
+        <ul class="keys">
+          <li><kbd>Space</kbd> start or pause</li>
+          <li><kbd>↑</kbd><kbd>↓</kbd> back or forward a line</li>
+          <li><kbd>⇧</kbd><kbd>↑</kbd><kbd>↓</kbd> previous or next chapter</li>
+          <li><kbd>C</kbd> chapter list</li>
+          <li><kbd>I</kbd> iPad display settings</li>
+          <li><kbd>X</kbd> mark a flub during a take</li>
+          <li>Click any word to jump there</li>
+          <li><kbd>+</kbd><kbd>−</kbd> text size</li>
+          <li><kbd>M</kbd> mirror <kbd>F</kbd> full screen</li>
+          <li><kbd>Esc</kbd> back to the editor</li>
+        </ul>
+      </section>
+    </aside>
+  </main>
+</div>
+
+<div id="prompter" hidden>
+  <div id="progress"><span></span></div>
+  <div id="stage">
+    <div id="flip">
+      <div id="scroller"><div id="text"></div></div>
+      <div id="fade"></div>
+      <div id="eyeband" aria-hidden="true"></div>
+      <div id="countdown" hidden><span id="countNum"></span></div>
+    </div>
+  </div>
+  <div id="hud">
+    <div class="hud-row status-row">
+      <span id="status" class="pill"><i></i><span id="statusText">Paused</span></span>
+      <button type="button" id="chapBtn" class="chap" aria-haspopup="true" aria-expanded="false" hidden><span id="chapText"></span></button>
+      <span id="devTag" class="devtag" hidden></span>
+      <span id="lvl" class="lvl" title="Mic level" hidden><span class="lvl-bar"><i id="lvlFill"></i><b id="lvlPeak"></b></span></span>
+      <span id="paceTag" hidden>Slow down</span>
+      <span id="heard" aria-live="off"></span>
+      <span class="meters">
+        <span><b id="tc">00:00:00</b></span>
+        <span><b id="wpm">—</b> wpm</span>
+        <span><b id="left">—</b> left</span>
+      </span>
+    </div>
+    <div class="hud-row controls">
+      <button type="button" id="exitBtn" class="main-only">Edit script <kbd>Esc</kbd></button>
+      <button type="button" id="restartBtn">Restart</button>
+      <button type="button" id="backBtn" aria-label="Back a line">↑ Line</button>
+      <button type="button" id="goBtn" class="primary">Start listening <kbd>Space</kbd></button>
+      <button type="button" id="fwdBtn" aria-label="Forward a line">↓ Line</button>
+      <button type="button" id="markBtn">Mark flub <kbd>X</kbd></button>
+      <span class="sep"></span>
+      <button type="button" id="smallerBtn" aria-label="Smaller text">A−</button>
+      <button type="button" id="biggerBtn" aria-label="Bigger text">A+</button>
+      <button type="button" id="mirrorBtn" aria-pressed="false">Mirror</button>
+      <button type="button" id="ipadBtn" class="main-only" aria-expanded="false" hidden>iPad display <kbd>I</kbd></button>
+      <button type="button" id="fsBtn">Full screen</button>
+    </div>
+    <div id="chapMenu" hidden><ol class="chapters" id="chapMenuList"></ol></div>
+    <div id="ipadPanel" hidden>
+      <h2 class="label">iPad display</h2>
+      <div class="field">
+        <label for="ipSize2">Text size <output data-ip-out="size"></output></label>
+        <input id="ipSize2" data-ip="size" type="range" min="28" max="140" step="2">
+      </div>
+      <div class="field">
+        <label for="ipWidth2">Column width <output data-ip-out="width"></output></label>
+        <input id="ipWidth2" data-ip="width" type="range" min="40" max="100" step="2">
+      </div>
+      <div class="field">
+        <label for="ipEye2">Eyeline height <output data-ip-out="eyeline"></output></label>
+        <input id="ipEye2" data-ip="eyeline" type="range" min="15" max="60" step="1">
+      </div>
+      <label class="check"><input type="checkbox" id="ipMirror2" data-ip="mirror"> Mirror the iPad for teleprompter glass</label>
+        <label class="check"><input type="checkbox" id="ipCues2" data-ip="cues"> Show [directions] on the iPad too</label>
+    </div>
+  </div>
+  <div id="notice" role="alert" hidden>
+    <p id="noticeText"></p>
+    <div class="row" id="noticeActions"></div>
+  </div>
+  <div id="waiting" hidden>
+    <p class="label">Eyeline · iPad screen</p>
+    <p id="waitingText">Looking for your Mac…</p>
+    <p><button type="button" class="linkish" id="useMonitor">Use this device as a monitor and remote instead</button></p>
+  </div>
+  <p id="tapHint" hidden>Tap once for full screen. Set Auto-Lock to Never so the screen stays on.</p>
+</div>
+<div id="monitor" hidden>
+  <div id="mRecBar" class="m-recbar" role="status"><i></i><span id="mRecText">Looking for your Mac</span></div>
+  <div class="m-card m-mic">
+    <p class="lineup"><span class="label">Mic</span><span id="mMicName">—</span></p>
+    <p id="mMicNote" class="m-sub"></p>
+  </div>
+  <p id="mClock">00:00:00</p>
+  <div class="m-card">
+    <p id="mChap" class="label">Script</p>
+    <div class="m-bar"><span id="mChapBar"></span></div>
+    <p class="m-sub"><span id="mChapLeft">—</span> left in this chapter · <span id="mLeft">—</span> left in the script</p>
+  </div>
+  <div class="m-card">
+    <div id="mPace" class="m-pace"><b id="mWpm">—</b> wpm <span id="mPaceNote"></span></div>
+  </div>
+  <div id="mLevel" class="m-card m-level off">
+    <p class="label">Mac mic level</p>
+    <div class="m-meter"><span id="mLvl"></span><i id="mPeak"></i></div>
+    <div class="m-scale"><span>−60</span><span>−40</span><span>−20</span><span>−6</span><span>0 dB</span></div>
+    <p id="mLvlNote" class="m-sub">The level shows while the Mac's prompter is open.</p>
+  </div>
+  <div class="m-card m-feed">
+    <p class="label">This take</p>
+    <ol id="mFeed" class="m-events"><li class="m-empty">Retakes, marks, skipped lines and long pauses appear here as they happen.</li></ol>
+  </div>
+  <p class="m-sub" id="mTap">Set Auto-Lock to Never so this screen stays on.</p>
+  <p><button type="button" class="linkish" id="useScreen">Use this device as the teleprompter screen instead</button></p>
+</div>
+<div id="projDialog" class="modal" hidden>
+  <form class="sum-card" id="projForm">
+    <h2 id="projDialogTitle">New project</h2>
+    <div class="field">
+      <label for="projNameInput">Name</label>
+      <input id="projNameInput" type="text" maxlength="60" placeholder="Genjutsu" required>
+    </div>
+    <div class="field" id="projFromField">
+      <label for="projFrom">Start with</label>
+      <select id="projFrom"></select>
+    </div>
+    <p class="note" id="projDialogNote">One project per video. Its script, every take and the edit plan live together in Projects/&lt;name&gt; next to your scripts.</p>
+    <div class="sum-actions">
+      <span style="flex:1"></span>
+      <button type="button" class="btn" id="projCancel">Cancel</button>
+      <button type="submit" class="btn primary" id="projSubmit">Create project</button>
+    </div>
+  </form>
+</div>
+<div id="summary" hidden>
+  <div class="sum-card" role="dialog" aria-labelledby="sumTitle">
+    <h2 id="sumTitle">Take saved</h2>
+    <p id="sumStats" class="sum-stats"></p>
+    <p id="sumWhere" class="note"></p>
+    <p class="label" id="sumListLabel">Check these · click one to go back there</p>
+    <ol id="sumList" class="sum-list"></ol>
+    <div class="sum-actions">
+      <button type="button" class="btn" id="sumFinder">Show in Finder</button>
+      <button type="button" class="btn" id="sumCopy">Copy YouTube chapters</button>
+      <span style="flex:1"></span>
+      <button type="button" class="btn primary" id="sumClose">Close <kbd>Esc</kbd></button>
+    </div>
+  </div>
+</div>
+<div id="toast" class="out" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+/* ---------- storage (optional; the app works without it) ---------- */
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+};
+
+const DEFAULTS = { mode: 'voice', lang: 'en-US', autoWpm: 150, size: 58, width: 80, eyeline: 32, mirror: false, showHeard: true,
+                   record: true, micId: '', countdown: 3, targetWpm: 170, chirp: true };
+const settings = Object.assign({}, DEFAULTS, store.get('eyeline.settings', {}));
+// How a linked iPad shows the script. Set on the Mac, separate from the Mac's own display.
+settings.screen = Object.assign({ size: 64, width: 88, eyeline: 32, mirror: false, cues: false }, settings.screen);
+const saveSettings = () => store.set('eyeline.settings', settings);
+
+const SAMPLE = `[0–4s HOOK]
+Higgsfield's Genjutsu can put any movement on any character, and it never copies a single pixel of the original video. Here's how it works, and how to do it yourself in Seedance.
+
+[4–10s PROBLEM]
+Drop a real video straight into Seedance as a reference and it drags everything along: the person, the outfit, the lighting, the background. You wanted the moves, not the guy.
+
+[10–20s STEP 1]
+So Genjutsu splits the job up. First, your source video goes through Video Depth Anything, which turns every frame into a 3D depth pass. No face, no clothes, no colors. Just shape and motion.
+
+[20–30s STEP 2]
+At the same time, an LLM watches the source and writes up the environment. A second agent describes your inputs: your character, your product, your setting. A third agent merges all of it into one prompt.
+
+[30–36s STEP 3]
+The depth video goes into Seedance as @Video1 with the merged prompt. Seedance gets the choreography and nothing else.
+
+[36–42s WHY]
+That's the trick. You're transferring motion, not footage. The original performer and the original shot never make it into the generation.
+
+[42–52s MODE 1]
+You can run it two ways. One: a motion prompt. You've got a real performance, like a dance, a fight, or a product demo, and you want that exact timing on a new subject. The prompt tells Seedance that @Video1 is movement only: keep the order, the weight shifts, the pauses, the follow-through, and ignore everything else.
+
+[52–62s MODE 2]
+Two: a coarse blockout. You staged the shot with gray boxes or mannequins in Blender and you want a finished scene. The one thing that makes this work is object mapping. Tell Seedance exactly which box becomes which person and which cube becomes which product. Skip that and you get gray boxes back.
+
+[62–67s DIY]
+You don't need Genjutsu for this. Video Depth Anything is open source. Run your clip through it, upload the depth video as @Video1, and use the template.
+
+[67–72s CTA]
+I wrote out both prompts, the motion one and the blockout one. Comment EPIC and I'll send you the full workflow.`;
+
+/* ---------- words → matching keys ---------- */
+const ONES = 'zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen'.split(' ');
+const TENS = ',,twenty,thirty,forty,fifty,sixty,seventy,eighty,ninety'.split(',');
+function numWords(n) {
+  if (n < 20) return [ONES[n]];
+  if (n < 100) return n % 10 ? [TENS[(n / 10) | 0], ONES[n % 10]] : [TENS[n / 10]];
+  if (n < 1000) return [ONES[(n / 100) | 0], 'hundred', ...(n % 100 ? numWords(n % 100) : [])];
+  if (n < 1e6) return [...numWords((n / 1000) | 0), 'thousand', ...(n % 1000 ? numWords(n % 1000) : [])];
+  return [String(n)];
+}
+// One display word can become several keys ("3D" → three d, "short-form" → short form).
+function keysOf(tok) {
+  let t = tok.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '')
+    .replace(/['’‘`´]/g, '').replace(/&/g, ' and ').replace(/%/g, ' percent ').replace(/\+/g, ' plus ');
+  t = t.replace(/(\p{N})(\p{L})/gu, '$1 $2').replace(/(\p{L})(\p{N})/gu, '$1 $2');
+  const out = [];
+  for (const p of t.split(/[^\p{L}\p{N}]+/u)) {
+    if (!p) continue;
+    if (/^\d{1,6}$/.test(p)) out.push(...numWords(+p)); else out.push(p);
+  }
+  return out;
+}
+const tokensOf = text => text.split(/\s+/).flatMap(keysOf);
+
+const STOP = new Set('a an and are as at be but by do for from had has have he her his i if in into is it its just me my no not of on or our she so than that the their them then there these they this to too up us was we were what when which who will with you your im ive youre thats dont its'.split(' '));
+const weight = w => STOP.has(w) ? 0.4 : (w.length <= 2 ? 0.55 : 1);
+
+function lev(a, b) {
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j), cur = new Array(b.length + 1);
+  for (let i = 1; i <= a.length; i++) {
+    cur[0] = i;
+    for (let j = 1; j <= b.length; j++)
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    [prev, cur] = [cur, prev];
+  }
+  return prev[b.length];
+}
+function sim(a, b) {
+  if (a === b) return 1;
+  const short = Math.min(a.length, b.length);
+  if (short >= 4 && (a.startsWith(b) || b.startsWith(a))) return 0.85;      // partial interim word, plurals
+  if (short >= 4 && Math.abs(a.length - b.length) <= 3) {
+    const r = 1 - lev(a, b) / Math.max(a.length, b.length);
+    if (r >= 0.72) return r;                                                 // misheard spelling
+  }
+  return 0;
+}
+
+// Words are interned to small integers so the matcher compares and caches numbers, not strings.
+const idOf = new Map(), strOf = [], wtOf = [];
+function intern(w) {
+  let id = idOf.get(w);
+  if (id === undefined) { id = strOf.length; strOf.push(w); wtOf.push(weight(w)); idOf.set(w, id); }
+  return id;
+}
+const simIds = new Map();
+function simId(a, b) {
+  if (a === b) return 1;
+  const k = a * 1048576 + b;
+  let v = simIds.get(k);
+  if (v === undefined) {
+    v = sim(strOf[a], strOf[b]);
+    if (simIds.size > 300000) simIds.clear();
+    simIds.set(k, v);
+  }
+  return v;
+}
+
+/* ---------- script model ---------- */
+let keys = [], keyWord = [], wordFirstKey = [], wordEls = [], cueEls = [];
+let keyIds = new Int32Array(0), keyIndex = new Map();
+let builtFrom = null;
+let pos = 0, posF = 0, curWord = -1;
+
+function tokenizeLine(line) { return line.match(/\[[^\]\n]*\]|[^\s]+/g) || []; }
+const isCue = t => t.length > 1 && t[0] === '[' && t[t.length - 1] === ']';
+
+// Markdown is cleaned for the prompter even if the editor still shows it raw.
+const prepare = src => looksMarkdown(src) ? convertMarkdown(src).text : src;
+
+function parseScript(src) {
+  const paras = [], cueLines = [];
+  let words = 0, spoken = 0, nkeys = 0, cues = 0;
+  for (const para of src.replace(/\r\n?/g, '\n').trim().split(/\n\s*\n+/)) {
+    const lines = [];
+    for (const line of para.split('\n')) {
+      const toks = tokenizeLine(line);
+      if (!toks.length) continue;
+      if (toks.every(isCue)) {
+        const cl = { cueLine: true, text: toks.map(t => t.slice(1, -1).trim()).join(' · '), at: words, k: nkeys };
+        cueLines.push(cl); lines.push(cl); cues += toks.length;
+        continue;
+      }
+      lines.push({ items: toks.map(t => {
+        if (isCue(t)) { cues++; return { cue: t.slice(1, -1).trim() }; }
+        const ks = keysOf(t);
+        words++; nkeys += ks.length; if (ks.length) spoken++;
+        return { word: t, keys: ks };
+      }) });
+    }
+    if (lines.length) paras.push(lines);
+  }
+  return { paras, cueLines, words, spoken, keys: nkeys, cues };
+}
+
+// Cues that say "Chapter N" become chapters; without any, every cue line is a section.
+function pickChapters({ cueLines, words, keys: total }) {
+  const named = cueLines.filter(c => /\bchapter\b/i.test(c.text));
+  const list = [];
+  for (const c of (named.length ? named : cueLines)) {
+    if (c.at >= words) continue;
+    if (list.length && list[list.length - 1].at === c.at) list[list.length - 1] = c; else list.push(c);
+  }
+  const chaps = list.map((c, i) => {
+    const m = c.text.match(/chapter\s*(\d+)\s*[·:.\-–—]?\s*(.*)$/i);
+    return m ? { kind: 'chapter', num: 'Ch ' + m[1], title: m[2].trim() || c.text, at: c.at, k: c.k, line: c }
+             : { kind: 'section', num: String(i + 1), title: c.text, at: c.at, k: c.k, line: c };
+  });
+  if (chaps.length && chaps[0].at > 0) chaps.unshift({ kind: 'opening', num: '', title: 'Opening', at: 0, k: 0, line: null });
+  chaps.forEach((c, i) => { c.keys = (i + 1 < chaps.length ? chaps[i + 1].k : total) - c.k; });
+  return chaps.length >= 2 ? chaps : [];
+}
+
+// cov (optional): Map of chapter index -> [lines recorded, lines total] for the open project.
+function renderChapterList(ol, chaps, onPick, cov) {
+  ol.textContent = '';
+  chaps.forEach((c, i) => {
+    const li = document.createElement('li');
+    const b = document.createElement('button');
+    b.type = 'button';
+    const num = document.createElement('span'); num.className = 'num'; num.textContent = c.num;
+    const t = document.createElement('span'); t.className = 't'; t.textContent = c.title;
+    const k = document.createElement('span'); k.className = 'cov';
+    const [done, total] = cov?.get(i) || [0, 0];
+    if (done) { k.textContent = done === total ? '✓ recorded' : `${done}/${total} lines`; k.classList.toggle('full', done === total); }
+    const d = document.createElement('span'); d.className = 'dur'; d.textContent = fmtTime(c.keys / 150 * 60);
+    b.append(num, t, k, d);
+    b.addEventListener('click', () => onPick(c, i));
+    li.appendChild(b);
+    ol.appendChild(li);
+  });
+}
+
+let chapters = [], shownChap = -1;
+
+function build(src) {
+  const parsed = parseScript(prepare(src));
+  const text = $('#text');
+  text.textContent = '';
+  keys = []; keyWord = []; wordFirstKey = []; wordEls = []; cueEls = [];
+  const frag = document.createDocumentFragment();
+  for (const lines of parsed.paras) {
+    const p = document.createElement('div');
+    p.className = 'para';
+    for (const line of lines) {
+      if (line.cueLine) {
+        const d = document.createElement('div');
+        d.className = 'cue-line';
+        d.textContent = line.text;
+        line.el = d;
+        cueEls.push({ el: d, at: line.at });
+        p.appendChild(d);
+        continue;
+      }
+      const ln = document.createElement('div');
+      line.items.forEach((it, i) => {
+        if (i) ln.appendChild(document.createTextNode(' '));
+        if (it.cue !== undefined) {
+          const c = document.createElement('span');
+          c.className = 'cue';
+          c.textContent = it.cue;
+          cueEls.push({ el: c, at: wordEls.length });
+          ln.appendChild(c);
+          return;
+        }
+        const s = document.createElement('span');
+        s.className = 'w';
+        s.textContent = it.word;
+        s.dataset.w = wordEls.length;
+        wordFirstKey.push(it.keys.length ? keys.length : -1);
+        for (const k of it.keys) { keys.push(k); keyWord.push(wordEls.length); }
+        wordEls.push(s);
+        ln.appendChild(s);
+      });
+      p.appendChild(ln);
+    }
+    frag.appendChild(p);
+  }
+  const end = document.createElement('div');
+  end.className = 'end';
+  end.textContent = '— End of script —';
+  frag.appendChild(end);
+  text.appendChild(frag);
+  keyIds = Int32Array.from(keys, intern);
+  keyIndex = new Map();
+  keyIds.forEach((id, i) => { let a = keyIndex.get(id); if (!a) keyIndex.set(id, a = []); a.push(i); });
+
+  chapters = pickChapters(parsed);
+  for (const c of chapters) if (c.kind === 'chapter') c.line.el.classList.add('chapter');
+  renderChapterList($('#chapMenuList'), chapters, (c, i) => { jumpToChapter(i); toggleChapMenu(false); });
+  shownChap = -1;
+
+  builtFrom = src;
+  curWord = -1; pos = 0; posF = 0; glide = 0;
+  setPos(0);
+}
+
+function chapIndex() {
+  let i = -1;
+  for (let j = 0; j < chapters.length; j++) if (chapters[j].at <= curWord) i = j;
+  return Math.max(0, i);
+}
+function updateChapterChip() {
+  const btn = $('#chapBtn');
+  btn.hidden = !chapters.length;
+  if (!chapters.length) return;
+  const i = chapIndex();
+  if (i === shownChap) return;
+  shownChap = i;
+  const c = chapters[i];
+  $('#chapText').textContent = (c.num ? c.num + ' · ' : '') + c.title;
+  btn.title = `Chapters (C). ${i + 1} of ${chapters.length}`;
+  [...$('#chapMenuList').children].forEach((li, j) => {
+    li.classList.toggle('is-now', j === i);
+    li.classList.toggle('is-done', j < i);
+  });
+}
+function jumpToChapter(i) { if (chapters[i]) jumpToWord(chapters[i].at); }
+function chapterStep(dir) {
+  if (!chapters.length) return;
+  const i = chapIndex();
+  if (dir < 0) jumpToChapter(curWord - chapters[i].at > 3 || i === 0 ? i : i - 1);
+  else if (i + 1 < chapters.length) jumpToChapter(i + 1);
+}
+function toggleChapMenu(force) {
+  const m = $('#chapMenu');
+  if (!chapters.length) { m.hidden = true; return; }
+  const open = force ?? m.hidden;
+  m.hidden = !open;
+  $('#chapBtn').setAttribute('aria-expanded', String(open));
+  if (open) m.querySelector('.is-now')?.scrollIntoView({ block: 'nearest' });
+  poke();
+}
+
+function setPos(p) {
+  p = clamp(p, 0, keys.length);
+  if (p !== pos) samples.push([performance.now(), p]);
+  if (p > pos) lastAdvanceAt = performance.now();
+  if (take && p !== pos) recordMove(pos, p);
+  pos = p;
+  const cw = p < keys.length ? keyWord[p] : wordEls.length;
+  if (cw !== curWord) {
+    const from = Math.max(curWord, 0);
+    if (cw > from) for (let i = from; i < cw; i++) wordEls[i].classList.add('said');
+    else for (let i = cw; i < from && i < wordEls.length; i++) wordEls[i].classList.remove('said');
+    if (wordEls[curWord]) wordEls[curWord].classList.remove('now');
+    if (wordEls[cw]) wordEls[cw].classList.add('now');
+    for (const c of cueEls) c.el.classList.toggle('said', c.at < cw);
+    curWord = cw;
+    updateChapterChip();
+  }
+  $('#progress span').style.width = (keys.length ? (pos / keys.length) * 100 : 0) + '%';
+}
+
+let hearingResetTimer = 0, suppressHeard = false, manualMove = false;
+// softReset: when scrolling, wait until the scroll settles before restarting recognition.
+function jumpToWord(w, softReset = false) {
+  w = clamp(w, 0, wordEls.length);
+  let k = keys.length;
+  for (let i = w; i < wordEls.length; i++) if (wordFirstKey[i] >= 0) { k = wordFirstKey[i]; break; }
+  samples = [];
+  manualMove = true; setPos(k); manualMove = false;
+  posF = k; glide = k;
+  suppressHeard = !!rec;   // words from before the move must not pull the position back
+  clearTimeout(hearingResetTimer);
+  if (softReset) hearingResetTimer = setTimeout(resetHearing, 350); else resetHearing();
+}
+
+// Lines are measured on this device's own layout, so a swipe on the iPad moves by iPad lines.
+function lineStep(dir, n = 1, softReset = false) {
+  if (!wordEls.length) return;
+  let i = Math.min(curWord, wordEls.length - 1);
+  for (let step = 0; step < n && i < wordEls.length; step++) {
+    const cur = Math.min(i, wordEls.length - 1);
+    const top = wordEls[cur].offsetTop;
+    i = cur;
+    if (dir < 0) {
+      while (i > 0 && wordEls[i - 1].offsetTop === top) i--;
+      if (cur - i <= 1 && i > 0) {
+        const pt = wordEls[i - 1].offsetTop;
+        i--;
+        while (i > 0 && wordEls[i - 1].offsetTop === pt) i--;
+      }
+    } else {
+      while (i < wordEls.length && wordEls[i].offsetTop === top) i++;
+    }
+  }
+  jumpToWord(i, softReset);
+}
+
+function restart() {
+  jumpToWord(0); elapsed = 0; samples = []; meters();
+}
+
+/* ---------- voice following ----------
+   The last ~10 heard words are aligned (backwards, fuzzy, gap-tolerant) against
+   the script ending at each candidate position near where you are. The best
+   candidate wins if the evidence is strong enough for how far it would move. */
+const GAP = 0.45, MISS = 0.6, LEAD = 0.35, BACK = 40, AHEAD = 45;
+const D = new Float64Array(12 * 18);
+let T = [], P = [], alignSpan = 0, jumpSpan = 0;
+
+function align(e) {
+  const m = T.length, n = Math.min(e + 1, m + 4);
+  if (!m || n <= 0) return 0;
+  const W = n + 1;
+  let best = 0;
+  alignSpan = 0;
+  D[0] = 0;
+  for (let j = 1; j <= n; j++) D[j] = -1e9;
+  for (let i = 1; i <= m; i++) {
+    const a = T[m - i], row = i * W, up = (i - 1) * W;
+    D[row] = -LEAD * i;
+    for (let j = 1; j <= n; j++) {
+      const b = keyIds[e - j + 1];
+      const s = simId(a, b);
+      let v = D[up + j - 1] + (s ? s * wtOf[b] : -MISS);
+      if (i >= 2) {                       // "seed dance" heard for "Seedance"
+        const s2 = simId(P[m - i], b);
+        if (s2) { const c = D[(i - 2) * W + j - 1] + s2 * wtOf[b]; if (c > v) v = c; }
+      }
+      const u = D[up + j] - GAP; if (u > v) v = u;
+      const l = D[row + j - 1] - GAP; if (l > v) v = l;
+      D[row + j] = v;
+      if (v > best) { best = v; alignSpan = j; }
+    }
+  }
+  return best;
+}
+
+// A long voice jump: tell the take log how many script words were just read to get there.
+function jumpTo(p, span) { jumpSpan = span; setPos(p); jumpSpan = 0; }
+
+function follow(tail) {
+  T = tail.map(intern); P = tail.map((w, i) => intern(w + (tail[i + 1] || '')));
+  const last = pos - 1;
+  const lo = Math.max(0, last - BACK), hi = Math.min(keys.length - 1, last + AHEAD);
+  let fwd = null, back = null;
+  for (let e = lo; e <= hi; e++) {
+    const s = align(e);
+    if (s <= 0) continue;
+    const d = e - last;
+    if (d >= 0) { const adj = s - 0.03 * d; if (!fwd || adj > fwd.adj) fwd = { e, s, d, adj }; }
+    else { const adj = s + 0.02 * d; if (!back || adj > back.adj) back = { e, s, d, adj }; }
+  }
+  const local = Math.max(fwd ? fwd.s : 0, back ? back.s : 0);
+
+  // Skipped far ahead or back? Search the whole script, but only where at least two of the
+  // words just heard appear close together, and only act on long, unambiguous evidence.
+  if (tail.length >= 5 && local < 5) {
+    const m = T.length, votes = new Map();
+    for (let ti = 0; ti < m; ti++) {
+      if (wtOf[T[ti]] < 1) continue;
+      const occ = keyIndex.get(T[ti]);
+      if (!occ || occ.length > 80) continue;
+      const off = m - 1 - ti;
+      for (const q of occ)
+        for (let e = Math.max(0, q + off - 2); e <= q + off + 3 && e < keys.length; e++) votes.set(e, (votes.get(e) || 0) + 1);
+    }
+    let b1 = -1, s1 = 0;
+    const scored = [];
+    for (const [e, n] of votes) {
+      if (n < 2) continue;
+      const sc = align(e);
+      scored.push(e, sc);
+      if (sc > s1) { s1 = sc; b1 = e; }
+    }
+    let s2 = 0;
+    for (let i = 0; i < scored.length; i += 2) if (Math.abs(scored[i] - b1) > 8 && scored[i + 1] > s2) s2 = scored[i + 1];
+    if (b1 >= 0 && s1 >= 4.5 && s1 >= local + 2 && s1 - s2 >= 1.2) {
+      if (b1 !== last) { align(b1); jumpTo(b1 + 1, alignSpan); }
+      return;
+    }
+  }
+  // Re-reading an earlier sentence (a retake): needs ~4 words and must clearly beat anything ahead.
+  if (back && back.s >= 3.4 && back.s >= (fwd ? fwd.s : 0) + 1) { align(back.e); jumpTo(back.e + 1, alignSpan); return; }
+  if (fwd && fwd.d > 0) {
+    const need = fwd.d <= 2 ? 0.8 : fwd.d <= 6 ? 1.5 : fwd.d <= 15 ? 2.4 : 3.2;
+    if (fwd.s >= need) setPos(fwd.e + 1);
+  }
+}
+
+// results: SpeechRecognitionResultList (or a test stand-in); index: first result that changed.
+function handleResults(results, index, session) {
+  let text = '';
+  for (let i = Math.max(0, results.length - 3); i < results.length; i++) text += ' ' + results[i][0].transcript;
+  const before = pos;
+  hear(text);
+  if (take) logUtterances(results, index, session, before);
+}
+
+function hear(text) {
+  if (settings.showHeard) {
+    const h = $('#heard');
+    h.textContent = '';
+    const bdi = document.createElement('bdi');
+    bdi.textContent = text.trim().split(/\s+/).slice(-14).join(' ');
+    h.appendChild(bdi);
+  }
+  const tail = tokensOf(text).slice(-10);
+  if (tail.length && keys.length && !suppressHeard) follow(tail);
+}
+
+/* ---------- speech recognition ---------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null, wantListen = false, micState = 'idle', restartTimer = 0, quickFails = 0, lastStart = 0, aborting = false;
+
+function startListening() {
+  if (!SR) { showNotice('voice-unsupported'); return; }
+  wantListen = true;
+  hideNotice();
+  openRec();
+  updateStatus();
+}
+function openRec() {
+  if (rec || !wantListen) return;
+  const r = new SR();
+  r.lang = settings.lang;
+  r.continuous = true;
+  r.interimResults = true;
+  r.maxAlternatives = 1;
+  r.onstart = () => { micState = 'live'; suppressHeard = false; updateStatus(); };
+  const session = ++sessionNo;
+  r.onresult = e => { quickFails = 0; handleResults(e.results, e.resultIndex, session); };
+  r.onerror = e => {
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+      wantListen = false; micState = 'blocked'; showNotice('mic-blocked'); endTake();
+    } else if (e.error === 'audio-capture') {
+      wantListen = false; micState = 'blocked'; showNotice('no-mic'); endTake();
+    } else if (e.error === 'network') {
+      micState = 'error'; showNotice('network');
+    }
+    updateStatus();
+  };
+  r.onend = () => {
+    rec = null;
+    if (!wantListen) { if (micState !== 'blocked') micState = 'idle'; updateStatus(); return; }
+    // Chrome ends sessions on silence or after a while; reopen, backing off if it keeps failing fast.
+    quickFails = !aborting && performance.now() - lastStart < 1500 ? quickFails + 1 : 0;
+    aborting = false;
+    if (quickFails > 6) { wantListen = false; micState = 'error'; showNotice('network'); updateStatus(); return; }
+    micState = 'starting';
+    updateStatus();
+    clearTimeout(restartTimer);
+    restartTimer = setTimeout(openRec, quickFails ? 400 * quickFails : 120);
+  };
+  rec = r;
+  micState = 'starting';
+  lastStart = performance.now();
+  try { r.start(); } catch { rec = null; micState = 'error'; }
+}
+function stopListening() {
+  wantListen = false;
+  clearTimeout(restartTimer);
+  if (rec) { try { rec.stop(); } catch {} }
+  updateStatus();
+}
+// After a manual jump, drop what was heard so old words can't drag the position back.
+function resetHearing() {
+  if (rec) { aborting = true; try { rec.abort(); } catch {} } else suppressHeard = false;
+  if (settings.showHeard) $('#heard').textContent = '';
+}
+
+/* ---------- prompter view ---------- */
+let running = false, elapsed = 0, samples = [], raf = 0, lastT = 0, y = 0, geo = null, wakeLock = null, lastWpm = 0;
+let glide = 0, lastAdvanceAt = 0, paceWpm = 0;
+// Sync: "solo" without the sync server, "main" on the Mac (localhost: listens, controls everything),
+// "screen" on an iPad (shows the words, follows the Mac's scroll).
+let role = 'solo', syncOK = false, peers = [], lanUrl = null, viewK = 0;
+const remote = { prompting: false, k: null, src: null };
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+function isRolling() { return settings.mode === 'voice' ? wantListen : running; }
+
+function layout() {
+  const stage = $('#stage'), text = $('#text');
+  text.style.setProperty('--size', settings.size + 'px');
+  text.style.setProperty('--col', settings.width + '%');
+  const H = stage.clientHeight;
+  const fs = parseFloat(getComputedStyle(text).fontSize);
+  const lineH = fs * 1.38;
+  const eye = H * settings.eyeline / 100;
+  text.style.paddingTop = Math.max(0, eye - lineH / 2) + 'px';
+  text.style.paddingBottom = H + 'px';
+  const band = $('#eyeband');
+  band.style.setProperty('--eye-top', (eye - lineH * 0.62) + 'px');
+  band.style.setProperty('--eye-h', (lineH * 1.24) + 'px');
+  $('#fade').style.setProperty('--fade-h', Math.max(0, eye - lineH * 0.9) + 'px');
+  $('#flip').classList.toggle('mirror', settings.mirror);
+  $('#mirrorBtn').setAttribute('aria-pressed', String(settings.mirror));
+  $('#heard').hidden = !settings.showHeard || role === 'screen';
+  const cs = getComputedStyle(text);
+  geo = { eye, lineH, left: parseFloat(cs.paddingLeft) || 0, width: text.clientWidth || 1 };
+}
+
+// Where to scroll so this word sits on the eyeline; drifts through each line as you read across it.
+function yForWord(w) {
+  const el = wordEls[w];
+  if (!el) {
+    const last = wordEls[wordEls.length - 1];
+    return last ? last.offsetTop + last.offsetHeight / 2 + geo.lineH * 0.6 - geo.eye : 0;
+  }
+  const x = clamp(el.offsetLeft / geo.width, 0, 1);
+  return el.offsetTop + el.offsetHeight / 2 + (x - 0.35) * geo.lineH * 0.7 - geo.eye;
+}
+function yForKey(kf) {
+  const i = Math.floor(kf), f = kf - i;
+  const wa = i < keys.length ? keyWord[i] : wordEls.length;
+  const a = yForWord(wa);
+  if (!f || i + 1 > keys.length) return a;
+  const wb = i + 1 < keys.length ? keyWord[i + 1] : wordEls.length;
+  return wb === wa ? a : a + (yForWord(wb) - a) * f;
+}
+
+let lastSec = -1, lastMeter = 0;
+function frame(t) {
+  raf = requestAnimationFrame(frame);
+  const dt = Math.min(0.1, (t - (lastT || t)) / 1000);
+  lastT = t;
+  const screen = role === 'screen';
+  if (!screen && settings.mode === 'auto' && running) {
+    posF = Math.min(keys.length, posF + settings.autoWpm / 60 * dt);
+    const p = Math.floor(posF);
+    if (p !== pos) setPos(p);
+    if (posF >= keys.length) stopRolling();
+  }
+  if (!screen && isRolling()) elapsed += dt * 1000;
+  if (screen) viewK = remote.k ?? pos;
+  else if (settings.mode === 'auto') viewK = posF;
+  else {
+    // Speech arrives in bursts. Between them, keep drifting at your pace (at most ~2 words past
+    // what was actually heard) so the text glides instead of stepping.
+    if (glide < pos || glide > pos + 4) glide = pos;
+    if (wantListen && t - lastAdvanceAt < 1400) glide = Math.min(glide + (paceWpm || lastWpm || 150) / 60 * dt, pos + 2.2, keys.length);
+    viewK = glide;
+  }
+  if (role === 'main') { sendView(); sendStatus(); drawLevel(); }
+  let target = yForKey(viewK);
+  target = Math.max(-geo.lineH, target);
+  y += (target - y) * (1 - Math.exp(-dt * (reduceMotion.matches ? 16 : 5.5)));
+  if (Math.abs(target - y) < 0.2) y = target;
+  $('#scroller').style.transform = `translate3d(0,${-y.toFixed(2)}px,0)`;
+  const sec = Math.floor(elapsed / 1000);
+  if (sec !== lastSec || t - lastMeter > 500) { lastSec = sec; lastMeter = t; meters(); }
+}
+
+const pad = n => String(n).padStart(2, '0');
+function fmtTime(s) { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + pad(s % 60); }
+function meters() {
+  const s = Math.floor(take ? takeTime() : elapsed / 1000);
+  $('#tc').textContent = `${pad(Math.floor(s / 3600))}:${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}`;
+  let rate = 0;
+  if (settings.mode === 'auto') rate = settings.autoWpm;
+  else {
+    const now = performance.now();
+    samples = samples.filter(([t]) => now - t < 30000);
+    if (samples.length > 3) {
+      const [t0, p0] = samples[0], [t1, p1] = samples[samples.length - 1];
+      if (t1 - t0 > 5000 && p1 > p0) rate = Math.round((p1 - p0) / ((t1 - t0) / 60000));
+    }
+    paceWpm = rate;
+    if (rate) lastWpm = rate;
+    // Short window for the "slow down" warning, so it reacts within a few seconds.
+    const recent = samples.filter(([t]) => now - t < 10000);
+    paceShort = 0;
+    if (recent.length > 3) {
+      const [t0, p0] = recent[0], [t1, p1] = recent[recent.length - 1];
+      if (t1 - t0 > 4000 && p1 > p0) paceShort = Math.round((p1 - p0) / ((t1 - t0) / 60000));
+    }
+  }
+  paceWarn = settings.mode === 'voice' && wantListen && paceShort > settings.targetWpm;
+  $('#paceTag').hidden = !paceWarn;
+  $('#eyeband').classList.toggle('fast', paceWarn);
+  $('#wpm').textContent = rate ? rate : '—';
+  $('#left').textContent = fmtTime((keys.length - pos) / (rate || 150) * 60);
+}
+
+let statusNow = { cls: '', label: '' };
+function updateStatus() {
+  const pill = $('#status'), txt = $('#statusText'), go = $('#goBtn');
+  let cls = '', label;
+  if (settings.mode === 'voice') {
+    if (!SR) { cls = 'warn'; label = 'Voice not supported here'; }
+    else if (micState === 'blocked') { cls = 'warn'; label = 'Mic blocked'; }
+    else if (wantListen && micState === 'live') { cls = 'live'; label = take ? (take.recording ? `REC · ${takeLabel(take)}` : `${takeLabel(take)} · listening`) : 'Listening'; }
+    else if (wantListen) { cls = 'wait'; label = 'Opening mic…'; }
+    else label = take ? takeLabel(take) : 'Ready';
+    if (wantListen && pos >= keys.length) label = 'End of script';
+  } else {
+    if (running) { cls = 'live'; label = (take?.recording ? `REC · ${takeLabel(take)} · ` : '') + `${settings.autoWpm} wpm`; }
+    else label = pos >= keys.length ? 'End of script' : 'Ready';
+  }
+  if (cdLeft) { cls = 'wait'; label = `Starting in ${cdLeft}`; }
+  go.firstChild.textContent = cdLeft ? 'Cancel ' : (isRolling() || take) ? 'End take ' : 'Start take ';
+  $('#markBtn').disabled = !take;
+  pill.className = 'pill ' + cls;
+  txt.textContent = label;
+  const changed = label !== statusNow.label || cls !== statusNow.cls;
+  statusNow = { cls, label };
+  if (changed) poke();
+}
+
+// Space / Start: countdown, then a take begins (listening, plus recording when it's on).
+// Pressing it again ends the take and saves it.
+function toggleGo() {
+  hideSummary();
+  if (cdTimer) return cancelCountdown();
+  if (isRolling() || take) return stopRolling();
+  if (settings.mode === 'voice' && !SR) return showNotice('voice-unsupported');
+  if (settings.mode === 'auto' && pos >= keys.length) { posF = 0; setPos(0); }
+  if (wantsMic()) openMic();   // warm the mic up during the countdown
+  startCountdown(startRolling);
+}
+async function startRolling() {
+  await startTake();
+  if (!take) return;
+  if (settings.mode === 'voice') startListening(); else { running = true; updateStatus(); }
+}
+function stopRolling() {
+  if (settings.mode === 'voice') stopListening(); else { running = false; updateStatus(); }
+  endTake();
+}
+
+let cdTimer = 0, cdLeft = 0;
+function showCount(n) { $('#countdown').hidden = !n; $('#countNum').textContent = n || ''; }
+function startCountdown(fn) {
+  const n = +settings.countdown || 0;
+  if (!n) return fn();
+  const tick = () => {
+    showCount(cdLeft);
+    send({ type: 'countdown', n: cdLeft });
+    updateStatus(); sendStatus(true);
+  };
+  cdLeft = n; tick();
+  cdTimer = setInterval(() => {
+    cdLeft--;
+    if (cdLeft <= 0) { clearInterval(cdTimer); cdTimer = 0; cdLeft = 0; tick(); fn(); }
+    else tick();
+  }, 1000);
+}
+function cancelCountdown() {
+  clearInterval(cdTimer); cdTimer = 0; cdLeft = 0;
+  showCount(0); send({ type: 'countdown', n: 0 }); updateStatus(); sendStatus(true);
+}
+
+const NOTICES = {
+  'voice-unsupported': ['This browser can\'t follow your voice. Open Eyeline in Chrome, Edge or Safari, or scroll at a fixed speed instead.', [['Use fixed speed', () => { setMode('auto'); hideNotice(); updateStatus(); }]]],
+  'mic-blocked': ['The microphone is blocked for this page. Click the mic icon in the address bar, choose Allow, then press Space.', [['Try again', () => { micState = 'idle'; startListening(); }]]],
+  'no-mic': ['No microphone was found. Plug one in or pick it in System Settings → Sound → Input, then press Space.', [['Try again', () => { micState = 'idle'; startListening(); }]]],
+  'network': ['Chrome\'s speech service isn\'t answering. Voice follow needs an internet connection. Check you\'re online, then press Space.', [['Try again', () => { micState = 'idle'; quickFails = 0; startListening(); }], ['Use fixed speed', () => { stopListening(); setMode('auto'); hideNotice(); updateStatus(); }]]]
+};
+function showNotice(kind) {
+  const [msg, actions] = NOTICES[kind];
+  $('#noticeText').textContent = msg;
+  const row = $('#noticeActions');
+  row.textContent = '';
+  for (const [label, fn] of actions) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'btn'; b.textContent = label;
+    b.addEventListener('click', fn);
+    row.appendChild(b);
+  }
+  const close = document.createElement('button');
+  close.type = 'button'; close.className = 'btn'; close.textContent = 'Dismiss';
+  close.addEventListener('click', hideNotice);
+  row.appendChild(close);
+  $('#notice').hidden = false;
+}
+function hideNotice() { $('#notice').hidden = true; }
+
+let idleTimer = 0;
+function poke() {
+  const hud = $('#hud');
+  hud.classList.remove('quiet');
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    if (isRolling() && !cdLeft && $('#notice').hidden && $('#chapMenu').hidden && $('#ipadPanel').hidden) hud.classList.add('quiet');
+  }, 2600);
+}
+
+async function lockScreen() {
+  try { wakeLock = await navigator.wakeLock?.request('screen'); } catch { wakeLock = null; }
+}
+
+function enterPrompter(startAt) {
+  const src = $('#script').value;
+  if (!src.trim()) { toast('Add some script first.'); $('#script').focus(); return; }
+  saveScript();
+  $('#editor').hidden = true;
+  $('#prompter').hidden = false;
+  if (src !== builtFrom) { build(src); elapsed = 0; samples = []; }
+  layout();
+  if (typeof startAt === 'number') jumpToWord(startAt);
+  glide = pos;
+  y = yForKey(pos);
+  updateChapterChip();
+  hideNotice();
+  lastT = 0;
+  cancelAnimationFrame(raf);
+  raf = requestAnimationFrame(frame);
+  lockScreen();
+  running = false;
+  updateStatus();
+  if (wantsMic() || monitorsLinked()) openMic();   // live level meter for a soundcheck before the take
+  sendSession();
+}
+
+function exitPrompter() {
+  if (role === 'screen') return;
+  toggleChapMenu(false);
+  toggleIpadPanel(false);
+  if (cdTimer) cancelCountdown();
+  stopListening();
+  running = false;
+  endTake().then(closeMic);
+  cancelAnimationFrame(raf);
+  try { wakeLock?.release(); } catch {}
+  wakeLock = null;
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  $('#prompter').hidden = true;
+  $('#editor').hidden = false;
+  sendSession();
+  if (lastWpm) {
+    store.set('eyeline.lastWpm', lastWpm);
+    renderLastTake();
+  }
+  if (reloadPending) { saveScript(); location.reload(); return; }
+  $('#script').focus();
+}
+
+function bumpSize(d) {
+  settings.size = clamp(settings.size + d, 28, 120);
+  saveSettings(); syncControls(); layout();
+}
+function toggleMirror() { settings.mirror = !settings.mirror; saveSettings(); syncControls(); layout(); }
+function toggleFullscreen() {
+  const d = document, el = d.documentElement;
+  const noFs = () => toast(/iPad|iPhone|Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1
+    ? 'For full screen on iPad: tap Share, then Add to Home Screen, and open Eyeline from there.'
+    : 'Full screen isn\'t available here.');
+  if (d.fullscreenElement || d.webkitFullscreenElement) {
+    try { (d.exitFullscreen || d.webkitExitFullscreen).call(d)?.catch?.(() => {}); } catch {}
+    return;
+  }
+  const req = el.requestFullscreen || el.webkitRequestFullscreen;
+  if (!req) return noFs();
+  try { req.call(el)?.catch?.(noFs); } catch { noFs(); }
+}
+
+/* ---------- linking devices: the Mac listens and controls, an iPad shows the words, an iPhone monitors ---------- */
+const clientId = Math.random().toString(36).slice(2, 10);
+const deviceName = (() => {
+  const ua = navigator.userAgent;
+  if (/iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) return 'iPad';
+  if (/iPhone/.test(ua)) return 'iPhone';
+  if (/Android/.test(ua)) return 'Android';
+  return /Mac/.test(ua) ? 'Mac' : 'Computer';
+})();
+
+function send(msg) {
+  if (!syncOK) return;
+  fetch('/send', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from: clientId, msg: { ...msg, src: clientId } }) }).catch(() => {});
+}
+const screensLinked = () => peers.some(p => p.role === 'screen');
+const monitorsLinked = () => peers.some(p => p.role === 'monitor');
+
+// The Mac sends where its prompter is scrolled (fractional word position) ~15 times a second.
+let viewTimer = 0, lastViewAt = 0, sentK = -1, sentPos = -1, sentWarn = false;
+function sendView() {
+  if (role !== 'main' || !syncOK || viewTimer || !screensLinked()) return;
+  if (Math.abs(viewK - sentK) < 0.02 && pos === sentPos && paceWarn === sentWarn) return;
+  viewTimer = setTimeout(() => {
+    viewTimer = 0; lastViewAt = performance.now(); sentK = viewK; sentPos = pos; sentWarn = paceWarn;
+    send({ type: 'view', k: Math.round(viewK * 100) / 100, pos, warn: paceWarn });
+  }, Math.max(0, 66 - (performance.now() - lastViewAt)));
+}
+let displayTimer = 0;
+function sendDisplay() {
+  if (role !== 'main' || displayTimer) return;
+  displayTimer = setTimeout(() => { displayTimer = 0; send({ type: 'display', ...settings.screen }); }, 50);
+}
+function sendSession() {
+  if (role !== 'main') return;
+  const prompting = !$('#prompter').hidden;
+  send(prompting ? { type: 'session', prompting, text: builtFrom } : { type: 'session', prompting: false });
+  send({ type: 'display', ...settings.screen });
+  sentK = -1; sentPos = -1;
+  sendView();
+  sendStatus(true);
+}
+
+// The iPhone gets the take clock, chapter, pace and mic level ~10 times a second.
+let statusAt = 0;
+function sendStatus(force) {
+  if (role !== 'main' || !syncOK || !monitorsLinked()) return;
+  const now = performance.now();
+  if (!force && now - statusAt < 100) return;
+  statusAt = now;
+  const ci = chapters.length ? chapIndex() : -1, ch = chapters[ci];
+  const chapEnd = ch ? (chapters[ci + 1] ? chapters[ci + 1].k : keys.length) : keys.length;
+  const rate = paceWpm || lastWpm || 150;
+  send({ type: 'status', prompting: !$('#prompter').hidden, rolling: isRolling(), countdown: cdLeft,
+    rec: !!take?.recording, takeOn: !!take, takeNo: take ? take.no : null,
+    clock: take ? takeTime() : elapsed / 1000,
+    chapter: ch ? (ch.num ? ch.num + ' · ' : '') + ch.title : '',
+    chapPct: ch ? clamp((pos - ch.k) / Math.max(1, chapEnd - ch.k), 0, 1) : keys.length ? pos / keys.length : 0,
+    chapLeft: ch ? Math.max(0, chapEnd - pos) / rate * 60 : null,
+    left: Math.max(0, keys.length - pos) / rate * 60,
+    wpm: paceShort || paceWpm || 0, target: settings.targetWpm, warn: paceWarn,
+    lvl: audio.stream ? { rms: Math.round(level.rms), peak: Math.round(level.peak), clip: now - level.clipAt < 1500 } : null,
+    flubs: take ? take.marks.length + take.backs.length : 0,
+    recOn: wantsMic(), audioErrors: take ? take.audioErrors : 0,
+    mic: audio.stream ? audio.stream.getAudioTracks()[0]?.label || 'Unnamed microphone' : null,
+    micRate: audio.stream ? audio.rate : null, voiceMic: defaultMicLabel });
+}
+
+// Take events for the iPhone's feed. The current take's events are kept so a phone that joins late catches up.
+let takeEvents = [];
+function takeEvent(kind, t, w, text) {
+  const ev = { kind, t: r2(Math.max(0, t || 0)),
+    text: text ?? (w == null ? '' : wordEls.slice(w, w + 9).map(e => e.textContent).join(' ')) };
+  if (kind === 'started') takeEvents = [];
+  takeEvents.push(ev);
+  if (takeEvents.length > 200) takeEvents.shift();
+  if (role === 'main' && monitorsLinked()) send({ type: 'event', ev });
+}
+
+function syncIpadControls() {
+  for (const el of document.querySelectorAll('[data-ip]')) {
+    const v = settings.screen[el.dataset.ip];
+    if (el.type === 'checkbox') el.checked = !!v; else el.value = v;
+  }
+  for (const o of document.querySelectorAll('[data-ip-out]')) {
+    const k = o.dataset.ipOut, v = settings.screen[k];
+    o.textContent = k === 'size' ? v + ' px' : k === 'width' ? v + '%' : v + '% from top';
+  }
+}
+function toggleIpadPanel(force) {
+  const p = $('#ipadPanel');
+  const open = force ?? p.hidden;
+  if (open && !screensLinked()) return;
+  p.hidden = !open;
+  $('#ipadBtn').setAttribute('aria-expanded', String(open));
+  if (open) toggleChapMenu(false);
+  poke();
+}
+
+// The iPad applies the display settings the Mac sends.
+function applyDisplay(m) {
+  for (const k of ['size', 'width', 'eyeline']) if (typeof m[k] === 'number') settings[k] = m[k];
+  if (typeof m.mirror === 'boolean') settings.mirror = m.mirror;
+  saveSettings();
+  $('#text').classList.toggle('hide-cues', !m.cues);
+  layout();
+  y = yForKey(remote.k ?? pos);
+}
+
+// Reload when the app is updated, but never in the middle of prompting.
+let appVersion = null, reloadPending = false;
+function checkVersion(v) {
+  if (appVersion === null || v === appVersion) { appVersion = v; return; }
+  const busy = role === 'main' ? !$('#prompter').hidden || !!take : remote.prompting;
+  if (busy) { reloadPending = true; return; }
+  if (role === 'main') { saveScript(); flushProjectScript().then(() => location.reload()); return; }
+  location.reload();
+}
+
+function onSync(m) {
+  if (m.type === 'hello') return checkVersion(m.version);
+  if (m.type === 'peers') {
+    const hadScreens = screensLinked(), hadMonitors = monitorsLinked();
+    peers = Array.isArray(m.peers) ? m.peers : [];
+    if (remote.src && !peers.some(p => p.id === remote.src)) remote.src = null;
+    renderDevices();
+    if (role === 'main') {
+      if (screensLinked() || monitorsLinked()) sendSession();
+      if (monitorsLinked()) send({ type: 'events', events: takeEvents });
+      if (hadScreens && !screensLinked()) toggleIpadPanel(false);
+      if (!hadMonitors && monitorsLinked() && !$('#prompter').hidden) openMic();
+    }
+    renderWaiting(); renderMonitor();
+    return;
+  }
+  if (role === 'main') return;
+  // Follow only the Mac tab that started prompting most recently.
+  if (m.type === 'session') {
+    if (m.prompting) {
+      remote.src = m.src; remote.prompting = true;
+      if (role === 'screen' && typeof m.text === 'string' && m.text !== builtFrom) { build(m.text); remote.k = null; }
+    } else if (!remote.src || m.src === remote.src) {
+      remote.prompting = false;
+      if (reloadPending) return location.reload();
+    }
+    if (role === 'screen') { layout(); y = yForKey(remote.k ?? pos); }
+    renderWaiting(); renderMonitor();
+    return;
+  }
+  if (remote.src && m.src !== remote.src) return;
+  if (m.type === 'countdown') {
+    if (role === 'screen') showCount(m.n);
+    else if (monitorState) { monitorState.countdown = m.n; renderMonitor(); }
+  } else if (role === 'monitor') {
+    if (m.type === 'status') renderMonitor(m);
+    else if (m.type === 'events') { monitorFeed = Array.isArray(m.events) ? m.events : []; renderFeed(); }
+    else if (m.type === 'event' && m.ev) {
+      if (m.ev.kind === 'started') monitorFeed = [];
+      monitorFeed.push(m.ev);
+      if (monitorFeed.length > 200) monitorFeed.shift();
+      renderFeed(1);
+    }
+  } else if (m.type === 'view') {
+    if (typeof m.k === 'number') remote.k = m.k;
+    if (typeof m.pos === 'number' && keys.length) setPos(m.pos);
+    $('#eyeband').classList.toggle('fast', !!m.warn);
+  } else if (m.type === 'display') {
+    applyDisplay(m);
+  }
+}
+
+function renderWaiting() {
+  if (role !== 'screen') return;
+  const hasMain = peers.some(p => p.role === 'main');
+  $('#waiting').hidden = syncOK && hasMain && remote.prompting && keys.length > 0;
+  $('#waitingText').textContent = !syncOK ? 'Reconnecting to your Mac…'
+    : !hasMain ? 'Your Mac isn\'t connected. Open Eyeline on the Mac (double-click Start Eyeline) and keep both on the same Wi‑Fi.'
+    : 'Linked to your Mac. Press Start prompting on the Mac and the script appears here.';
+}
+
+function renderDevices() {
+  const g = $('#devGroup');
+  if (role !== 'main') { g.hidden = true; return; }
+  g.hidden = false;
+  $('#lanUrl').textContent = lanUrl || 'No Wi‑Fi address found';
+  const qr = $('#qr');
+  if (lanUrl && window.qrcode && !qr.dataset.url) {
+    try {
+      const q = qrcode(0, 'M'); q.addData(lanUrl); q.make();
+      qr.innerHTML = q.createSvgTag(4, 0);
+      qr.dataset.url = lanUrl; qr.hidden = false;
+    } catch {}
+  }
+  const linked = peers.filter(p => p.role === 'screen' || p.role === 'monitor');
+  const what = p => `${p.name} (${p.role === 'screen' ? 'teleprompter screen' : 'monitor and remote'})`;
+  const st = $('#devStatus');
+  st.classList.toggle('ok', linked.length > 0);
+  st.textContent = !syncOK ? 'Connecting to the sync server…'
+    : linked.length ? `Linked: ${linked.map(what).join(', ')}.`
+    : 'Nothing linked yet. Both devices need to be on the same Wi‑Fi.';
+  if (peers.filter(p => p.role === 'main').length > 1)
+    st.textContent += ' Eyeline is also open in another Mac tab; linked devices follow whichever one started prompting last.';
+  const names = [...new Set(linked.map(p => p.name))].join(', ');
+  $('#devTag').hidden = !linked.length;
+  $('#devTag').textContent = linked.length ? 'Linked: ' + names : '';
+  $('#ipadBtn').hidden = !screensLinked();
+}
+
+function switchRole(r) { store.set('eyeline.deviceRole', r); location.reload(); }
+
+async function initSync() {
+  if (location.protocol === 'file:' || !window.EventSource) return renderTakeSettings();
+  let info = null;
+  try { info = await fetch('/info', { cache: 'no-store' }).then(r => r.ok ? r.json() : null); } catch {}
+  if (!info || !info.sync) return renderTakeSettings();
+  lanUrl = info.lan;
+  canSaveTakes = !!info.takes;
+  const local = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
+  role = local ? 'main'
+    : store.get('eyeline.deviceRole', null) || (deviceName === 'iPhone' || deviceName === 'Android' ? 'monitor' : 'screen');
+  document.documentElement.classList.add('role-' + role);
+  canProjects = !!info.projects;
+  if (role === 'main') {
+    renderTakeSettings();
+    await loadProjects();
+    if (project) openProject(project, { loadScript: false });
+  } else {
+    stopListening();
+    $('#editor').hidden = true;
+    if (role === 'screen') {
+      $('#prompter').hidden = false;
+      $('#text').classList.add('hide-cues');
+      layout();
+      lastT = 0; cancelAnimationFrame(raf); raf = requestAnimationFrame(frame);
+    } else {
+      $('#monitor').hidden = false;
+    }
+    // iPad Safari only allows full screen after a tap.
+    const hint = role === 'screen' ? $('#tapHint') : null;
+    if (hint) hint.hidden = false;
+    document.addEventListener('pointerdown', () => {
+      if (hint) hint.hidden = true;
+      lockScreen();
+      if (role === 'screen') {
+        const el = document.documentElement, req = el.requestFullscreen || el.webkitRequestFullscreen;
+        try { req?.call(el)?.catch?.(() => {}); } catch {}
+      }
+    }, { once: true });
+    renderWaiting(); renderMonitor();
+  }
+  const es = new EventSource(`/events?id=${clientId}&role=${role}&name=${encodeURIComponent(deviceName)}`);
+  es.onopen = () => {
+    syncOK = true; renderDevices(); renderWaiting(); renderMonitor();
+    if (role !== 'main') return;
+    sendSession();
+    // The server may have been restarted (or updated): check again whether it can save takes.
+    fetch('/info', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(i => {
+      if (!i) return;
+      lanUrl = i.lan; canSaveTakes = !!i.takes; canProjects = !!i.projects; renderTakeSettings(); renderDevices(); loadProjects();
+    }).catch(() => {});
+  };
+  es.onmessage = e => { let m; try { m = JSON.parse(e.data); } catch { return; } onSync(m); };
+  es.onerror = () => { syncOK = false; renderDevices(); renderWaiting(); renderMonitor(); };
+  renderDevices();
+}
+
+/* ---------- projects: one folder per video with its script, takes and edit plan ---------- */
+let project = store.get('eyeline.project', null), projectList = [], projectSaveTimer = 0, coverage = null, canProjects = false;
+const projUrl = (name, part) => `/projects/${encodeURIComponent(name)}/${part}`;
+
+async function loadProjects() {
+  if (!canProjects) return renderProject();
+  projectList = await fetch('/projects', { cache: 'no-store' }).then(r => r.ok ? r.json() : []).catch(() => []);
+  if (project && !projectList.some(p => p.name === project)) { project = null; store.set('eyeline.project', null); }
+  renderProject();
+}
+
+async function openProject(name, { loadScript = true } = {}) {
+  await flushProjectScript();
+  project = name || null;
+  store.set('eyeline.project', project);
+  coverage = null;
+  if (project && loadScript) {
+    const text = await fetch(projUrl(project, 'script'), { cache: 'no-store' }).then(r => r.ok ? r.text() : null).catch(() => null);
+    if (text !== null) {
+      $('#script').value = text;
+      saveScript();
+      updateStats();
+    }
+  }
+  $('#projSaved').textContent = project ? `Script saves to Projects/${project}/script.md as you type.` : '';
+  renderProject();
+  updateEditPlan();
+}
+
+async function saveProjectScript() {
+  projectSaveTimer = 0;
+  if (!project) return;
+  const name = project;
+  const ok = await fetch(projUrl(name, 'script'), { method: 'POST', headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+    body: $('#script').value }).then(r => r.ok).catch(() => false);
+  if (name === project) $('#projSaved').textContent = ok ? `Saved to Projects/${name}/script.md` : 'Couldn\'t save the script to the project. Is Start Eyeline running?';
+  if (ok) updateEditPlan();
+}
+async function flushProjectScript() {
+  if (projectSaveTimer) { clearTimeout(projectSaveTimer); await saveProjectScript(); }
+}
+
+// A name for a new project: the script's first # heading, else its first [cue], else today's date.
+function guessProjectName() {
+  const src = $('#script').value;
+  const h = src.match(/^\s*#{1,3}\s+(.+)$/m), cue = prepare(src).match(/^\s*\[([^\]]+)\]/);
+  const raw = (h ? h[1] : cue && !/^\d/.test(cue[1]) ? cue[1] : '').replace(/[*_`#]/g, '').replace(/:\s*(final\s+)?script\s*$/i, '').trim();
+  if (!raw) return `Video ${new Date().toISOString().slice(0, 10)}`;
+  return /[a-z]/.test(raw) ? raw : raw.charAt(0) + raw.slice(1).toLowerCase();
+}
+
+async function createProject(name, script) {
+  const r = await fetch('/projects', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, script }) }).then(r => r.ok ? r.json() : null).catch(() => null);
+  if (!r) { toast('Couldn\'t create the project. Is Start Eyeline running?'); return null; }
+  await loadProjects();
+  return r.name;
+}
+async function autoCreateProject() {
+  const name = await createProject(guessProjectName(), $('#script').value);
+  if (!name) return;
+  await openProject(name, { loadScript: false });
+  toast(`Saving takes in a new project, “${name}”. You can rename it in the sidebar.`);
+}
+
+let dialogMode = 'new';
+async function openProjectDialog(mode) {
+  dialogMode = mode;
+  const rename = mode === 'rename';
+  $('#projDialogTitle').textContent = rename ? 'Rename project' : 'New project';
+  $('#projSubmit').textContent = rename ? 'Rename' : 'Create project';
+  $('#projFromField').hidden = rename;
+  $('#projDialogNote').hidden = rename;
+  $('#projNameInput').value = rename ? project : guessProjectName();
+  if (!rename) {
+    const sel = $('#projFrom');
+    sel.textContent = '';
+    sel.append(new Option('The script in the editor now', '__editor'));
+    const files = await fetch('/scripts').then(r => r.ok ? r.json() : []).catch(() => []);
+    for (const f of files) sel.append(new Option(f.name, 'file:' + f.name));
+    sel.append(new Option('An empty script', '__empty'));
+  }
+  $('#projDialog').hidden = false;
+  $('#projNameInput').focus();
+  $('#projNameInput').select();
+}
+function closeProjectDialog() { $('#projDialog').hidden = true; renderProject(); }
+
+async function submitProjectDialog(e) {
+  e.preventDefault();
+  const name = $('#projNameInput').value.trim();
+  if (!name) return;
+  if (dialogMode === 'rename') {
+    await flushProjectScript();
+    const r = await fetch(projUrl(project, 'rename'), { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name }) });
+    if (r.status === 409) { toast(`There's already a project called “${name}”.`); return; }
+    if (!r.ok) { toast('Couldn\'t rename the project.'); return; }
+    project = (await r.json()).name;
+    store.set('eyeline.project', project);
+    closeProjectDialog();
+    await loadProjects();
+    $('#projSaved').textContent = `Script saves to Projects/${project}/script.md as you type.`;
+    return;
+  }
+  const from = $('#projFrom').value;
+  let script = from === '__empty' ? '' : $('#script').value;
+  if (from.startsWith('file:')) {
+    const text = await fetch('/scripts/' + encodeURIComponent(from.slice(5))).then(r => r.ok ? r.text() : null).catch(() => null);
+    if (text === null) { toast('Couldn\'t read that script file.'); return; }
+    script = text;
+  }
+  const created = await createProject(name, script);
+  if (!created) return;
+  closeProjectDialog();
+  await openProject(created, { loadScript: from !== '__editor' });
+  toast(`Project “${created}” is ready. Takes you record now are saved in it.`);
+}
+
+function renderProject() {
+  const on = role === 'main' && canProjects;
+  $('#projBar').hidden = !on;
+  $('#projGroup').hidden = !on || !project;
+  if (!on) return;
+  const sel = $('#projectPick');
+  sel.textContent = '';
+  sel.append(new Option(projectList.length ? 'No project' : 'No projects yet', ''));
+  for (const p of projectList) sel.append(new Option(p.name, p.name));
+  sel.append(new Option('New project…', '__new'));
+  sel.value = project || '';
+  if (!project) return;
+  $('#projName').textContent = project;
+  const info = projectList.find(p => p.name === project);
+  const takes = coverage ? coverage.takes : info?.takes || 0;
+  $('#projStats').textContent = (coverage && takes ? `${coverage.recorded} of ${coverage.lines} lines recorded · ` : '')
+    + `${takes} take${takes === 1 ? '' : 's'}`;
+}
+
+/* The edit plan: for every line of the current script, the most recent full reading across all
+   of the project's takes. Lines are matched by their words, so script edits between takes are fine. */
+const normLine = s => s.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/['’]/g, '')
+  .replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+function scriptLines(text) {
+  const parsed = parseScript(prepare(text)), chaps = pickChapters(parsed);
+  const lines = [], directions = [];
+  let w = 0, cur = null;
+  const chapterAt = wi => { let c = -1; chaps.forEach((ch, i) => { if (ch.at <= wi) c = i; }); return c; };
+  const close = () => { if (cur) { lines.push(cur); cur = null; } };
+  for (const para of parsed.paras) {
+    for (const line of para) {
+      if (line.cueLine) { directions.push({ beforeLine: lines.length + (cur ? 1 : 0), text: line.text }); continue; }
+      for (const it of line.items) {
+        if (it.cue !== undefined) { directions.push({ beforeLine: lines.length + (cur ? 1 : 0), text: it.cue }); continue; }
+        if (!cur) {
+          const ci = chapterAt(w), ch = chaps[ci];
+          cur = { line: lines.length, chapterIndex: ci, chapter: ch ? (ch.num ? ch.num + ' · ' : '') + ch.title : '', words: [] };
+        }
+        cur.words.push(it.word); w++;
+        if (/[.!?…]["”’')\]]*$/.test(it.word)) close();
+      }
+    }
+    close();
+  }
+  for (const l of lines) { l.text = l.words.join(' '); l.key = normLine(l.text); delete l.words; }
+  return { lines, directions };
+}
+
+let planBusy = null;
+async function updateEditPlan() {
+  if (!project || !canProjects) { coverage = null; renderProject(); updateStats(); return; }
+  const name = project;
+  const takes = await fetch(projUrl(name, 'takes'), { cache: 'no-store' }).then(r => r.ok ? r.json() : []).catch(() => []);
+  if (name !== project) return;
+  const { lines, directions } = scriptLines($('#script').value);
+  const best = new Map();
+  for (const tk of takes) {                      // oldest first, so the latest full reading wins
+    const texts = new Map((tk.take.sentences || []).map(x => [x.id, x.text]));
+    for (const a of tk.take.attempts || []) {
+      if (!a.keep || a.coverage < 0.6) continue;
+      const key = normLine(texts.get(a.sentence) || '');
+      if (key) best.set(key, { take: tk.folder, number: tk.number, start: a.start, end: a.end, flags: a.flags || [] });
+    }
+  }
+  const planLines = lines.map(l => {
+    const b = best.get(l.key);
+    return b ? { line: l.line, chapter: l.chapter, text: l.text, take: b.take, start: b.start, end: b.end, flags: b.flags }
+             : { line: l.line, chapter: l.chapter, text: l.text, missing: true };
+  });
+  // Off-script speech (ad-libs, extra examples, opinions) stays in the cut: each remark goes right after the line
+  // it followed in the same take. Remarks whose line was picked from another take are listed for review, never dropped.
+  const offScript = [], unplaced = [];
+  for (const tk of takes) for (const seg of tk.take.roughCut || []) {
+    if (!seg.offScript) continue;
+    let after = null;
+    for (const l of planLines) if (!l.missing && l.take === tk.folder && l.end <= seg.start + 0.3 && (!after || l.end > after.end)) after = l;
+    const item = { take: tk.folder, start: seg.start, end: seg.end, text: seg.text, review: true };
+    (after ? offScript : unplaced).push(after ? { ...item, afterLine: after.line } : item);
+  }
+  const clips = [];
+  for (const l of planLines) {
+    if (l.missing) continue;
+    const last = clips[clips.length - 1];
+    if (last && !last.offScript && last.take === l.take && l.line === last.lines[last.lines.length - 1] + 1 && l.start >= last.start && l.start - last.end < 1)
+      { last.end = Math.max(last.end, l.end); last.lines.push(l.line); }
+    else clips.push({ take: l.take, start: l.start, end: l.end, lines: [l.line] });
+    for (const o of offScript.filter(o => o.afterLine === l.line).sort((x, y) => x.start - y.start))
+      clips.push({ take: o.take, start: o.start, end: o.end, lines: [], offScript: true, review: true, text: o.text });
+  }
+  const byChap = new Map();
+  lines.forEach((l, i) => { const c = byChap.get(l.chapterIndex) || [0, 0]; c[1]++; if (!planLines[i].missing) c[0]++; byChap.set(l.chapterIndex, c); });
+  const recorded = planLines.filter(l => !l.missing).length;
+  coverage = { lines: lines.length, recorded, takes: takes.length, byChap };
+  renderProject(); updateStats();
+  if (!takes.length) return;
+  const plan = {
+    eyeline: 2, project: name, updatedAt: new Date().toISOString(),
+    note: 'One entry per script line, in script order. take/start/end point at the reading to use: seconds in that take\'s audio.wav (takes/<take>/audio.wav). See AGENTS.md.',
+    progress: { lines: lines.length, recorded, missing: lines.length - recorded },
+    lines: planLines, clips, directions,
+    offScript: { rule: 'Kept by default. Only repeats, false starts, flubs and talk about the recording are cut.', placed: offScript, toReview: unplaced },
+  };
+  const t1 = s => { const m = Math.floor(s / 60); return `${m}:${(s - m * 60).toFixed(1).padStart(4, '0')}`; };
+  const chapterRows = [];
+  const seenChap = new Set();
+  for (const l of lines) {
+    if (seenChap.has(l.chapterIndex)) continue;
+    seenChap.add(l.chapterIndex);
+    const [done, total] = byChap.get(l.chapterIndex);
+    chapterRows.push(`- ${l.chapter || 'Script'} · ${done === total ? `all ${total} lines ✓` : `${done} of ${total} lines`}`);
+  }
+  const missing = planLines.filter(l => l.missing), check = planLines.filter(l => !l.missing && l.flags.some(f => f !== 'retake'));
+  const md = [
+    `# ${name} · edit plan`, '',
+    `${recorded} of ${lines.length} lines recorded across ${takes.length} take${takes.length === 1 ? '' : 's'}. Updated ${new Date().toLocaleString()}.`, '',
+    '## Progress', '', ...chapterRows, '',
+    `## Still missing (${missing.length})`, '', ...(missing.length ? missing.map(l => `- ${l.chapter ? l.chapter + ' · ' : ''}${l.text}`) : ['Every line has a full reading.']), '',
+    ...(check.length ? [`## Worth a second look (${check.length})`, '', ...check.map(l => `- ${l.take.split(' · ')[0]} at ${t1(l.start)} · ${l.flags.filter(f => f !== 'retake').join(', ')} · ${l.text}`), ''] : []),
+    '## Cut list', '',
+    ...clips.map((c, i) => `${i + 1}. ${c.take} · ${t1(c.start)}–${t1(c.end)} · ${c.lines.length} line${c.lines.length === 1 ? '' : 's'}`), '',
+  ].join('\n');
+  const post = (file, body) => fetch(`${projUrl(name, 'file')}?name=${file}`, { method: 'POST', headers: { 'Content-Type': 'text/plain; charset=utf-8' }, body });
+  await Promise.all([post('edit-plan.json', JSON.stringify(plan, null, 1)), post('edit-plan.md', md)]).catch(() => {});
+}
+
+function renderTakeSettings() {
+  $('#record').disabled = !canSaveTakes;
+  if (!canSaveTakes) $('#takeNote').textContent = 'To record and save takes, open Eyeline with Start Eyeline (it runs the small local server that writes the files).';
+  listMics();
+}
+
+/* ---------- iPhone monitor ---------- */
+let monitorState = null;
+const hms = s => { s = Math.max(0, Math.floor(s || 0)); return `${pad(Math.floor(s / 3600))}:${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}`; };
+function renderMonitor(s) {
+  if (role !== 'monitor') return;
+  if (s) monitorState = s;
+  s = monitorState;
+  const hasMain = syncOK && peers.some(p => p.role === 'main');
+  const bar = $('#mRecBar'), txt = $('#mRecText');
+  let cls = '', label;
+  if (!hasMain) { cls = 'warn'; label = syncOK ? 'Mac not connected' : 'Reconnecting…'; }
+  else if (!s) label = 'Linked to your Mac';
+  else if (s.countdown) { cls = s.recOn ? 'ready' : 'practice'; label = s.recOn ? `Recording in ${s.countdown}` : `Practice in ${s.countdown} · won't record`; }
+  else if (s.rec && s.audioErrors) { cls = 'rec'; label = `Recording · Take ${s.takeNo} · some audio didn't save`; }
+  else if (s.rec) { cls = 'rec'; label = `Recording · Take ${s.takeNo}`; }
+  else if (s.rolling || s.takeOn) { cls = 'practice'; label = 'Not recording · practice run'; }
+  else if (s.recOn) { cls = 'ready'; label = 'Not recording · next take will'; }
+  else label = 'Not recording · recording is off';
+  bar.className = 'm-recbar ' + cls;
+  txt.textContent = label;
+  $('#monitor').classList.toggle('is-rec', cls === 'rec');
+  if (!s) return;
+  $('#mMicName').textContent = s.mic ? `${s.mic}${s.micRate ? ` · ${Math.round(s.micRate / 1000)} kHz` : ''}` : 'Not open';
+  $('#mMicNote').textContent = !s.mic
+    ? (s.recOn ? 'The Mac opens the mic when its prompter is open.' : 'Recording is off. Turn it on in the Takes section of the Mac\'s sidebar.')
+    : s.voiceMic && !s.mic.includes(s.voiceMic) && !s.voiceMic.includes(s.mic)
+      ? `Voice tracking listens through the Mac's default input: ${s.voiceMic}.`
+      : (s.takeOn && s.flubs ? `${s.flubs} flub${s.flubs === 1 ? '' : 's'} so far this take.` : '');
+  $('#mClock').textContent = s.countdown ? String(s.countdown) : hms(s.clock);
+  $('#mChap').textContent = s.chapter || 'Script';
+  $('#mChapBar').style.width = (s.chapPct * 100).toFixed(1) + '%';
+  $('#mChapLeft').textContent = s.chapLeft == null ? '—' : fmtTime(s.chapLeft);
+  $('#mLeft').textContent = fmtTime(s.left);
+  $('#mWpm').textContent = s.wpm || '—';
+  $('#mPace').classList.toggle('warn', !!s.warn);
+  $('#mPaceNote').textContent = s.warn ? `Slow down · target ${s.target}` : `target under ${s.target}`;
+  const lv = s.lvl, box = $('#mLevel');
+  box.classList.toggle('off', !lv);
+  box.classList.toggle('clip', !!lv?.clip);
+  box.classList.toggle('hot', !!lv && !lv.clip && lv.peak > -6);
+  $('#mLvl').style.width = (lv ? meterPct(lv.rms) : 0) + '%';
+  $('#mPeak').style.left = (lv ? meterPct(lv.peak) : 0) + '%';
+  $('#mLvlNote').textContent = !lv ? 'The level shows while the Mac\'s prompter is open.'
+    : lv.clip ? 'Clipping. Turn the mic gain down.'
+    : lv.peak > -6 ? 'Hot. Peaks are close to 0 dB.'
+    : (s.rolling && lv.peak < -36) ? 'Quiet. If you\'re talking, move closer or turn the gain up.'
+    : 'Levels look good.';
+}
+
+// The take's event feed on the iPhone, newest first.
+let monitorFeed = [];
+const EVENT_LABEL = { retake: 'Retake', 'jumped-back': 'Went back', marked: 'Marked', skipped: 'Skipped', pause: 'Long pause', started: 'Started', saved: 'Ended' };
+function renderFeed(freshCount = 0) {
+  const ol = $('#mFeed');
+  ol.textContent = '';
+  if (!monitorFeed.length) {
+    const li = document.createElement('li'); li.className = 'm-empty';
+    li.textContent = 'Retakes, marks, skipped lines and long pauses appear here as they happen.';
+    ol.appendChild(li); return;
+  }
+  monitorFeed.slice().reverse().forEach((ev, i) => {
+    const li = document.createElement('li');
+    if (i < freshCount) li.className = 'fresh';
+    const tm = document.createElement('span'); tm.className = 'tm'; tm.textContent = clockText(ev.t || 0);
+    const kd = document.createElement('span'); kd.className = 'kd ' + ev.kind; kd.textContent = EVENT_LABEL[ev.kind] || ev.kind;
+    const tx = document.createElement('span'); tx.className = 'tx'; tx.textContent = ev.text || '';
+    li.append(tm, kd, tx);
+    ol.appendChild(li);
+  });
+}
+
+/* ---------- mic level and recording (Mac) ---------- */
+// An AudioWorklet hands over 2400-sample blocks (~50 ms) of the mic for metering and recording.
+// It also watches the audio clock against wall time: when the Mac drops audio (the audio thread
+// stalls and input is lost), it writes silence for the missing time right where it happened, so the
+// recording stays as long as the camera's, and reports the gap. Slow clock drift is followed by a
+// baseline and never padded; only sudden jumps of 30 ms or more count as a dropout.
+const WORKLET = `class Tap extends AudioWorkletProcessor {
+  constructor() { super(); this.buf = new Float32Array(2400); this.n = 0; this.t0 = 0; this.seen = 0; this.base = 0; this.lastWall = 0; }
+  push(v) {
+    this.buf[this.n++] = v;
+    if (this.n === this.buf.length) { this.port.postMessage(this.buf, [this.buf.buffer]); this.buf = new Float32Array(2400); this.n = 0; }
+  }
+  process(inputs) {
+    const ch = inputs[0] && inputs[0][0];
+    if (!ch) return true;
+    const now = Date.now();
+    if (!this.t0) { this.t0 = now; this.lastWall = now; }
+    const behind = (now - this.t0) / 1000 * sampleRate - this.seen;      // samples the clock says we should have
+    const jump = behind - this.base;
+    if (jump > 0.03 * sampleRate && now - this.lastWall > 25) {
+      const pad = Math.round(jump - ch.length);                          // the block itself covers part of the gap
+      if (pad > 0) { for (let i = 0; i < pad; i++) this.push(0); this.seen += pad; this.port.postMessage({ gap: pad }); }
+    } else this.base += (behind - this.base) * Math.min(1, (now - this.lastWall) / 20000);   // follow slow drift
+    this.lastWall = now;
+    for (let i = 0; i < ch.length; i++) this.push(ch[i]);
+    this.seen += ch.length;
+    return true;
+  }
+}
+registerProcessor('eyeline-tap', Tap);`;
+const audio = { ctx: null, stream: null, node: null, rate: 48000, opening: null };
+const level = { rms: -100, peak: -100, peakUntil: 0, clipAt: 0 };
+const dbfs = x => x > 1e-5 ? 20 * Math.log10(x) : -100;
+const meterPct = db => (clamp((db + 60) / 60, 0, 1) * 100).toFixed(1);
+const wantsMic = () => role === 'main' && settings.record && canSaveTakes;
+
+function openMic() {
+  if (audio.stream) return Promise.resolve(true);
+  if (audio.opening) return audio.opening;
+  audio.opening = (async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: {
+        deviceId: settings.micId ? { exact: settings.micId } : undefined,
+        echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 } });
+      const ctx = new AudioContext();
+      await ctx.audioWorklet.addModule(URL.createObjectURL(new Blob([WORKLET], { type: 'text/javascript' })));
+      const src = ctx.createMediaStreamSource(stream);
+      const node = new AudioWorkletNode(ctx, 'eyeline-tap');
+      const mute = ctx.createGain(); mute.gain.value = 0;
+      src.connect(node); node.connect(mute); mute.connect(ctx.destination);
+      node.port.onmessage = e => onAudioFrame(e.data);
+      if (ctx.state === 'suspended') await ctx.resume().catch(() => {});
+      Object.assign(audio, { ctx, stream, node, rate: ctx.sampleRate });
+      $('#lvl').hidden = false;
+      $('#lvl').title = 'Mic level: ' + (stream.getAudioTracks()[0]?.label || 'microphone');
+      listMics();
+      return true;
+    } catch (err) {
+      toast(err && err.name === 'NotAllowedError'
+        ? 'The microphone is blocked, so takes can\'t be recorded. Click the mic icon in the address bar and allow it.'
+        : 'Couldn\'t open the microphone for recording. Check the Recording mic setting.');
+      return false;
+    } finally { audio.opening = null; }
+  })();
+  return audio.opening;
+}
+function closeMic() {
+  if (take) return;
+  audio.stream?.getTracks().forEach(t => t.stop());
+  audio.ctx?.close().catch(() => {});
+  audio.stream = audio.ctx = audio.node = null;
+  level.rms = level.peak = -100;
+  $('#lvl').hidden = true;
+}
+let defaultMicLabel = '';   // the Mac's default input, which Chrome's voice tracking always listens through
+async function listMics() {
+  try {
+    const all = await navigator.mediaDevices.enumerateDevices();
+    defaultMicLabel = (all.find(d => d.kind === 'audioinput' && d.deviceId === 'default')?.label || '').replace(/^Default\s*-\s*/, '');
+    const devs = all.filter(d => d.kind === 'audioinput' && d.deviceId && d.deviceId !== 'default' && d.deviceId !== 'communications');
+    const sel = $('#micId');
+    sel.textContent = '';
+    sel.append(new Option('System default', ''));
+    devs.forEach((d, i) => sel.append(new Option(d.label || `Microphone ${i + 1}`, d.deviceId)));
+    sel.value = devs.some(d => d.deviceId === settings.micId) ? settings.micId : '';
+  } catch {}
+}
+// The worklet filled a dropout with silence: log it on the take and tell the speaker which line to redo.
+let lastGapToast = 0;
+function onAudioGap(samples) {
+  const t = take;
+  if (!t || !t.recording) return;
+  const at = t.samples / t.rate, len = samples / t.rate, w = Math.min(curWord, wordEls.length - 1);
+  t.dropouts.push({ t: r2(at), len: Math.round(len * 1000) / 1000, w });
+  takeEvent('dropout', at, w, `Audio dropped for ${Math.round(len * 1000)} ms`);
+  if (performance.now() - lastGapToast > 4000) {
+    lastGapToast = performance.now();
+    toast(`The Mac dropped ${Math.round(len * 1000)} ms of audio around “${wordEls.slice(Math.max(0, w - 3), w + 3).map(e => e.textContent).join(' ')}”. Redo that line.`);
+  }
+}
+function onAudioFrame(f) {
+  if (!(f instanceof Float32Array)) { if (f && f.gap) onAudioGap(f.gap); return; }
+  let peak = 0, sum = 0;
+  for (let i = 0; i < f.length; i++) { const v = f[i]; sum += v * v; const a = v < 0 ? -v : v; if (a > peak) peak = a; }
+  const now = performance.now(), rms = dbfs(Math.sqrt(sum / f.length)), pk = dbfs(peak);
+  level.rms = Math.max(rms, level.rms - 1.5);                       // falls ~30 dB/s
+  if (pk >= level.peak) { level.peak = pk; level.peakUntil = now + 1200; }
+  else if (now > level.peakUntil) level.peak = Math.max(pk, level.peak - 2);
+  if (peak >= 0.985) level.clipAt = now;
+  const t = take;
+  if (t && t.recording) {
+    t.frames.push(rms); t.peaks.push(pk);
+    if (peak >= 0.985) t.clips.push(r2(t.samples / t.rate));
+    t.samples += f.length;
+    const pcm = new Int16Array(f.length);
+    for (let i = 0; i < f.length; i++) { const v = f[i] < -1 ? -1 : f[i] > 1 ? 1 : f[i]; pcm[i] = v < 0 ? v * 32768 : v * 32767; }
+    t.pcm.push(pcm);
+    if (t.pcm.length >= 20) flushAudio(t);                            // upload about once a second
+  }
+}
+// Audio streams to the Mac's disk during the take, so a crash or closed tab loses at most a second.
+function flushAudio(t) {
+  if (!t.pcm.length) return t.q;
+  const parts = t.pcm; t.pcm = [];
+  const out = new Int16Array(parts.reduce((n, p) => n + p.length, 0));
+  let o = 0;
+  for (const p of parts) { out.set(p, o); o += p.length; }
+  t.q = t.q.then(() => fetch(`/take/${t.id}/audio`, { method: 'POST', body: out.buffer })
+    .then(r => { if (!r.ok) t.audioErrors++; }).catch(() => { t.audioErrors++; }));
+  return t.q;
+}
+function drawLevel() {
+  if (!audio.stream) return;
+  const box = $('#lvl'), clip = performance.now() - level.clipAt < 1500;
+  $('#lvlFill').style.width = meterPct(level.rms) + '%';
+  $('#lvlPeak').style.left = meterPct(level.peak) + '%';
+  box.classList.toggle('clip', clip);
+  box.classList.toggle('hot', !clip && level.peak > -6);
+}
+
+/* ---------- takes ---------- */
+// A take runs from Start to End. It logs every script word and every phrase speech recognition
+// heard (mistakes and ad-libs included), then writes captions and an edit map for AI agents.
+let take = null, lastTake = null, canSaveTakes = false, paceShort = 0, paceWarn = false, sessionNo = 0;
+const LATENCY = 0.5;   // seconds between saying a word and Chrome reporting it
+const r2 = x => Math.round(x * 100) / 100;
+const takeTime = () => take ? (performance.now() - take.started) / 1000 : 0;
+function scriptName() {
+  const m = prepare(builtFrom || '').match(/^\s*\[([^\]]+)\]/);
+  return project || store.get('eyeline.scriptName', '') || (m ? m[1] : 'Script');
+}
+const takeLabel = t => t.no ? `Take ${t.no}` : 'Practice run';
+function hash(str) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+  return (h >>> 0).toString(16).padStart(8, '0');
+}
+
+async function startTake() {
+  const t = take = { no: null, name: scriptName(), started: performance.now(), wall: new Date(), events: [], backs: [], marks: [], skips: [],
+    pauses: [], chapters: [], utts: new Map(), frames: [], pcm: [], q: Promise.resolve(), audioErrors: 0,
+    peaks: [], samples: 0, dropouts: [], clips: [], chirps: [], ratings: [],
+    id: null, folder: null, recording: false, rate: 0, frameDur: 0.05, lastAdvT: 0, lastEvT: -1, lastChap: -1 };
+  if (wantsMic() && await openMic() && take === t) {
+    if (!project) await autoCreateProject();          // every recorded take lives in a project
+    if (take !== t) return;
+    const r = project && await fetch('/take/start', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ project, rate: audio.rate }) }).then(r => r.ok ? r.json() : null).catch(() => null);
+    if (take !== t) return;
+    if (r) Object.assign(t, { id: r.id, no: r.number, name: project, folder: r.folder, rate: audio.rate, frameDur: 2400 / audio.rate,
+      recording: true, started: performance.now(), wall: new Date() });
+    else toast('Couldn\'t create the take folder, so this take won\'t be saved.');
+    if (t.recording) chirp(t);
+  }
+  noteChapter(t, Math.min(curWord, wordEls.length - 1), 0);
+  takeEvent('started', 0, null, `${takeLabel(t)} · ${t.recording ? 'recording' : 'not recording'}`);
+  updateStatus(); sendStatus(true);
+}
+
+const endsSentence = w => /[.!?…]["”’')\]]*$/.test(wordEls[w]?.textContent || '');
+function chapterOfWord(w) { let i = -1; for (let j = 0; j < chapters.length; j++) if (chapters[j].at <= w) i = j; return i; }
+function noteChapter(t, w, tt) {
+  const ci = chapterOfWord(w);
+  if (ci >= 0 && ci !== t.lastChap) { t.lastChap = ci; if (!t.chapters.some(c => c.i === ci)) t.chapters.push({ i: ci, t: tt }); }
+}
+
+// Called from setPos whenever the position changes during a take.
+function recordMove(from, to) {
+  const t = take, now = takeTime();
+  if (manualMove) {
+    if (to < from) {
+      t.backs.push({ t: now, w: keyWord[to] ?? wordEls.length - 1, kind: 'jumped-back' });
+      takeEvent('jumped-back', now, keyWord[to] ?? wordEls.length - 1);
+    }
+    t.lastAdvT = now;
+    return;
+  }
+  const lo = to < from || (settings.mode === 'voice' && to - from > 8) ? Math.max(0, to - Math.max(jumpSpan, 3)) : from;
+  const ws = [];
+  for (let k = lo; k < to; k++) { const w = keyWord[k]; if (ws[ws.length - 1] !== w) ws.push(w); }
+  if (!ws.length) return;
+  let spoken = ws;
+  if (to < from) {                                            // went back and re-read: a retake
+    const b = { t: Math.max(0, now - LATENCY - (ws.length - 1) * 60 / (paceShort || paceWpm || lastWpm || 150)), w: ws[0], kind: 'retake' };
+    t.backs.push(b); takeEvent('retake', b.t, b.w);
+  } else if (lo > from) {                                     // jumped ahead: the words in between weren't read
+    t.skips.push({ t: Math.max(0, now - LATENCY), w: keyWord[from], to: keyWord[lo] });
+    takeEvent('skipped', now - LATENCY, keyWord[from]);
+  }
+  const prevW = t.events.length ? t.events[t.events.length - 1].w : null;
+  if (settings.mode === 'voice' && t.lastAdvT && now - t.lastAdvT > 2.5 && prevW !== null && !endsSentence(prevW))
+    { t.pauses.push({ t: Math.max(0, t.lastAdvT - LATENCY), len: now - t.lastAdvT, w: prevW });
+      takeEvent('pause', t.lastAdvT - LATENCY, null, `${(now - t.lastAdvT).toFixed(1)} s after “${wordEls[prevW].textContent}”`); }
+  // Words arrive in bursts; spread them back in time at the current pace.
+  const lat = settings.mode === 'voice' ? LATENCY : 0, spw = 60 / (paceShort || paceWpm || lastWpm || 150);
+  spoken.forEach((w, j) => {
+    const tt = Math.max(now - lat - (spoken.length - 1 - j) * spw, t.lastEvT + 0.06, 0);
+    t.events.push({ w, t: tt }); t.lastEvT = tt;
+    noteChapter(t, w, tt);
+  });
+  t.lastAdvT = now;
+}
+
+// Every phrase Chrome heard, with when it started and ended and whether it moved through the script.
+function logUtterances(results, index, session, before) {
+  const t = take, now = takeTime();
+  for (let i = index; i < results.length; i++) {
+    const r = results[i], key = session + ':' + i;
+    let u = t.utts.get(key);
+    if (!u) t.utts.set(key, u = { first: now, last: now, end: null, text: '', from: before, to: before, back: false });
+    u.text = String(r[0].transcript || '').trim();
+    u.last = now;
+    if (pos < before) u.back = true;
+    u.to = Math.max(u.to, pos);
+    if (r.isFinal && u.end === null) u.end = now;
+  }
+}
+
+// A short 2 kHz tone through the Mac speaker at the start and end of a take. The prompter mic and the
+// camera both hear it, so ingest can line up each take with its camera clip (offset and drift) exactly.
+function chirp(t) {
+  if (!settings.chirp || !audio.ctx) return;
+  const ctx = audio.ctx, at = ctx.currentTime + 0.05, osc = ctx.createOscillator(), g = ctx.createGain();
+  osc.frequency.value = 2000;
+  g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(0.3, at + 0.01);
+  g.gain.setValueAtTime(0.3, at + 0.14); g.gain.linearRampToValueAtTime(0, at + 0.15);
+  osc.connect(g); g.connect(ctx.destination); osc.start(at); osc.stop(at + 0.16);
+  t.chirps.push(r2(t.samples / t.rate + 0.05 + (ctx.outputLatency || 0)));
+}
+
+// G / B right after a line: the speaker's own verdict, stored on the reading it refers to.
+function rateLine(verdict) {
+  if (!take) { toast('Start a take first, then rate lines with G (good) or B (bad).'); return; }
+  take.ratings.push({ t: takeTime(), w: Math.min(curWord, wordEls.length - 1), verdict });
+  takeEvent(verdict === 'good' ? 'rated-good' : 'rated-bad', takeTime(), Math.min(curWord, wordEls.length - 1));
+  toast(verdict === 'good' ? 'Marked that line good' : 'Marked that line bad');
+  poke(); sendStatus(true);
+}
+
+function markFlub(source) {
+  if (!take) { toast('Start a take first, then mark flubs as they happen.'); return; }
+  take.marks.push({ t: takeTime(), w: Math.min(curWord, wordEls.length - 1), source });
+  takeEvent('marked', takeTime(), Math.min(curWord, wordEls.length - 1));
+  const b = $('#markBtn');
+  b.firstChild.textContent = 'Marked ';
+  setTimeout(() => { b.firstChild.textContent = 'Mark flub '; }, 1200);
+  poke(); sendStatus(true);
+}
+
+async function endTake(opts = {}) {
+  const t = take;
+  if (!t) return;
+  if (t.recording && settings.chirp && !opts.quiet) { chirp(t); await new Promise(r => setTimeout(r, 500)); }
+  take = null;
+  t.duration = (performance.now() - t.started) / 1000;
+  if (t.recording) { t.recording = false; flushAudio(t); await t.q; }
+  updateStatus(); sendStatus(true);
+  const heard = t.events.length || [...t.utts.values()].some(u => u.text);
+  if (!heard && t.duration < 4) {           // started by accident: don't keep an empty take
+    if (t.id) fetch(`/take/${t.id}/discard`, { method: 'POST' }).catch(() => {});
+    return;
+  }
+  const data = analyzeTake(t);
+  const files = takeFiles(t, data);
+  if (t.id) for (const [name, text] of Object.entries(files)) {
+    await fetch(`/take/${t.id}/file?name=${encodeURIComponent(name)}`, { method: 'POST',
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' }, body: text }).catch(() => { t.audioErrors++; });
+  }
+  if (lastWpm) { store.set('eyeline.lastWpm', lastWpm); renderLastTake(); }
+  lastTake = { t, data, files };
+  takeEvent('saved', t.duration, null, `${takeLabel(t)} · ${clockText(t.duration)} · ${data.flubs.length} to check` + (t.id ? ' · saved' : ''));
+  if (t.id) updateEditPlan();
+  if (!opts.quiet) showSummary(lastTake);
+}
+
+/* ---------- turning a take into captions and an edit map ---------- */
+// Script sentences, by word index. Ids are stable for the same script, so takes line up.
+let sentCache = null;
+function sentences() {
+  if (sentCache && sentCache.src === builtFrom) return sentCache;
+  const list = [], of = new Int32Array(wordEls.length);
+  let cur = null, para = null;
+  wordEls.forEach((el, i) => {
+    const p = el.closest('.para');
+    if (!cur || p !== para) { cur = { id: list.length, from: i, to: i }; list.push(cur); para = p; }
+    cur.to = i; of[i] = cur.id;
+    if (endsSentence(i)) cur = null;
+  });
+  for (const s of list) {
+    s.text = wordEls.slice(s.from, s.to + 1).map(e => e.textContent).join(' ');
+    s.chapter = chapterOfWord(s.from);
+    let n = 0; for (let i = s.from; i <= s.to; i++) if (wordFirstKey[i] >= 0) n++;
+    s.keyed = Math.max(1, n);
+  }
+  return sentCache = { src: builtFrom, list, of };
+}
+
+// Silences in the recording (quieter than the noise floor + 10 dB for 0.3 s or more): safe places to cut.
+function speechMap(t) {
+  if (!t.frames.length) return null;
+  const fd = t.frameDur, sorted = Float32Array.from(t.frames).sort();
+  const thr = Math.max(sorted[Math.floor(sorted.length * 0.1)] + 10, -58);
+  const silences = [];
+  let s = -1;
+  t.frames.forEach((db, i) => {
+    const quiet = db < thr, last = i === t.frames.length - 1;
+    if (quiet && s < 0) s = i;
+    if (s >= 0 && (!quiet || last)) {
+      const e = quiet ? i + 1 : i;
+      if ((e - s) * fd >= 0.3) silences.push([r2(s * fd), r2(e * fd)]);
+      s = -1;
+    }
+  });
+  return { silences, threshold: Math.round(thr) };
+}
+function snapper(map) {
+  if (!map) return { start: x => Math.max(0, x), end: x => x };
+  const onsets = map.silences.map(s => s[1]), offsets = map.silences.map(s => s[0]);
+  const near = (arr, x, before, after) => {
+    let best = null;
+    for (const v of arr) if (v >= x - before && v <= x + after && (best === null || Math.abs(v - x) < Math.abs(best - x))) best = v;
+    return best;
+  };
+  return {
+    start: x => { const v = near(onsets, x, 1.2, 0.5); return Math.max(0, v === null ? x : v - 0.08); },
+    end: x => { const v = near(offsets, x, 0.5, 1.2); return v === null ? x : v + 0.12; },
+  };
+}
+
+// How a reading sounded, from the 50 ms levels: speech loudness, whether it fades at the end of the line,
+// and its pace. Pitch range and tone are measured later at ingest from audio.wav.
+function delivery(t, a, map) {
+  if (!t.frames.length || !map) return null;
+  const fd = t.frameDur, i0 = Math.max(0, Math.floor(a.start / fd)), i1 = Math.min(t.frames.length, Math.ceil(a.end / fd));
+  const voiced = t.frames.slice(i0, i1).filter(db => db > map.threshold + 5);   // speech, well above the noise floor
+  if (voiced.length < 4) return null;
+  const med = arr => { const s = [...arr].sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
+  const cut = Math.floor(voiced.length * 0.75);
+  const words = a.seen.size, secs = Math.max(0.5, a.last - a.first + 0.35);
+  return { loudness: Math.round(med(voiced)), endDrop: Math.round((med(voiced.slice(0, cut)) - med(voiced.slice(cut))) * 10) / 10,
+           wpm: words >= 4 ? Math.round(words / secs * 60) : null };
+}
+
+// The reading a Mark refers to: the latest one that had already started a second before the mark.
+function markedAttempt(attempts, at) {
+  let hit = null;
+  for (const a of attempts) if (a.first <= at - 1 && at <= a.last + 8) hit = a;
+  return hit;
+}
+
+function analyzeTake(t) {
+  const S = sentences(), map = speechMap(t), snap = snapper(map);
+  const utterances = [...t.utts.values()].filter(u => u.text).sort((a, b) => a.first - b.first).map(u => {
+    const start = snap.start(u.first - 0.7);
+    const end = Math.max(snap.end(u.end !== null ? u.end - 0.45 : u.last + 0.2), start + 0.4);
+    const kind = u.back ? 'retake' : u.to > u.from ? 'script' : 'off-script';
+    return { start: r2(start), end: r2(end), text: u.text, kind,
+      script: kind === 'off-script' ? null : [keyWord[u.from] ?? null, keyWord[Math.max(u.from, u.to - 1)] ?? null] };
+  });
+  // Group the word stream into readings; going back (a retake) or jumping far ahead starts a new one.
+  const attempts = [];
+  let run = [], prev = null;
+  const closeRun = () => {
+    const by = new Map();
+    for (const e of run) {
+      const sid = S.of[e.w];
+      let a = by.get(sid);
+      if (!a) by.set(sid, a = { sentence: sid, first: e.t, last: e.t, seen: new Set() });
+      a.last = e.t; a.seen.add(e.w);
+    }
+    attempts.push(...by.values());
+    run = [];
+  };
+  for (const e of t.events) { if (prev && (e.w < prev.w || e.w - prev.w > 12)) closeRun(); run.push(e); prev = e; }
+  closeRun();
+  attempts.sort((a, b) => a.first - b.first);
+  const asides = utterances.filter(u => u.kind === 'off-script' && u.text.split(/\s+/).length >= 2);
+  const seen = new Set();
+  for (const a of attempts) {
+    a.coverage = r2(Math.min(1, a.seen.size / S.list[a.sentence].keyed));
+    a.start = r2(snap.start(a.first));
+    a.end = r2(snap.end(a.last + 0.35));
+    a.flags = [];
+    if (seen.has(a.sentence)) a.flags.push('retake');
+    seen.add(a.sentence);
+    if (a.coverage < 0.6) a.flags.push('partial');
+    if (t.marks.some(m => markedAttempt(attempts, m.t) === a)) a.flags.push('marked');
+    if (t.pauses.some(p => p.t >= a.first && p.t <= a.last)) a.flags.push('pause');
+    if (asides.some(u => (u.start + u.end) / 2 > a.start && (u.start + u.end) / 2 < a.end)) a.flags.push('aside');
+    // Recording health and delivery, so the editor and the agent can pick the best reading.
+    if (t.dropouts.some(d => d.t + d.len > a.start && d.t < a.end)) a.flags.push('dropout');
+    if (t.clips.some(c => c >= a.start && c <= a.end)) a.flags.push('clipped');
+    const rated = t.ratings.filter(r => r.t >= a.first - 1 && r.t <= a.last + 6).pop();
+    if (rated && markedAttempt(attempts, rated.t) === a) a.rating = rated.verdict;
+    a.delivery = delivery(t, a, map);
+  }
+  // Keep the last full reading of each sentence: people redo a line after a mistake.
+  const bySentence = new Map();
+  for (const a of attempts) { if (!bySentence.has(a.sentence)) bySentence.set(a.sentence, []); bySentence.get(a.sentence).push(a); }
+  for (const list of bySentence.values()) {
+    const full = list.filter(a => a.coverage >= 0.6);
+    (full.length ? full[full.length - 1] : list.reduce((b, a) => a.coverage > b.coverage ? a : b)).keep = true;
+  }
+  const kept = attempts.filter(a => a.keep).sort((x, y) => x.sentence - y.sentence);
+  const roughCut = [];
+  for (const a of kept) {
+    const last = roughCut[roughCut.length - 1];
+    if (last && a.sentence === last.sentences[last.sentences.length - 1] + 1 && a.start > last.start && a.start - last.end < 0.8) {
+      last.end = Math.max(last.end, a.end); last.sentences.push(a.sentence);
+    } else roughCut.push({ start: a.start, end: a.end, sentences: [a.sentence] });
+  }
+  // The script is a guide, not the target: off-script speech (ad-libs, extra examples, opinions, jokes) stays
+  // in the cut, right after the reading it followed, flagged for review. Only talk about the recording itself
+  // ("wait, let me redo that", "sorry, again") and speech inside a dropped retake is left out.
+  const REDO = /\b(let me (re ?do|redo|start|try|say) (that|this|it|again)|one more time|start (that|this) again|scratch that|hold on|sorry|again|redo|take two|from the top)\b/i;
+  const inKept = u => kept.some(a => u.start >= a.start - 0.2 && u.end <= a.end + 0.2);
+  const inDropped = u => attempts.some(a => !a.keep && (u.start + u.end) / 2 > a.start && (u.start + u.end) / 2 < a.end);
+  for (const u of asides) {
+    if (inKept(u) || inDropped(u) || (REDO.test(u.text) && u.text.split(/\s+/).length <= 8)) continue;
+    let at = -1;
+    roughCut.forEach((seg, i) => { if (seg.start <= u.start && (at < 0 || seg.start >= roughCut[at].start)) at = i; });
+    roughCut.splice(at + 1, 0, { start: u.start, end: u.end, sentences: [], offScript: true, review: true, text: u.text });
+  }
+  // Where each chapter begins, in the take and on the rough-cut timeline.
+  const chapterTimes = [];
+  let cut = 0;
+  for (const seg of roughCut) {
+    for (const sid of seg.sentences) {
+      const ci = S.list[sid].chapter, a = kept.find(x => x.sentence === sid);
+      if (ci >= 0 && !chapterTimes.some(c => c.i === ci)) chapterTimes.push({ i: ci, take: a.start, cut: cut + Math.max(0, a.start - seg.start) });
+    }
+    cut += seg.end - seg.start;
+  }
+  const snip = w => wordEls.slice(w, w + 10).map(e => e.textContent).join(' ');
+  const flubs = [
+    ...t.backs.map(b => ({ time: b.t, kind: b.kind, w: b.w })),
+    ...t.marks.map(m => ({ time: m.t, kind: 'marked', w: m.w })),
+    ...t.skips.map(s => ({ time: s.t, kind: 'skipped', w: s.w })),
+    ...t.pauses.map(p => ({ time: p.t, kind: 'pause', w: p.w, seconds: r2(p.len) })),
+  ].sort((a, b) => a.time - b.time).map(f => {
+    const w = clamp(f.w, 0, wordEls.length - 1);
+    return { ...f, w, time: r2(Math.max(0, f.time)), sentence: S.of[w], text: snip(w) };
+  });
+  return { S, map, utterances, attempts, roughCut, chapterTimes, flubs, cutLength: cut };
+}
+
+const srtTime = s => {
+  const ms = Math.round(Math.max(0, s) * 1000);
+  return `${pad(Math.floor(ms / 3600000))}:${pad(Math.floor(ms / 60000) % 60)}:${pad(Math.floor(ms / 1000) % 60)},${String(ms % 1000).padStart(3, '0')}`;
+};
+const toSrt = cues => cues.map((c, i) => `${i + 1}\n${srtTime(c.start)} --> ${srtTime(c.end)}\n${c.lines.join('\n')}\n`).join('\n');
+function twoLines(text) {
+  if (text.length <= 42) return [text];
+  let best = -1;
+  for (let i = 0; i < text.length; i++) if (text[i] === ' ' && (best < 0 || Math.abs(i - text.length / 2) < Math.abs(best - text.length / 2))) best = i;
+  return best < 0 ? [text] : [text.slice(0, best), text.slice(best + 1)];
+}
+// Split a phrase into evenly sized pieces of at most ~84 characters (two caption lines),
+// preferring to break after a comma and never leaving a word or two stranded at the end.
+function balancedSplit(words, maxChars = 84) {
+  const total = words.join(' ').length;
+  const per = total / Math.ceil(total / maxChars);
+  const out = [];
+  let cur = [], len = 0, done = 0;
+  words.forEach((w, i) => {
+    cur.push(i); len += w.length + 1; done += w.length + 1;
+    const left = total - done;
+    if (i < words.length - 1 && left >= 12 && (len >= per || (len >= per * 0.6 && /[,;:]$/.test(w)))) { out.push(cur); cur = []; len = 0; }
+  });
+  if (cur.length) out.push(cur);
+  return out;
+}
+// Long phrases become several cues, with time shared out by length.
+function chunkCues(text, start, end) {
+  const words = text.split(/\s+/);
+  const chunks = balancedSplit(words).map(idx => idx.map(i => words[i]).join(' '));
+  const total = chunks.reduce((n, c) => n + c.length, 0) || 1;
+  let t = start;
+  return chunks.map(c => { const d = (end - start) * c.length / total; const cue = { start: t, end: t + d, lines: twoLines(c) }; t += d; return cue; });
+}
+// Clean captions from the script words: one phrase per sentence (or until a pause or retake),
+// then split evenly into cues of up to two lines using each word's own time.
+function scriptCues(events) {
+  const phrases = [];
+  let cur = null, prev = null;
+  for (const e of events) {
+    if (cur && (e.t - prev.t > 0.9 || e.w < prev.w || e.w - prev.w > 3)) { phrases.push(cur); cur = null; }
+    (cur = cur || []).push(e);
+    prev = e;
+    if (endsSentence(e.w)) { phrases.push(cur); cur = null; }
+  }
+  if (cur) phrases.push(cur);
+  const cues = [];
+  for (const ph of phrases) {
+    const words = ph.map(e => wordEls[e.w]?.textContent || '');
+    for (const idx of balancedSplit(words))
+      cues.push({ start: ph[idx[0]].t, last: ph[idx[idx.length - 1]].t, text: idx.map(i => words[i]).join(' ') });
+  }
+  cues.forEach((c, i) => {
+    const next = cues[i + 1];
+    c.end = Math.max(Math.min(c.last + 0.8, c.start + 7), c.start + 0.8);
+    if (next && c.end > next.start - 0.04) c.end = Math.max(c.start + 0.2, next.start - 0.04);
+    c.lines = twoLines(c.text);
+  });
+  return cues;
+}
+const clockText = s => { s = Math.max(0, Math.round(s)); const h = Math.floor(s / 3600); return h ? `${h}:${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}` : `${Math.floor(s / 60)}:${pad(s % 60)}`; };
+const ACRONYMS = new Set(['AI', 'API', 'IP', 'ENV', 'LLM', 'SAM', 'MP4', 'MOV', 'ID', 'UI', 'URL', 'SRT', 'CTA', '3D', 'TV', 'DIY']);
+function niceTitle(c) {
+  if (c.kind === 'opening') return 'Intro';
+  if (/[a-z]/.test(c.title)) return c.title;
+  const words = c.title.toLowerCase().split(' ').map(w => ACRONYMS.has(w.toUpperCase().replace(/[^A-Z0-9]/g, '')) ? w.toUpperCase() : w);
+  const out = words.join(' ');
+  return out.charAt(0).toUpperCase() + out.slice(1);
+}
+const KIND_LABEL = { retake: 'Retake', 'jumped-back': 'Went back', marked: 'Marked', skipped: 'Skipped', pause: 'Long pause' };
+
+const snipAt = w => wordEls.slice(clamp(w, 0, wordEls.length - 1), w + 10).map(e => e.textContent).join(' ');
+function takeFiles(t, d) {
+  const script = prepare(builtFrom);
+  const touched = [...new Set(d.attempts.map(a => a.sentence))].sort((a, b) => a - b);
+  const words = new Set(t.events.map(e => e.w)).size;
+  const span = t.events.length > 1 ? t.events[t.events.length - 1].t - t.events[0].t : 0;
+  const wpm = span > 20 ? Math.round(words / (span / 60)) : null;
+  const chaptersTxt = d.chapterTimes.length
+    ? d.chapterTimes.map((c, i) => `${i === 0 ? '0:00' : clockText(c.cut)} ${niceTitle(chapters[c.i])}`).join('\n') + '\n' : '';
+  const json = {
+    eyeline: 2,
+    script: { name: t.name, hash: hash(script) },
+    take: { number: t.no, startedAt: t.wall.toISOString(), duration: r2(t.duration), audio: t.id ? 'audio.wav' : null,
+      sampleRate: t.rate || null, recorded: !!t.id, uploadErrors: t.audioErrors },
+    timing: 'Seconds from the start of audio.wav. Recognition times are about ±0.3 s; attempt and cut edges are snapped to pauses in the audio.',
+    sentences: touched.map(id => ({ id, chapter: d.S.list[id].chapter, text: d.S.list[id].text })),
+    attempts: d.attempts.map(a => ({ sentence: a.sentence, start: a.start, end: a.end, coverage: a.coverage, keep: !!a.keep, flags: a.flags,
+      ...(a.rating ? { rating: a.rating } : {}), ...(a.delivery ? { delivery: a.delivery } : {}) })),
+    health: { dropouts: t.dropouts.map(({ w, ...x }) => ({ ...x, sentence: d.S.of[clamp(w, 0, wordEls.length - 1)] })),
+      droppedSeconds: r2(t.dropouts.reduce((n, d) => n + d.len, 0)), clipped: t.clips.length,
+      noiseFloor: d.map ? d.map.threshold - 10 : null, chirps: t.chirps },
+    roughCut: d.roughCut.map(s => ({ start: r2(s.start), end: r2(s.end), sentences: s.sentences, ...(s.offScript ? { offScript: true, review: true, text: s.text } : {}) })),
+    roughCutLength: r2(d.cutLength),
+    utterances: d.utterances,
+    flubs: d.flubs.map(({ w, ...f }) => f),
+    chapters: d.chapterTimes.map(c => ({ index: c.i, title: chapters[c.i].title, start: r2(c.take), startInRoughCut: r2(c.cut) })),
+    silences: d.map ? d.map.silences : [],
+    words: t.events.map(e => ({ w: e.w, t: r2(e.t) })),
+  };
+  const transcript = d.utterances.flatMap(u => chunkCues(u.text, u.start, u.end));
+  const flubCues = d.flubs.map(f => ({ start: Math.max(0, f.time - 1), end: f.time + 1.5,
+    lines: [`${KIND_LABEL[f.kind].toUpperCase()}: ${f.text}`.slice(0, 84)] }));
+  const report = [
+    `# Take ${t.no} · ${t.name}`, '',
+    `Recorded ${t.wall.toLocaleString()} · ${clockText(t.duration)} long · ${words.toLocaleString()} script words` + (wpm ? ` · about ${wpm} wpm` : ''),
+    `Rough cut: ${clockText(d.cutLength)} after dropping retakes and gaps (off-script remarks are kept and flagged for review).` + (t.id ? '' : ' (Audio was not recorded for this take.)'), '',
+    ...(t.dropouts.length ? [`**The Mac dropped audio ${t.dropouts.length} time(s), ${r2(t.dropouts.reduce((n, x) => n + x.len, 0))} s in all.** Each gap was filled with silence so the take stays in sync with the camera. Redo these lines:`, '',
+      ...t.dropouts.map(x => `- ${clockText(x.t)} · ${Math.round(x.len * 1000)} ms · ${snipAt(x.w)}`), ''] : []),
+    ...(t.clips.length ? [`The mic clipped ${t.clips.length} time(s); turn the input gain down a little.`, ''] : []),
+    `## Check these (${d.flubs.length})`, '',
+    ...(d.flubs.length ? d.flubs.map(f => `- ${clockText(f.time)} · ${KIND_LABEL[f.kind]}${f.seconds ? ` (${f.seconds} s)` : ''} · ${f.text}`) : ['Nothing flagged.']), '',
+    ...(chaptersTxt ? ['## Chapters on the rough cut', '', chaptersTxt] : []),
+    '## Files', '',
+    '- `audio.wav` · your voice for the whole take',
+    '- `transcript.srt` · everything you said, mistakes and ad-libs included',
+    '- `script-captions.srt` · clean script captions where you read each line (retakes appear more than once)',
+    '- `flubs.srt` · each retake, mark, skip and long pause as a caption, so they show on your editor\'s timeline',
+    '- `take.json` · the edit map for AI agents (see ../AGENTS.md)',
+    '- `script.txt` · the script as it was on the prompter', '',
+  ].join('\n');
+  return {
+    'transcript.srt': toSrt(transcript),
+    'script-captions.srt': toSrt(scriptCues(t.events)),
+    'flubs.srt': toSrt(flubCues),
+    'take.json': JSON.stringify(json, null, 1),
+    'take-report.md': report,
+    'youtube-chapters.txt': chaptersTxt,
+    'script.txt': script,
+  };
+}
+
+/* ---------- take summary (Mac) ---------- */
+function showSummary({ t, data: d, files }) {
+  $('#sumTitle').textContent = t.id ? `${takeLabel(t)} saved` : 'Practice run';
+  const words = new Set(t.events.map(e => e.w)).size;
+  const stats = $('#sumStats');
+  stats.textContent = '';
+  for (const [b, rest] of [[clockText(t.duration), ' long'], [words.toLocaleString(), ' script words'],
+    [String(d.flubs.length), ' to check'], [clockText(d.cutLength), ' rough cut']]) {
+    const span = document.createElement('span'), strong = document.createElement('b');
+    strong.textContent = b; span.append(strong, rest); stats.appendChild(span);
+  }
+  $('#sumWhere').textContent = t.id
+    ? `Saved to ${t.folder} with the audio, captions of everything you said, clean script captions and take.json for AI editing.`
+      + (t.audioErrors ? ` ${t.audioErrors} audio upload(s) failed, so the recording may have gaps.` : '')
+    : 'Not saved: recording is off (or the mic was unavailable). The list below is still useful for a practice run.';
+  const list = $('#sumList');
+  list.textContent = '';
+  $('#sumListLabel').hidden = !d.flubs.length;
+  for (const f of d.flubs) {
+    const li = document.createElement('li'), b = document.createElement('button');
+    b.type = 'button';
+    const tm = document.createElement('span'); tm.className = 'tm'; tm.textContent = clockText(f.time);
+    const kd = document.createElement('span'); kd.className = 'kd'; kd.textContent = KIND_LABEL[f.kind];
+    const tx = document.createElement('span'); tx.className = 'tx'; tx.textContent = f.text;
+    b.append(tm, kd, tx);
+    b.addEventListener('click', () => {
+      hideSummary();
+      if ($('#prompter').hidden) enterPrompter();
+      jumpToWord(d.S.list[f.sentence].from);
+    });
+    li.appendChild(b); list.appendChild(li);
+  }
+  $('#sumFinder').hidden = !t.id;
+  $('#sumCopy').hidden = !files['youtube-chapters.txt'];
+  $('#summary').hidden = false;
+}
+function hideSummary() { $('#summary').hidden = true; }
+
+/* ---------- markdown import ---------- */
+const VO_RE = /^(voice\s*-?\s*over|vo|v\/o|narration|narrator|dialogue|dialog|script|spoken|lines?|says|talent|host|audio)$/i;
+const isRow = l => /^\s*\|.*\|\s*$/.test(l);
+const isSep = l => /^\s*\|?(\s*:?-{2,}:?\s*\|)+\s*:?-*:?\s*\|?\s*$/.test(l);
+const cells = l => l.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim());
+function inline(s) {
+  return s.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '')
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/(\*\*|__)(.+?)\1/g, '$2').replace(/(\*|_)(\S(?:.*?\S)?)\1/g, '$2')
+    .replace(/`([^`]*)`/g, '$1').replace(/\s+/g, ' ').trim();
+}
+const unquote = s => s.replace(/^["“”']+|["“”']+$/g, '').trim();
+
+function convertMarkdown(md) {
+  const lines = md.replace(/\r\n?/g, '\n').split('\n');
+  const out = [];
+  let count = 0;
+  for (let i = 0; i < lines.length - 1; i++) {
+    if (!isRow(lines[i]) || !isSep(lines[i + 1])) continue;
+    const head = cells(lines[i]).map(inline);
+    const vo = head.findIndex(h => VO_RE.test(h));
+    let k = i + 2;
+    if (vo >= 0) {
+      for (; k < lines.length && isRow(lines[k]); k++) {
+        const c = cells(lines[k]);
+        const said = unquote(inline(c[vo] || ''));
+        if (!said) continue;
+        const label = vo !== 0 && c.length > 1 ? inline(c[0]).replace(/[\[\]]/g, '') : '';
+        out.push((label ? `[${label}]\n` : '') + said);
+        count++;
+      }
+    }
+    i = k - 1;
+  }
+  if (count) return { kind: 'table', text: out.join('\n\n'), count };
+  return { kind: 'plain', text: stripMarkdown(md) };
+}
+
+function stripMarkdown(md) {
+  const src = md.replace(/\r\n?/g, '\n').replace(/^---\n[\s\S]*?\n---\n/, '');
+  const out = [];
+  for (let line of src.split('\n')) {
+    if (/^\s*```/.test(line)) continue;
+    if (/^\s*([-*_]\s*){3,}$/.test(line)) { out.push(''); continue; }
+    if (isSep(line)) continue;
+    const h = line.match(/^\s*#{1,6}\s+(.*)$/);
+    if (h) { out.push('', `[${inline(h[1]).replace(/[\[\]]/g, '')}]`); continue; }
+    if (isRow(line)) line = cells(line).filter(Boolean).join(' · ');
+    line = line.replace(/^\s*>\s?/, '').replace(/^\s*([-*+]|\d+[.)])\s+/, '');
+    out.push(inline(line));
+  }
+  return out.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
+function looksMarkdown(s) { return /(^|\n)\s*(#{1,6}\s|\|.*\||[-*+]\s|>\s)|\*\*[^*]+\*\*/.test(s); }
+
+function replaceScript(text) {
+  const ta = $('#script');
+  ta.focus();
+  ta.select();
+  // execCommand keeps the change on the textarea's undo stack (⌘Z works).
+  let ok = false;
+  try { ok = document.execCommand('insertText', false, text); } catch {}
+  if (!ok || ta.value !== text) ta.value = text;
+  ta.setSelectionRange(0, 0);
+  ta.scrollTop = 0;
+  onScriptChange();
+}
+
+function importText(text, name) {
+  if (name) store.set('eyeline.scriptName', name.replace(/\.[^.]+$/, ''));
+  const isMd = /\.(md|markdown)$/i.test(name || '') || looksMarkdown(text);
+  if (!isMd) { replaceScript(text.trim()); toast(`Opened ${name || 'script'}.`); return; }
+  const r = convertMarkdown(text);
+  replaceScript(r.text);
+  toast(r.kind === 'table'
+    ? `Pulled ${r.count} voiceover lines from the table. Section labels are now [cues]. ⌘Z to undo.`
+    : 'Cleaned up the markdown formatting. Headings are now [cues]. ⌘Z to undo.');
+}
+
+function readFile(file) {
+  if (!file) return;
+  if (file.size > 2e6) { toast('That file is over 2 MB. Is it really a script?'); return; }
+  const fr = new FileReader();
+  fr.onload = () => importText(String(fr.result), file.name);
+  fr.onerror = () => toast(`Couldn't read ${file.name}.`);
+  fr.readAsText(file);
+}
+
+/* ---------- editor ---------- */
+let toastTimer = 0;
+function toast(msg) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.remove('out');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.add('out'), 4200);
+}
+
+let saveTimer = 0;
+function saveScript() { store.set('eyeline.script', $('#script').value); }
+function onScriptChange() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveScript, 300);
+  if (project) { clearTimeout(projectSaveTimer); projectSaveTimer = setTimeout(saveProjectScript, 800); $('#projSaved').textContent = 'Saving…'; }
+  updateStats();
+}
+let statsTimer = 0;
+function updateStats() {
+  clearTimeout(statsTimer);
+  statsTimer = setTimeout(() => {
+    const parsed = parseScript(prepare($('#script').value));
+    $('#statWords').textContent = parsed.spoken.toLocaleString();
+    $('#statCues').textContent = parsed.cues;
+    $('#statTime').textContent = fmtTime(parsed.keys / 150 * 60);
+    const chaps = pickChapters(parsed);
+    $('#chapGroup').hidden = !chaps.length;
+    $('#chapHeading').textContent = chaps.some(c => c.kind === 'chapter') ? 'Chapters' : 'Sections';
+    renderChapterList($('#chapList'), chaps, c => enterPrompter(c.at), coverage?.byChap);
+  }, 120);
+}
+function renderLastTake() {
+  const w = store.get('eyeline.lastWpm', 0);
+  const el = $('#lastTake');
+  el.hidden = !w;
+  if (w) el.textContent = `Your last take ran at about ${w} wpm.`;
+}
+
+function setMode(m) {
+  settings.mode = m;
+  saveSettings();
+  syncControls();
+}
+
+function syncControls() {
+  for (const b of document.querySelectorAll('.seg button')) b.setAttribute('aria-checked', String(b.dataset.mode === settings.mode));
+  $('#voiceOpts').hidden = settings.mode !== 'voice';
+  $('#autoOpts').hidden = settings.mode !== 'auto';
+  $('#srNote').hidden = !!SR;
+  $('#lang').value = settings.lang;
+  $('#autoWpm').value = settings.autoWpm; $('#autoWpmOut').textContent = settings.autoWpm + ' wpm';
+  $('#size').value = settings.size; $('#sizeOut').textContent = settings.size + ' px';
+  $('#width').value = settings.width; $('#widthOut').textContent = settings.width + '%';
+  $('#eyeline').value = settings.eyeline; $('#eyelineOut').textContent = settings.eyeline + '% from top';
+  $('#mirror').checked = settings.mirror;
+  $('#showHeard').checked = settings.showHeard;
+  $('#record').checked = settings.record;
+  $('#chirp').checked = settings.chirp;
+  $('#cdSel').value = String(settings.countdown);
+  $('#targetWpm').value = settings.targetWpm; $('#targetWpmOut').textContent = settings.targetWpm + ' wpm';
+}
+
+function bindRange(id, key) {
+  $('#' + id).addEventListener('input', e => { settings[key] = +e.target.value; saveSettings(); syncControls(); });
+}
+
+function init() {
+  const saved = store.get('eyeline.script', null);
+  $('#script').value = saved && saved.trim() ? saved : SAMPLE;
+  if (!SR && settings.mode === 'voice') settings.mode = 'auto';
+  syncControls();
+  updateStats();
+  renderLastTake();
+
+  $('#script').addEventListener('input', onScriptChange);
+  for (const b of document.querySelectorAll('.seg button')) b.addEventListener('click', () => setMode(b.dataset.mode));
+  $('#lang').addEventListener('change', e => { settings.lang = e.target.value; saveSettings(); });
+  bindRange('autoWpm', 'autoWpm'); bindRange('size', 'size'); bindRange('width', 'width'); bindRange('eyeline', 'eyeline');
+  $('#mirror').addEventListener('change', e => { settings.mirror = e.target.checked; saveSettings(); });
+  $('#showHeard').addEventListener('change', e => { settings.showHeard = e.target.checked; saveSettings(); });
+  bindRange('targetWpm', 'targetWpm');
+  $('#record').addEventListener('change', e => { settings.record = e.target.checked; saveSettings(); });
+  $('#chirp').addEventListener('change', e => { settings.chirp = e.target.checked; saveSettings(); });
+  $('#cdSel').addEventListener('change', e => { settings.countdown = +e.target.value; saveSettings(); });
+  $('#micId').addEventListener('change', e => {
+    settings.micId = e.target.value; saveSettings();
+    if (audio.stream && !take) { closeMic(); openMic(); }
+  });
+  $('#projectPick').addEventListener('change', e => {
+    const v = e.target.value;
+    if (v === '__new') { e.target.value = project || ''; openProjectDialog('new'); return; }
+    if (v !== project) openProject(v || null);
+  });
+  $('#newProjectBtn').addEventListener('click', () => openProjectDialog('new'));
+  $('#projRename').addEventListener('click', () => openProjectDialog('rename'));
+  $('#projFinder').addEventListener('click', () => { if (project) fetch(projUrl(project, 'reveal'), { method: 'POST' }).catch(() => {}); });
+  $('#projForm').addEventListener('submit', submitProjectDialog);
+  $('#projCancel').addEventListener('click', closeProjectDialog);
+  $('#projDialog').addEventListener('click', e => { if (e.target === $('#projDialog')) closeProjectDialog(); });
+  addEventListener('pagehide', () => { if (projectSaveTimer) navigator.sendBeacon?.(projUrl(project, 'script'), new Blob([$('#script').value], { type: 'text/plain' })); });
+  $('#markBtn').addEventListener('click', () => markFlub('Mac'));
+  $('#sumClose').addEventListener('click', hideSummary);
+  $('#summary').addEventListener('click', e => { if (e.target === $('#summary')) hideSummary(); });
+  $('#sumFinder').addEventListener('click', () => { if (lastTake?.t.id) fetch(`/take/${lastTake.t.id}/reveal`, { method: 'POST' }).catch(() => {}); });
+  $('#sumCopy').addEventListener('click', async () => {
+    const text = lastTake?.files['youtube-chapters.txt'] || '';
+    try { await navigator.clipboard.writeText(text); toast('YouTube chapters copied.'); } catch { toast('Couldn\'t copy. The chapters are in youtube-chapters.txt in the take folder.'); }
+  });
+  $('#useMonitor').addEventListener('click', () => switchRole('monitor'));
+  $('#useScreen').addEventListener('click', () => switchRole('screen'));
+  addEventListener('beforeunload', e => { if (take) { e.preventDefault(); e.returnValue = ''; } });
+
+  $('#openBtn').addEventListener('click', () => $('#fileInput').click());
+  $('#fileInput').addEventListener('change', e => { readFile(e.target.files[0]); e.target.value = ''; });
+  $('#tidyBtn').addEventListener('click', () => {
+    const v = $('#script').value;
+    const r = convertMarkdown(v);
+    if (r.text === v.trim()) { toast('Nothing to tidy. The script is already plain text.'); return; }
+    replaceScript(r.text);
+    toast(r.kind === 'table' ? `Pulled ${r.count} voiceover lines from the table. ⌘Z to undo.` : 'Cleaned up the markdown formatting. ⌘Z to undo.');
+  });
+  $('#startBtn').addEventListener('click', () => enterPrompter());
+
+  const ta = $('#script');
+  ta.addEventListener('dragover', e => { if ([...e.dataTransfer.types].includes('Files')) { e.preventDefault(); ta.classList.add('drop'); } });
+  ta.addEventListener('dragleave', () => ta.classList.remove('drop'));
+  ta.addEventListener('drop', e => {
+    ta.classList.remove('drop');
+    const f = e.dataTransfer.files[0];
+    if (f) { e.preventDefault(); readFile(f); }
+  });
+  ta.addEventListener('paste', e => {
+    const t = e.clipboardData?.getData('text/plain') || '';
+    if (/\|.*\|\s*\n\s*\|?\s*:?-{2,}/.test(t) && convertMarkdown(t).kind === 'table') {
+      setTimeout(() => toast('That looks like a script table. Press Tidy markdown to keep only the voiceover.'), 50);
+    }
+  });
+
+  // Prompter controls. Mouse clicks don't take focus, so Space always means start/pause.
+  $('#hud').addEventListener('mousedown', e => { if (e.target.closest('button')) e.preventDefault(); });
+  $('#exitBtn').addEventListener('click', exitPrompter);
+  $('#restartBtn').addEventListener('click', restart);
+  $('#ipadBtn').addEventListener('click', () => toggleIpadPanel());
+  const onIpadControl = e => {
+    const el = e.target.closest('[data-ip]');
+    if (!el) return;
+    settings.screen[el.dataset.ip] = el.type === 'checkbox' ? el.checked : +el.value;
+    saveSettings(); syncIpadControls(); sendDisplay();
+    if (e.type === 'change' && el.closest('#ipadPanel')) el.blur();   // give Space and the arrows back to the prompter
+  };
+  document.addEventListener('input', onIpadControl);
+  document.addEventListener('change', onIpadControl);
+  syncIpadControls();
+  $('#backBtn').addEventListener('click', () => lineStep(-1));
+  $('#fwdBtn').addEventListener('click', () => lineStep(1));
+  $('#goBtn').addEventListener('click', toggleGo);
+  $('#smallerBtn').addEventListener('click', () => bumpSize(-4));
+  $('#biggerBtn').addEventListener('click', () => bumpSize(4));
+  $('#mirrorBtn').addEventListener('click', toggleMirror);
+  $('#fsBtn').addEventListener('click', toggleFullscreen);
+  $('#chapBtn').addEventListener('click', () => toggleChapMenu());
+  $('#stage').addEventListener('pointerdown', () => {
+    if (!$('#chapMenu').hidden) toggleChapMenu(false);
+    if (!$('#ipadPanel').hidden) toggleIpadPanel(false);
+  });
+  $('#text').addEventListener('click', e => {
+    if (role === 'screen') return;
+    const w = e.target.closest('.w');
+    if (w) jumpToWord(+w.dataset.w);
+  });
+  $('#prompter').addEventListener('mousemove', poke);
+
+  // Touch: swipe up to move forward, down to go back (one line per line-height swiped). Taps still jump to a word.
+  let touchY = null;
+  $('#stage').addEventListener('touchstart', e => { touchY = e.touches.length === 1 ? e.touches[0].clientY : null; poke(); }, { passive: true });
+  $('#stage').addEventListener('touchend', e => {
+    if (touchY === null || role === 'screen') return;
+    const dy = e.changedTouches[0].clientY - touchY;
+    touchY = null;
+    if (Math.abs(dy) < 40) return;
+    e.preventDefault();
+    lineStep(dy < 0 ? 1 : -1, clamp(Math.round(Math.abs(dy) / (geo ? geo.lineH : 60)), 1, 6));
+  }, { passive: false });
+
+  let wheelAcc = 0;
+  $('#stage').addEventListener('wheel', e => {
+    e.preventDefault();
+    if (role === 'screen') return;
+    wheelAcc += e.deltaY;
+    const step = geo ? geo.lineH * 0.8 : 60;
+    while (Math.abs(wheelAcc) >= step) { lineStep(Math.sign(wheelAcc), 1, true); wheelAcc -= Math.sign(wheelAcc) * step; }
+  }, { passive: false });
+
+  document.addEventListener('keydown', e => {
+    if (role === 'screen') { if (e.key === 'f' || e.key === 'F') toggleFullscreen(); return; }
+    if (role === 'monitor') return;
+    if (!$('#projDialog').hidden) { if (e.key === 'Escape') { e.preventDefault(); closeProjectDialog(); } return; }
+    if (!$('#summary').hidden) {
+      if (e.key === 'Escape') { e.preventDefault(); hideSummary(); return; }
+      if (e.key !== ' ' || $('#prompter').hidden) return;
+    }
+    if (!$('#prompter').hidden) {
+      if (document.activeElement?.tagName === 'INPUT') { if (e.key === 'Escape') toggleIpadPanel(false); return; }
+      const onButton = document.activeElement?.tagName === 'BUTTON';
+      if (onButton && (e.key === ' ' || e.key === 'Enter')) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const k = e.key;
+      if (e.shiftKey && (k === 'ArrowUp' || k === 'ArrowDown')) { e.preventDefault(); chapterStep(k === 'ArrowUp' ? -1 : 1); poke(); return; }
+      if (k === 'Escape' && !$('#chapMenu').hidden) { e.preventDefault(); toggleChapMenu(false); return; }
+      if (k === 'Escape' && !$('#ipadPanel').hidden) { e.preventDefault(); toggleIpadPanel(false); return; }
+      const act = {
+        ' ': toggleGo, Escape: exitPrompter,
+        ArrowUp: () => lineStep(-1), ArrowLeft: () => lineStep(-1), PageUp: () => lineStep(-1),
+        ArrowDown: () => lineStep(1), ArrowRight: () => lineStep(1), PageDown: () => lineStep(1),
+        Home: () => jumpToWord(0),
+        '+': () => bumpSize(4), '=': () => bumpSize(4), '-': () => bumpSize(-4), '_': () => bumpSize(-4),
+        m: toggleMirror, M: toggleMirror, f: toggleFullscreen, F: toggleFullscreen,
+        c: () => toggleChapMenu(), C: () => toggleChapMenu(),
+        i: () => toggleIpadPanel(), I: () => toggleIpadPanel(),
+        x: () => markFlub('Mac'), X: () => markFlub('Mac'),
+        g: () => rateLine('good'), G: () => rateLine('good'), b: () => rateLine('bad'), B: () => rateLine('bad'),
+        h: () => { settings.showHeard = !settings.showHeard; saveSettings(); layout(); },
+        '[': () => { settings.autoWpm = clamp(settings.autoWpm - 10, 80, 260); saveSettings(); updateStatus(); },
+        ']': () => { settings.autoWpm = clamp(settings.autoWpm + 10, 80, 260); saveSettings(); updateStatus(); }
+      }[k];
+      if (act) { e.preventDefault(); act(); poke(); }
+      return;
+    }
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); enterPrompter(); }
+  });
+
+  let rz = 0;
+  addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (!$('#prompter').hidden) layout(); }, 60); });
+  document.fonts?.ready.then(() => { if (!$('#prompter').hidden) layout(); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && !$('#prompter').hidden) lockScreen(); });
+
+  addEventListener('qrready', renderDevices);
+  initSync();
+
+  // For testing from the console: eyelineDebug.hear("words you said")
+  window.eyelineDebug = { hear, state: () => ({ pos, word: curWord, total: keys.length, at: wordEls[curWord]?.textContent }), chapters: () => chapters.map(c => [c.num, c.at, wordEls[c.at]?.textContent]), view: () => ({ role, viewK: +viewK.toFixed(2), y: Math.round(y), settings: { size: settings.size, mirror: settings.mirror, eyeline: settings.eyeline } }),
+    // Simulate speech recognition: results = [[text, isFinal], ...] as Chrome reports them.
+    results: (list, index = 0, session = sessionNo) => handleResults(list.map(([text, isFinal]) => Object.assign([{ transcript: text }], { isFinal })), index, session),
+    take: () => take, lastTake: () => lastTake, startTake, endTake, markFlub, analyzeTake };
+}
+
+init();
+})();
+</script>
+</body>
+</html>

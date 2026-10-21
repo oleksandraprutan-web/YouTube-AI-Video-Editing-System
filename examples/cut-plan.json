@@ -1,0 +1,12 @@
+[
+  {
+    "id": 1,
+    "take": "take01",
+    "cam": "demo-camera.mp4",
+    "cutIn": 0.5,
+    "cutOut": 2.5,
+    "camOffset": 0,
+    "text": "Synthetic example interval.",
+    "chapter": "Example"
+  }
+]

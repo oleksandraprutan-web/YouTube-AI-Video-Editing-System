@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "width": 1920,
+  "height": 1080,
+  "fps": "24000/1001",
+  "duration": 3,
+  "scenes": [
+    {
+      "start": 0,
+      "end": 3,
+      "file": "../templates/board/index.html"
+    }
+  ]
+}

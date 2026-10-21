@@ -1,0 +1,28 @@
+{
+  "project": "Synthetic example",
+  "lines": [
+    {
+      "line": 0,
+      "text": "Example sentence.",
+      "chapter": "Example",
+      "take": "Take 01 \u00b7 synthetic",
+      "start": 0.5,
+      "end": 2.5,
+      "flags": []
+    }
+  ],
+  "clips": [
+    {
+      "take": "Take 01 \u00b7 synthetic",
+      "start": 0.5,
+      "end": 2.5,
+      "lines": [
+        0
+      ]
+    }
+  ],
+  "offScript": {
+    "placed": [],
+    "toReview": []
+  }
+}

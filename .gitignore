@@ -1,0 +1,24 @@
+# Local projects, custom skills, credentials and production media
+.local/
+Projects/
+videos/
+recordings/
+exports/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.log
+*.wav
+*.mp3
+*.mov
+*.mp4
+*.mkv
+*.bak
+__pycache__/
+*.py[cod]
+.venv/
+node_modules/
+.DS_Store
+.cache/

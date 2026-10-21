@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Teleprompter recording draft",
+  "type": "object",
+  "required": [
+    "lines"
+  ],
+  "properties": {
+    "project": {
+      "type": "string"
+    },
+    "lines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "line",
+          "text"
+        ],
+        "properties": {
+          "line": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "text": {
+            "type": "string"
+          },
+          "missing": {
+            "type": "boolean"
+          },
+          "take": {
+            "type": "string"
+          },
+          "start": {
+            "type": "number",
+            "minimum": 0
+          },
+          "end": {
+            "type": "number",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "clips": {
+      "type": "array"
+    },
+    "offScript": {
+      "type": "object"
+    }
+  }
+}

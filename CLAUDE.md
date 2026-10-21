@@ -1,0 +1,1 @@
+Read AGENTS.md, then docs/workflow.md. Role instructions are in agents/. Customize skills/ placeholders before using them for creative decisions. Work on a project under .local/ or a separate storage location; do not publish its files.

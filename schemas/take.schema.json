@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Recording take metadata (core fields)",
+  "type": "object",
+  "required": [
+    "eyeline",
+    "take"
+  ],
+  "properties": {
+    "eyeline": {
+      "const": 2
+    },
+    "take": {
+      "type": "object",
+      "required": [
+        "number",
+        "audio",
+        "duration"
+      ],
+      "properties": {
+        "number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "audio": {
+          "const": "audio.wav"
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "attempts": {
+      "type": "array"
+    },
+    "sentences": {
+      "type": "array"
+    },
+    "roughCut": {
+      "type": "array"
+    },
+    "words": {
+      "type": "array"
+    },
+    "health": {
+      "type": "object"
+    }
+  }
+}

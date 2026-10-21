@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Generic board template</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:white;color:#161616;font-family:Arial,sans-serif}
+main{width:1920px;height:1080px;padding:100px}h1{font-size:80px;margin:0 0 80px;max-width:1300px}
+.row{display:flex;gap:30px}.card{padding:40px;border:3px solid #333;border-radius:16px;font-size:40px;width:430px}
+.safe{position:absolute;right:40px;bottom:40px;width:480px;height:270px;border:2px dashed #bbb;padding:24px;color:#777;font-size:24px}
+</style></head><body><main><h1>Replace with your board headline</h1><div class="row">
+<div class="card">Source</div><div class="card">Review</div><div class="card">Result</div>
+</div><div class="safe">Camera safe area<br>Customize in your brief</div></main>
+<script>
+window.seek = function(seconds) {
+ document.querySelectorAll('.card').forEach((node,i) => {
+   node.style.opacity = Math.max(0,Math.min(1,(seconds - i * .6)/.35));
+ });
+};window.seek(0);
+</script></body></html>

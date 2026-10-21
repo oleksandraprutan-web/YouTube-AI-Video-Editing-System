@@ -1,0 +1,39 @@
+{
+  "eyeline": 2,
+  "take": {
+    "number": 1,
+    "audio": "audio.wav",
+    "duration": 6,
+    "sampleRate": 48000
+  },
+  "sentences": [
+    {
+      "id": 0,
+      "text": "Example sentence.",
+      "chapter": "Example"
+    }
+  ],
+  "attempts": [
+    {
+      "sentence": 0,
+      "start": 0.5,
+      "end": 2.5,
+      "coverage": 1,
+      "keep": true,
+      "flags": []
+    }
+  ],
+  "roughCut": [
+    {
+      "start": 0.5,
+      "end": 2.5,
+      "sentences": [
+        0
+      ]
+    }
+  ],
+  "utterances": [],
+  "flubs": [],
+  "words": [],
+  "health": {}
+}

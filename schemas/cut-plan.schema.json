@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Source-linked Eyeline Edit cut",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "take",
+      "cam",
+      "cutIn",
+      "cutOut"
+    ],
+    "properties": {
+      "take": {
+        "type": "string",
+        "pattern": "^take[0-9]+$"
+      },
+      "cam": {
+        "type": "string",
+        "minLength": 1
+      },
+      "cutIn": {
+        "type": "number",
+        "minimum": 0
+      },
+      "cutOut": {
+        "type": "number",
+        "exclusiveMinimum": 0
+      },
+      "text": {
+        "type": "string"
+      },
+      "camOffset": {
+        "type": "number"
+      },
+      "frames": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "outStart": {
+        "type": "number",
+        "minimum": 0
+      },
+      "dur": {
+        "type": "number",
+        "exclusiveMinimum": 0
+      },
+      "padBefore": {
+        "type": "number",
+        "minimum": 0
+      }
+    },
+    "additionalProperties": true
+  }
+}

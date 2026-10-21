@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "stages": [
+    {
+      "id": "recording",
+      "agent": "agents/recording.md",
+      "approvalAfter": false
+    },
+    {
+      "id": "cutting",
+      "agent": "agents/cutting.md",
+      "approvalAfter": false
+    },
+    {
+      "id": "review",
+      "agent": "agents/review.md",
+      "approvalAfter": true
+    },
+    {
+      "id": "design",
+      "agent": "agents/design.md",
+      "approvalAfter": true
+    },
+    {
+      "id": "animation",
+      "agent": "agents/animation.md",
+      "approvalAfter": false
+    },
+    {
+      "id": "editor",
+      "agent": "agents/editor.md",
+      "approvalAfter": true
+    }
+  ]
+}

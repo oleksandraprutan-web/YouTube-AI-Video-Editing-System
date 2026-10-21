@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "width",
+    "height",
+    "fps",
+    "duration",
+    "scenes"
+  ],
+  "properties": {
+    "width": {
+      "type": "integer",
+      "minimum": 2
+    },
+    "height": {
+      "type": "integer",
+      "minimum": 2
+    },
+    "fps": {
+      "type": "string"
+    },
+    "duration": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "scenes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "start",
+          "end",
+          "file"
+        ],
+        "properties": {
+          "start": {
+            "type": "number",
+            "minimum": 0
+          },
+          "end": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "file": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

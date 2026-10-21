@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eyeline Edit</title>
+<style>
+:root{--bg:#141416;--panel:#1c1c1f;--raised:#26262a;--line:#303035;--text:#ececec;--muted:#8f9098;--accent:#f2c94c;--flag:#ff5a52;
+--font:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;--mono:ui-monospace,"SF Mono",Menlo,monospace}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:13px/1.45 var(--font);display:grid;grid-template-rows:auto minmax(0,1fr) auto auto auto;grid-template-columns:minmax(0,1fr);overflow:hidden}
+button{font:inherit;color:var(--text);background:var(--raised);border:1px solid var(--line);border-radius:6px;padding:5px 10px;cursor:pointer;white-space:nowrap}
+button:hover{border-color:#55565e} button.primary{background:var(--accent);border-color:var(--accent);color:#1a1a1a;font-weight:600}
+button.icon{padding:5px 8px} kbd{font:10px var(--mono);color:var(--muted);margin-left:5px}
+header{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line)}
+header h1{font-size:14px;margin:0 6px 0 0} .stat{color:var(--muted);font:12px var(--mono)} .sp{flex:1} #saved{font:11px var(--mono);color:var(--muted)}
+main{display:grid;grid-template-columns:minmax(0,1fr) 340px;min-height:0}
+#stage{display:flex;align-items:center;justify-content:center;min-height:0;padding:10px;background:#0c0c0d}
+#viewer{position:relative;height:100%;max-height:100%;aspect-ratio:16/9;max-width:100%;background:#000;overflow:hidden;border-radius:4px}
+#viewer video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform-origin:50% 0}
+#viewer video.on{opacity:1}
+#hud{position:absolute;left:8px;top:8px;font:11px var(--mono);background:rgba(0,0,0,.55);padding:2px 6px;border-radius:4px;z-index:2}
+#side{border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0;background:var(--panel)}
+#insp{padding:12px;border-bottom:1px solid var(--line);overflow:auto;max-height:55%}
+#insp h2{font-size:12px;margin:0 0 4px;color:var(--accent);letter-spacing:.03em}
+#insp .meta{font:11px var(--mono);color:var(--muted);margin-bottom:8px} #insp .txt{font-size:14px;margin-bottom:10px}
+#insp .flag{border-left:3px solid var(--flag);padding:6px 9px;background:rgba(255,90,82,.08);margin-bottom:10px;font-size:12px}
+#insp .row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+#find{margin:8px;padding:6px 9px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:inherit}
+#list{overflow:auto;flex:1;font-size:12px}
+#list div{padding:6px 10px;border-top:1px solid var(--line);cursor:pointer;color:#cfcfd4} #list div:hover{background:var(--raised)}
+#list div.sel{background:rgba(242,201,76,.16);color:var(--text)} #list div .n{font:10px var(--mono);color:var(--muted);margin-right:6px} #list div.fl{border-left:3px solid var(--flag)}
+#list .para{padding:8px 10px 8px 12px;border-top:1px solid var(--line);line-height:1.75;font-size:13px;color:#d8d8dc;cursor:default}
+#list .para.cur{background:rgba(242,201,76,.07)} #list .para .n{font:10px var(--mono);color:var(--muted);margin-right:6px;cursor:pointer}
+#list .w{cursor:pointer;border-radius:3px;padding:0 1px} #list .w:hover{background:rgba(255,255,255,.12)}
+#list .w.ws{background:var(--accent);color:#141416} #list .w.hit{text-decoration:underline;text-decoration-color:var(--accent)}
+#wbar{display:none;align-items:center;gap:6px;padding:6px 8px;border-top:1px solid var(--line);background:#222226;font-size:12px} #wbar.on{display:flex}
+#toolbar{display:flex;align-items:center;gap:6px;padding:6px 10px;border-top:1px solid var(--line);background:var(--panel)}
+#tc{font:13px var(--mono);margin:0 8px;min-width:190px;text-align:center}
+#tlwrap{height:140px;background:#18181b;border-top:1px solid var(--line);position:relative}
+#tl{width:100%;height:100%;display:block}
+#drawer{display:none;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;padding:8px 10px;background:var(--panel);border-top:1px solid var(--line)}
+#drawer.open{display:grid}
+.edge .hd{display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:11px;color:var(--muted)} .edge .hd b{color:var(--text)}
+.edge canvas{width:100%;height:96px;display:block;border-radius:4px;background:#101012;cursor:crosshair}
+.help{font-size:11px;color:var(--muted)}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:20}
+#modal .box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;width:min(620px,92vw)}
+#modal input{width:100%;padding:7px 9px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:12px var(--mono);margin:8px 0}
+#bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin:10px 0} #bar span{display:block;height:100%;width:0;background:var(--accent)}
+#rlog{font:11px var(--mono);color:var(--muted);white-space:pre-wrap;max-height:120px;overflow:auto}
+</style>
+</head>
+<body>
+<header>
+  <h1>Eyeline Edit · <span id="projName">…</span></h1><button id="openProj" class="ghost" title="Open another project">Open…</button><span class="stat" id="stat"></span><span class="sp"></span><span id="saved"></span>
+  <button id="revert">Revert to original cut</button><button class="primary" id="renderBtn">Export 4K…</button>
+</header>
+<main>
+  <div id="stage"><div id="viewer"><span id="hud"></span></div></div>
+  <div id="side"><div id="insp"></div><input id="find" placeholder="Search the words… (Enter = next match)"><div id="wbar"><span id="wsInfo"></span><span class="sp"></span><button id="wPlay">Play from here</button><button id="wDel" class="primary">Delete words ⌫</button></div><div id="list"></div></div>
+</main>
+<div id="toolbar">
+  <button class="icon" id="undo" title="Undo ⌘Z">↶</button><button class="icon" id="redo" title="Redo ⇧⌘Z">↷</button>
+  <button id="split" title="Split at playhead">Split<kbd>⌘B</kbd></button><button id="del" title="Delete selected clip">Delete<kbd>⌫</kbd></button><button id="silBtn" title="Cut the silent gaps">Remove pauses…</button>
+  <span class="sp"></span>
+  <button class="icon" id="prevCut" title="Previous cut ↑">⏮</button><button id="play" style="min-width:76px">▶ Play</button><button class="icon" id="nextCut" title="Next cut ↓">⏭</button>
+  <span id="tc">0:00:00 / 0:00:00</span>
+  <span class="sp"></span>
+  <button id="fine">Fine-tune edges</button>
+  <button class="icon" id="zout">−</button><input id="zoom" type="range" min="0" max="100" value="35" style="width:140px"><button class="icon" id="zin">+</button>
+</div>
+<div id="tlwrap"><canvas id="tl"></canvas></div>
+<div id="drawer">
+  <div class="edge"><div class="hd"><b>IN</b><span id="inInfo"></span><span class="sp"></span><button data-n="in,-1">−1f</button><button data-n="in,1">+1f</button></div><canvas id="cvIn"></canvas></div>
+  <div class="edge"><div class="hd"><b>OUT</b><span id="outInfo"></span><span class="sp"></span><button data-n="out,-1">−1f</button><button data-n="out,1">+1f</button></div><canvas id="cvOut"></canvas></div>
+</div>
+<div id="silM" style="position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:21"><div class="box" style="background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;width:min(560px,92vw)">
+  <h2 style="margin:0 0 6px;font-size:16px">Remove pauses</h2>
+  <div class="help" style="margin-bottom:12px">Finds every silent stretch in the audio and cuts it down. Works on the whole cut; you can Undo it.</div>
+  <label style="display:flex;align-items:center;gap:10px;margin:8px 0">Cut silences longer than <input id="silMin" type="range" min="0.1" max="1.5" step="0.05" value="0.3" style="flex:1"><b id="silMinV" style="font-family:var(--mono);width:52px">0.30 s</b></label>
+  <label style="display:flex;align-items:center;gap:10px;margin:8px 0">Leave this much breathing room <input id="silKeep" type="range" min="0" max="0.5" step="0.01" value="0.15" style="flex:1"><b id="silKeepV" style="font-family:var(--mono);width:52px">0.15 s</b></label>
+  <label style="display:flex;align-items:center;gap:10px;margin:8px 0">Silence threshold <input id="silThr" type="range" min="8" max="60" step="1" value="20" style="flex:1"><b id="silThrV" style="font-family:var(--mono);width:52px">20</b></label>
+  <label style="display:flex;align-items:center;gap:8px;margin:10px 0"><input id="silInside" type="checkbox" checked> Also cut pauses inside clips (each one becomes a jump cut)</label>
+  <div id="silInfo" style="font:12px var(--mono);color:var(--accent);margin:10px 0"></div>
+  <div style="display:flex;gap:8px;justify-content:flex-end"><button id="silClose">Cancel</button><button class="primary" id="silGo">Remove pauses</button></div>
+</div></div>
+<div id="relink" style="display:none;position:fixed;left:12px;right:12px;bottom:12px;z-index:22;gap:8px;align-items:center;background:#3a2a10;border:1px solid #a7782a;border-radius:8px;padding:8px 10px">
+  <span id="relinkMsg" style="flex:1"></span>
+  <input id="relinkPath" placeholder="Folder with the camera files (paste the path)" style="width:340px">
+  <button id="relinkGo">Find them</button>
+</div>
+<div id="picker" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:30;align-items:center;justify-content:center"><div class="box" style="background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;width:min(640px,94vw)">
+  <h2 style="margin:0 0 8px">Open a project</h2>
+  <p style="margin:0 0 10px;opacity:.8">Paste the path of the project folder (the one with <b>takes</b> and <b>edit</b> inside).</p>
+  <div style="display:flex;gap:8px"><input id="pickPath" style="flex:1" placeholder="e.g. D:\Projects\Example Video"><button id="pickGo">Open</button></div>
+  <p id="pickErr" style="color:#f88"></p>
+  <h3 style="margin:12px 0 6px">Recent</h3><div id="pickList" style="display:flex;flex-direction:column;gap:4px"></div>
+</div></div>
+<div id="modal"><div class="box">
+  <h2 style="margin:0 0 4px;font-size:16px">Export the 4K final cut</h2>
+  <div class="help">Built from the original camera files and prompter audio. Unchanged clips are reused, so only what you edited is re-encoded. The camera drive must be connected. Output (about 5 GB):</div>
+  <input id="outPath"><div id="bar"><span></span></div><div id="rlog"></div>
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px"><button id="reveal" style="display:none">Show in folder</button><button id="closeM">Close</button><button id="goAudio">Export audio only (WAV)</button><button id="goText" title="Transcribes the final cut audio: script.txt, words.tsv, subtitles.srt">Export transcript</button><button class="primary" id="goRender">Export video</button></div>
+</div></div>
+<script>
+const $ = s => document.querySelector(s);
+let plan = [], meta = {}, sel = 0, undo = [], redo = [], FPS = 24000 / 1001;
+const fmtTC = t => { t = Math.max(0, t); const m = Math.floor(t / 60), s = Math.floor(t % 60), f = Math.floor((t % 1) * FPS + 1e-6); return `${m}:${String(s).padStart(2, "0")}:${String(f).padStart(2, "0")}`; };
+const fmt = t => { t = Math.max(0, t); const m = Math.floor(t / 60), s = t - m * 60; return `${m}:${s.toFixed(1).padStart(4, "0")}`; };
+const len = c => (c.cutOut - c.cutIn) * (c.stretch || 1);
+function starts() { let t = 0; return plan.map(c => { const s = t; t += len(c); return s; }); }
+const total = () => plan.reduce((a, c) => a + len(c), 0);
+function clipAt(t) { const st = starts(); for (let i = plan.length - 1; i >= 0; i--) if (t >= st[i] - 1e-6) return i; return 0; }
+const isChanged = c => c.origIn != null && (Math.abs(c.cutIn - c.origIn) > 0.004 || Math.abs(c.cutOut - c.origOut) > 0.004);
+
+// ---------------- media ----------------
+const players = {};
+function makePlayers(takes) { for (const t of takes) players[t] = [0, 1].map(() => { const v = document.createElement("video"); v.src = `/media/${t}.mp4`; v.dataset.take = t; v.preload = "auto"; v.playsInline = true; $("#viewer").appendChild(v); return v; }); }
+let active = null, playing = false, cur = 0, nextPrep = null, playhead = 0, stopAtT = null;
+function show(v, zoom) { for (const t in players) for (const p of players[t]) { p.classList.toggle("on", p === v); if (p !== v) p.pause(); } v.style.transform = zoom === 1 ? "scale(1.1003)" : zoom === 2 ? "scale(1.05)" : "none"; active = v; }
+function seek(v, t) { return new Promise(r => { if (Math.abs(v.currentTime - t) < 0.005 && v.readyState >= 2) return r(); const done = () => r(); v.addEventListener("seeked", done, { once: true }); v.currentTime = t; setTimeout(done, 1200); }); }
+const idle = take => players[take].find(p => p !== active) || players[take][0];
+const takeOf = v => v.dataset.take;
+let seekTok = 0;
+async function showFrameAt(t) {          // paused preview of the cut at time t
+  const tok = ++seekTok; const i = clipAt(t), c = plan[i], st = starts()[i];
+  const tt = Math.min(c.cutOut - 0.001, c.cutIn + (t - st));
+  const v = active && takeOf(active) === c.take ? active : idle(c.take);
+  await seek(v, tt); if (tok !== seekTok) return; show(v, c.zoom); cur = i; updateHUD();
+}
+async function prepare(i) { if (i >= plan.length) { nextPrep = null; return; } const c = plan[i]; const v = idle(c.take); nextPrep = { i, v }; v.pause(); await seek(v, c.cutIn); }
+async function playFrom(t, stopAt = null) {
+  stop(); const i = clipAt(t), c = plan[i]; const tt = c.cutIn + (t - starts()[i]);
+  const v = idle(c.take); await seek(v, tt); show(v, c.zoom); cur = i; playing = true; stopAtT = stopAt; v.muted = false;
+  try { await v.play(); } catch (e) { stop(); return; }
+  prepare(i + 1); $("#play").textContent = "❚❚ Pause"; loop();
+}
+function stop() { playing = false; if (active) active.pause(); $("#play").textContent = "▶ Play"; }
+async function loop() {
+  if (!playing) return;
+  const c = plan[cur]; playhead = starts()[cur] + (active.currentTime - c.cutIn); follow(); draw(); updateHUD();
+  { const tt = active.currentTime; active.volume = (c.audioIn != null && tt < c.audioIn) || (c.audioOut != null && tt > c.audioOut) ? 0 : 1; }
+  if (stopAtT != null && playhead >= stopAtT) { stop(); return; }
+  if (active.currentTime >= c.cutOut - 0.012) {
+    if (cur + 1 >= plan.length) { stop(); return; }
+    const next = plan[cur + 1];
+    if (next.take === c.take && Math.abs(next.cutIn - c.cutOut) < 0.001 && !next.padBefore) {
+      cur++; prepare(cur + 1); requestAnimationFrame(loop); return;
+    }
+    let p = nextPrep && nextPrep.i === cur + 1 ? nextPrep.v : null;
+    if (!p) { p = idle(plan[cur + 1].take); await seek(p, plan[cur + 1].cutIn); }
+    cur++; show(p, plan[cur].zoom); p.muted = false; p.play(); prepare(cur + 1);
+  }
+  requestAnimationFrame(loop);
+}
+function updateHUD() { const c = plan[cur]; $("#tc").textContent = `${fmtTC(playhead)} / ${fmtTC(total())}`; $("#hud").textContent = c ? `clip ${cur + 1} · ${c.take}` : ""; }
+
+// ---------------- timeline (canvas, CapCut style) ----------------
+const cv = $("#tl"), g = cv.getContext("2d");
+const TY = 28, TH = 38, WH = 52, HANDLE = 6, GAP = 3;
+let pps = 8, scrollX = 0, drag = null, hoverX = null;
+const zoomToPps = z => 0.6 * Math.pow(400 / 0.6, z / 100);       // slider 0..100 -> 0.6..400 px/s
+const ppsToZoom = p => Math.log(p / 0.6) / Math.log(400 / 0.6) * 100;
+const sprites = {}, env = {}, words = {};
+function sprite(take, sec) { const k = Math.floor(sec / 100); sprites[take] ||= []; let im = sprites[take][k];
+  if (!im) { im = new Image(); im.onload = () => draw(); im.src = `/sprites/${take}/${String(k + 1).padStart(3, "0")}.jpg`; sprites[take][k] = im; } return im.complete && im.naturalWidth ? im : null; }
+function size() { const r = cv.getBoundingClientRect(), d = devicePixelRatio || 1; cv.width = Math.max(1, r.width * d); cv.height = Math.max(1, r.height * d); g.setTransform(d, 0, 0, d, 0, 0); draw(); }
+function rr(x, y, w, h, r) { g.beginPath(); g.roundRect(x, y, Math.max(0, w), h, r); }
+function draw() {
+  const W = cv.clientWidth, H = cv.clientHeight; g.fillStyle = "#18181b"; g.fillRect(0, 0, W, H);
+  // ruler with timecode
+  const steps = [1 / FPS, 0.25, 0.5, 1, 2, 5, 10, 15, 30, 60, 120, 300]; const step = steps.find(s => s * pps >= 70) || 600;
+  g.fillStyle = "#8f9098"; g.font = "10px ui-monospace,Menlo,monospace"; g.textBaseline = "top";
+  const t0 = scrollX / pps, t1 = (scrollX + W) / pps;
+  for (let t = Math.floor(t0 / step) * step; t <= t1; t += step) { const x = t * pps - scrollX; g.fillRect(x, 16, 1, 8); g.fillText(step < 1 ? fmtTC(t) : fmt(t).replace(/\.\d$/, ""), x + 3, 3);
+    for (let k = 1; k < 5; k++) g.fillRect(x + k * step * pps / 5, 20, 1, 4); }
+  g.fillStyle = "#2a2a2e"; g.fillRect(0, 24, W, 1);
+  const st = starts();
+  plan.forEach((c, i) => {
+    let x = st[i] * pps - scrollX; const w = len(c) * pps;
+    if (drag && drag.kind === "L" && i >= drag.i) x += drag.gap;
+    if (x > W || x + w < 0) return;
+    g.save(); rr(x + GAP / 2, TY, w - GAP, TH + WH, 4); g.clip();
+    const tw = TH * 16 / 9;                       // thumbnails: one camera frame per second of source
+    for (let tx = x; tx < x + w; tx += tw) { if (tx + tw < 0 || tx > W) continue; const tt = c.cutIn + (tx - x) / pps, im = sprite(c.take, Math.floor(tt));
+      if (im) { const s = Math.floor(tt) % 100; g.drawImage(im, (s % 10) * 160, Math.floor(s / 10) * 90, 160, 90, tx, TY, tw, TH); } else { g.fillStyle = "#2a2a2e"; g.fillRect(tx, TY, tw, TH); } }
+    g.fillStyle = "#103a38"; g.fillRect(x, TY + TH, w, WH);                 // waveform strip
+    const e = env[c.take];
+    if (e) { g.fillStyle = "#3ccfbf"; const a = Math.max(0, Math.floor(-x)), b = Math.min(w, W - x);
+      for (let px = a; px < b; px++) { const ta = c.cutIn + px / pps, tb = ta + 1 / pps; let m = 0; for (let k = Math.floor(ta * 100); k <= Math.floor(tb * 100); k++) m = Math.max(m, e[k] || 0);
+        const hh = m / 255 * (WH - 4); g.fillRect(x + px, TY + TH + WH / 2 - hh / 2, 1, Math.max(1, hh)); } }
+    if (pps >= 40 && words[c.take]) { g.font = "9px -apple-system,sans-serif"; let lastEnd = -1e9;
+      for (const [ws, we, wt] of words[c.take]) { if (we < c.cutIn || ws > c.cutOut) continue; const wx = x + (ws - c.cutIn) * pps + 1, tw2 = g.measureText(wt).width;
+        if (wx < lastEnd + 3) continue; g.fillStyle = "rgba(0,0,0,.55)"; g.fillRect(wx - 1, TY + TH + 1, tw2 + 2, 11); g.fillStyle = "rgba(255,255,255,.95)"; g.fillText(wt, wx, TY + TH + 2); lastEnd = wx + tw2; } }
+    const grd = g.createLinearGradient(0, TY, 0, TY + 18); grd.addColorStop(0, "rgba(0,0,0,.7)"); grd.addColorStop(1, "rgba(0,0,0,0)");
+    g.fillStyle = grd; g.fillRect(x, TY, w, 14); g.fillStyle = "#fff"; g.font = "9px -apple-system,sans-serif"; if (w > 24) g.fillText(`${i + 1}  ${c.text}`, x + 5, TY + 2, w - 10);
+    if (c.flag) { g.fillStyle = "#ff5a52"; g.beginPath(); g.arc(x + 8, TY + TH - 6, 3, 0, 7); g.fill(); }
+    if (isChanged(c)) { g.fillStyle = "#f2c94c"; g.beginPath(); g.arc(x + w - 8, TY + TH - 6, 3, 0, 7); g.fill(); }
+    g.restore();
+    if (i > 0) { g.fillStyle = "rgba(255,255,255,.55)"; g.fillRect(x, TY - 4, 1, TH + WH + 8); }
+  });
+  const c = plan[sel];                                                        // selected: white frame + trim handles
+  if (c) { let x = st[sel] * pps - scrollX; const w = len(c) * pps; if (drag && drag.kind === "L") x += drag.gap;
+    g.strokeStyle = "#fff"; g.lineWidth = 1.5; rr(x + GAP / 2, TY - 1, w - GAP, TH + WH + 2, 4); g.stroke();
+    for (const [hx, side] of [[x - HANDLE + GAP / 2, 0], [x + w - GAP / 2, 1]]) { g.fillStyle = "#fff"; rr(hx, TY + 8, HANDLE, TH + WH - 16, 3); g.fill();
+      g.fillStyle = "#18181b"; g.fillRect(hx + HANDLE / 2 - 0.5, TY + (TH + WH) / 2 - 6, 1, 12); } }
+  if (hoverX != null && !drag) { g.fillStyle = "rgba(255,255,255,.35)"; g.fillRect(hoverX, 0, 1, H); const ht = fmtTC((hoverX + scrollX) / pps);
+    g.font = "10px ui-monospace,Menlo,monospace"; const w2 = g.measureText(ht).width + 8; g.fillStyle = "rgba(0,0,0,.8)"; g.fillRect(Math.min(hoverX + 4, W - w2), 2, w2, 13); g.fillStyle = "#fff"; g.fillText(ht, Math.min(hoverX + 8, W - w2 + 4), 3); }
+  const px = playhead * pps - scrollX; g.fillStyle = "#f2c94c"; g.fillRect(px - 1, 0, 2, H);          // playhead
+  g.beginPath(); g.moveTo(px - 6, 0); g.lineTo(px + 6, 0); g.lineTo(px + 6, 8); g.lineTo(px, 14); g.lineTo(px - 6, 8); g.closePath(); g.fill();
+  if (drag && (drag.kind === "L" || drag.kind === "R")) { const c2 = plan[drag.i];
+    const tip = `${drag.kind === "L" ? "in" : "out"} ${(drag.kind === "L" ? c2.cutIn : c2.cutOut).toFixed(3)}s  (${drag.delta >= 0 ? "+" : ""}${(drag.delta * 1000).toFixed(0)} ms)  ·  ${len(c2).toFixed(2)}s${drag.snapped ? "  · snapped to word" : ""}`;
+    g.font = "11px ui-monospace,Menlo,monospace"; const tw = g.measureText(tip).width + 12; const tx = Math.min(drag.mx + 12, W - tw - 4);
+    g.fillStyle = "rgba(0,0,0,.85)"; g.fillRect(tx, TY + 4, tw, 18); g.fillStyle = "#fff"; g.fillText(tip, tx + 6, TY + 8); }
+}
+function follow() { const W = cv.clientWidth, px = playhead * pps - scrollX; if (px > W - 60 || px < 0) scrollX = Math.max(0, playhead * pps - 80); }
+function hit(x, y) {
+  const t = (x + scrollX) / pps; if (y < TY) return { kind: "ruler", t };
+  const st = starts(), c = plan[sel]; if (c) { const sx = st[sel] * pps - scrollX, ex = sx + len(c) * pps;
+    if (y <= TY + TH + WH + 2) { if (x >= sx - HANDLE - 3 && x <= sx + 5) return { kind: "L", i: sel, t }; if (x >= ex - 5 && x <= ex + HANDLE + 3) return { kind: "R", i: sel, t }; } }
+  if (t >= 0 && t <= total()) return { kind: "clip", i: clipAt(t), t };
+  return { kind: "empty", t };
+}
+function snapTime(take, t, edge) { const ws = words[take]; if (!ws) return [t, false]; const lim = 7 / pps; let best = null;
+  for (const [s, e] of ws) { const cand = edge === "L" ? s - 0.03 : e + 0.04; if (Math.abs(cand - t) < lim && (best == null || Math.abs(cand - t) < Math.abs(best - t))) best = cand; }
+  return best == null ? [t, false] : [best, true]; }
+cv.addEventListener("mousedown", e => {
+  const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, h = hit(x, y);
+  if (h.kind === "L" || h.kind === "R") { snapshot(); stop(); const c = plan[h.i]; drag = { kind: h.kind, i: h.i, x0: x, base: h.kind === "L" ? c.cutIn : c.cutOut, gap: 0, delta: 0, mx: x }; return; }
+  if (h.kind === "clip") { sel = h.i; wsel = null; renderSide(); }
+  stop(); playhead = Math.max(0, Math.min(total() - 0.001, h.t)); showFrameAt(playhead); updateHUD(); draw(); drag = { kind: "scrub" };
+});
+window.addEventListener("mousemove", e => {
+  const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  if (!drag) { const inside = x >= 0 && y >= 0 && x <= r.width && y <= r.height; const nh = inside ? x : null; if (nh !== hoverX) { hoverX = nh; draw(); }
+    if (inside) { const h = hit(x, y); cv.style.cursor = h.kind === "L" || h.kind === "R" ? "ew-resize" : "text"; } return; }
+  if (drag.kind === "scrub") { playhead = Math.max(0, Math.min(total() - 0.001, (x + scrollX) / pps)); showFrameAt(playhead); updateHUD(); draw(); return; }
+  const c = plan[drag.i]; let t = drag.base + (x - drag.x0) / pps, snapped = false;
+  if (!e.altKey) [t, snapped] = snapTime(c.take, t, drag.kind);
+  if (drag.kind === "L") { c.cutIn = Math.max(0, Math.min(c.cutOut - 0.1, t)); drag.gap = (c.cutIn - drag.base) * pps; drag.delta = c.cutIn - drag.base; previewEdge(c, c.cutIn); }
+  else { c.cutOut = Math.min(meta.takes[c.take], Math.max(c.cutIn + 0.1, t)); drag.delta = c.cutOut - drag.base; previewEdge(c, c.cutOut - 0.02); }
+  drag.mx = x; drag.snapped = snapped; draw(); renderSide(true);
+});
+window.addEventListener("mouseup", () => { if (!drag) return; const k = drag.kind; drag = null; if (k === "L" || k === "R") changed(); draw(); });
+let edgeTok = 0;
+async function previewEdge(c, tt) { const tok = ++edgeTok; const v = active && takeOf(active) === c.take ? active : idle(c.take); await seek(v, tt); if (tok === edgeTok) show(v, c.zoom); }
+cv.addEventListener("wheel", e => { e.preventDefault(); const r = cv.getBoundingClientRect(), x = e.clientX - r.left;
+  if (e.ctrlKey || e.metaKey) { const t = (x + scrollX) / pps; pps = Math.max(0.6, Math.min(400, pps * Math.exp(-e.deltaY * 0.01))); scrollX = Math.max(0, t * pps - x); $("#zoom").value = ppsToZoom(pps); }
+  else scrollX = Math.max(0, Math.min(total() * pps - 200, scrollX + (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY)));
+  draw(); }, { passive: false });
+$("#zoom").oninput = () => { const ph = playhead * pps - scrollX; pps = zoomToPps(+$("#zoom").value); scrollX = Math.max(0, playhead * pps - ph); draw(); };
+$("#zin").onclick = () => { $("#zoom").value = Math.min(100, +$("#zoom").value + 8); $("#zoom").oninput(); };
+$("#zout").onclick = () => { $("#zoom").value = Math.max(0, +$("#zoom").value - 8); $("#zoom").oninput(); };
+new ResizeObserver(size).observe(cv);
+
+// ---------------- edits ----------------
+function snapshot() { undo.push(JSON.stringify(plan)); if (undo.length > 300) undo.shift(); redo = []; }
+let saveTimer = null, planRevision = null, saving = false, saveAgain = false, saveConflict = false;
+function changed() { plan.forEach(c => { if (c.audioIn != null && c.origIn != null && Math.abs(c.cutIn - c.origIn) > 0.002) delete c.audioIn; if (c.audioOut != null && c.origOut != null && Math.abs(c.cutOut - c.origOut) > 0.002) delete c.audioOut; });
+  renderSide(); draw(); $("#saved").textContent = "saving…"; clearTimeout(saveTimer); saveTimer = setTimeout(save, 600); }
+async function save() {
+  if (saveConflict) return;
+  if (saving) { saveAgain = true; return; }
+  saving = true; const sent = JSON.stringify(plan);
+  try {
+    const r = await fetch("/api/plan", {method: "POST", headers: {"If-Match": planRevision || ""}, body: sent});
+    if (r.ok) {
+      const data = await r.json(); planRevision = r.headers.get("ETag");
+      if (JSON.stringify(plan) === sent) plan = data.plan;
+      else saveAgain = true;
+      setStretch(); $("#saved").textContent = "saved " + new Date().toLocaleTimeString(); renderSide(); draw();
+    } else {
+      saveConflict = r.status === 409;
+      $("#saved").textContent = saveConflict ? "CONFLICT — reload; changes NOT saved" : "SAVE FAILED";
+      if (saveConflict) alert("This project changed elsewhere. Your changes have NOT been saved. Copy any needed changes before reloading. Use one editor tab.");
+    }
+  } catch(e) { $("#saved").textContent = "SAVE FAILED — check server"; }
+  finally { saving = false; if (saveAgain && !saveConflict) { saveAgain = false; clearTimeout(saveTimer); saveTimer = setTimeout(save, 600); } }
+}
+function splitAtPlayhead() { const i = clipAt(playhead), c = plan[i], tt = c.cutIn + (playhead - starts()[i]);
+  if (tt <= c.cutIn + 0.08 || tt >= c.cutOut - 0.08) return; snapshot();
+  const b = { ...c, cutIn: tt, origIn: tt, zoom: 0, flag: null }; c.cutOut = tt; c.origOut = tt; plan.splice(i + 1, 0, b); sel = i + 1; changed(); }
+function delSel() { if (plan.length < 2) return; snapshot(); plan.splice(sel, 1); sel = Math.min(sel, plan.length - 1); playhead = Math.min(playhead, total() - 0.01); changed(); showFrameAt(playhead); }
+function nudge(edge, f) { const c = plan[sel]; snapshot(); const d = f / FPS;
+  if (edge === "in") c.cutIn = Math.max(0, Math.min(c.cutOut - 0.1, c.cutIn + d)); else c.cutOut = Math.min(meta.takes[c.take], Math.max(c.cutIn + 0.1, c.cutOut + d)); changed(); }
+$("#split").onclick = splitAtPlayhead; $("#del").onclick = delSel;
+$("#undo").onclick = () => { if (!undo.length) return; redo.push(JSON.stringify(plan)); plan = JSON.parse(undo.pop()); sel = Math.min(sel, plan.length - 1); changed(); };
+$("#redo").onclick = () => { if (!redo.length) return; undo.push(JSON.stringify(plan)); plan = JSON.parse(redo.pop()); sel = Math.min(sel, plan.length - 1); changed(); };
+$("#revert").onclick = async () => { if (!confirm("Go back to the original cut? You can Undo this.")) return; snapshot();
+  const o = await (await fetch("/api/original")).json(); const flags = new Map(plan.map(c => [String(c.picks), c.flag]));
+  plan = o.map(c => ({ ...c, origIn: c.cutIn, origOut: c.cutOut, flag: flags.get(String(c.picks)) || null })); sel = 0; changed(); };
+
+// ---------------- side panel ----------------
+function renderSide(light) {
+  const c = plan[sel]; if (!c) return; const st = starts();
+  $("#stat").textContent = `${plan.length} clips · ${fmt(total())} · ${plan.filter(isChanged).length} edited`;
+  $("#insp").innerHTML = `<h2>CLIP ${sel + 1} OF ${plan.length}</h2><div class="meta">${c.chapter}<br>${c.take} ${c.cutIn.toFixed(2)}–${c.cutOut.toFixed(2)}s · ${len(c).toFixed(2)}s · starts ${fmtTC(st[sel])}${isChanged(c) ? " · <b style='color:var(--accent)'>edited</b>" : ""}</div>
+    ${c.flag ? `<div class="flag"><b>QA note:</b> ${c.flag}</div>` : ""}<div class="txt"></div>
+    <div class="row"><button id="hj1">Hear join in<kbd>J</kbd></button><button id="hj2">Hear join out<kbd>K</kbd></button></div>
+    <div class="row"><button id="rst">Restore edges</button></div>
+    <div class="help">Click anywhere on the timeline to put the playhead there (drag to scrub). Drag the white handles of the selected clip to trim or extend; it snaps to word edges, hold ⌥ to move freely. ← → 1 frame · ⇧← → 1 s · ↑ ↓ previous/next cut · Space play · ⌘B split · ⌫ delete · ⌘ + scroll to zoom. In the transcript below: click a word to jump there, ⇧-click to select more, ⌫ to cut them out, double-click to play, Esc to clear.</div>`;
+  $("#insp .txt").textContent = c.text;
+  $("#hj1").onclick = joinIn; $("#hj2").onclick = joinOut;
+  $("#rst").onclick = () => { if (c.origIn == null) return; snapshot(); c.cutIn = c.origIn; c.cutOut = c.origOut; changed(); };
+  if (!light) renderList();
+  if ($("#drawer").classList.contains("open")) { drawEdge("in"); drawEdge("out"); }
+}
+let wsel = null;   // selected words: {i: clip index, a, b: indices into words[take]}
+function clipWords(c) { const ws = words[c.take] || []; const out = []; for (let k = 0; k < ws.length; k++) { const [s0, e0] = ws[k]; if (e0 > c.cutIn + 0.02 && s0 < c.cutOut - 0.02) out.push(k); } return out; }
+function renderList() { const L = $("#list"); L.textContent = ""; const frag = document.createDocumentFragment();
+  plan.forEach((c, i) => { const p = document.createElement("div"); p.className = "para" + (i === sel ? " cur" : "") + (c.flag ? " fl" : ""); p.dataset.i = i;
+    const n = document.createElement("span"); n.className = "n"; n.textContent = i + 1; n.dataset.clip = i; p.appendChild(n);
+    const ks = clipWords(c);
+    if (!ks.length) p.append(c.text);
+    for (const k of ks) { const w = document.createElement("span"); w.className = "w"; w.dataset.i = i; w.dataset.k = k; w.textContent = words[c.take][k][2]; p.append(w, " "); }
+    frag.appendChild(p); });
+  L.appendChild(frag); markWords(); const cp = L.querySelector(".para.cur"); if (cp && !wsel) cp.scrollIntoView({ block: "nearest" }); }
+function markWords() { document.querySelectorAll("#list .w.ws").forEach(n => n.classList.remove("ws"));
+  if (wsel) { document.querySelectorAll(`#list .w[data-i="${wsel.i}"]`).forEach(n => { const k = +n.dataset.k; if (k >= wsel.a && k <= wsel.b) n.classList.add("ws"); });
+    const c = plan[wsel.i], ws = words[c.take]; $("#wsInfo").textContent = `“${ws.slice(wsel.a, wsel.b + 1).map(w => w[2]).join(" ").slice(0, 60)}” · ${(ws[wsel.b][1] - ws[wsel.a][0]).toFixed(2)}s`; $("#wbar").classList.add("on"); }
+  else $("#wbar").classList.remove("on"); }
+$("#list").addEventListener("click", e => {
+  const t = e.target;
+  if (t.dataset.clip != null) { wsel = null; goClip(+t.dataset.clip); return; }
+  if (!t.classList.contains("w")) return;
+  const i = +t.dataset.i, k = +t.dataset.k;
+  if (e.shiftKey && wsel && wsel.i === i) { wsel.a = Math.min(wsel.a, k); wsel.b = Math.max(wsel.b, k); } else wsel = { i, a: k, b: k };
+  const c = plan[i]; sel = i; stop(); playhead = starts()[i] + Math.max(0, words[c.take][wsel.a][0] - c.cutIn); follow(); showFrameAt(playhead);
+  document.querySelectorAll("#list .para.cur").forEach(n => n.classList.remove("cur")); t.parentElement.classList.add("cur");
+  markWords(); renderSide(true); draw(); });
+$("#list").addEventListener("dblclick", e => { if (e.target.classList.contains("w")) playFrom(playhead); });
+function quietest(take, a, b) { const e = env[take]; if (!e || b <= a) return (a + b) / 2; let best = a, bv = 1e9; for (let k = Math.ceil(a * 100); k <= Math.floor(b * 100); k++) if ((e[k] ?? 255) < bv) { bv = e[k]; best = k / 100; } return best; }
+function deleteWords() {
+  if (!wsel) return; const i = wsel.i, c = plan[i], ws = words[c.take];
+  const prevEnd = wsel.a > 0 ? Math.max(c.cutIn, ws[wsel.a - 1][1]) : c.cutIn, nextStart = wsel.b + 1 < ws.length ? Math.min(c.cutOut, ws[wsel.b + 1][0]) : c.cutOut;
+  const a = Math.max(c.cutIn, quietest(c.take, prevEnd, Math.max(prevEnd, ws[wsel.a][0]))), b = Math.min(c.cutOut, quietest(c.take, Math.min(ws[wsel.b][1], nextStart), nextStart));
+  snapshot();
+  if (a <= c.cutIn + 0.05 && b >= c.cutOut - 0.05) plan.splice(i, 1);
+  else if (a <= c.cutIn + 0.05) c.cutIn = b;
+  else if (b >= c.cutOut - 0.05) c.cutOut = a;
+  else { const q = { ...c, cutIn: b, origIn: b, origOut: c.origOut, zoom: 0, flag: null }; c.cutOut = a; c.origOut = a; plan.splice(i + 1, 0, q); }
+  wsel = null; sel = Math.min(i, plan.length - 1); changed(); playhead = Math.min(starts()[sel] + Math.max(0, a - plan[sel].cutIn) - 0.001, total() - 0.01); showFrameAt(Math.max(0, playhead)); }
+$("#wDel").onclick = deleteWords; $("#wPlay").onclick = () => playFrom(playhead);
+let findIdx = -1;
+$("#find").onkeydown = e => { if (e.key !== "Enter") return; const q = $("#find").value.toLowerCase().trim(); if (!q) return;
+  const nodes = [...document.querySelectorAll("#list .w")]; const texts = nodes.map(n => n.textContent.toLowerCase());
+  const qs = q.split(/\s+/); for (let step = 1; step <= nodes.length; step++) { const j = (findIdx + step) % nodes.length;
+    if (qs.every((w, o) => (texts[j + o] || "").replace(/[^a-z0-9$%']/g, "").startsWith(w.replace(/[^a-z0-9$%']/g, "")))) { findIdx = j;
+      document.querySelectorAll("#list .w.hit").forEach(n => n.classList.remove("hit")); for (let o = 0; o < qs.length; o++) nodes[j + o]?.classList.add("hit");
+      nodes[j].scrollIntoView({ block: "center" }); nodes[j].click(); return; } } };
+
+function goClip(i) { sel = i; playhead = starts()[i] + 0.001; scrollX = Math.max(0, playhead * pps - cv.clientWidth / 3); stop(); showFrameAt(playhead); renderSide(); draw(); }
+const joinIn = () => { if (sel === 0) return; const st = starts(); playFrom(Math.max(st[sel - 1], st[sel] - 2.5), st[sel] + Math.min(3, len(plan[sel]))); };
+const joinOut = () => { if (sel + 1 >= plan.length) return; const st = starts(); playFrom(Math.max(st[sel], st[sel + 1] - 2.5), st[sel + 1] + Math.min(3, len(plan[sel + 1]))); };
+
+// ---------------- transport & keys ----------------
+$("#play").onclick = () => playing ? stop() : playFrom(playhead);
+$("#prevCut").onclick = () => { const st = starts(); let i = -1; st.forEach((s, k) => { if (s < playhead - 0.05) i = k; }); goClip(Math.max(0, i)); };
+$("#nextCut").onclick = () => { const st = starts(); const i = st.findIndex(s => s > playhead + 0.01); if (i >= 0) goClip(i); };
+document.addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT") return; const k = e.key;
+  if (k === " ") { e.preventDefault(); $("#play").click(); }
+  else if (k === "ArrowRight" || k === "ArrowLeft") { e.preventDefault(); stop(); playhead = Math.max(0, Math.min(total() - 0.001, playhead + (k === "ArrowRight" ? 1 : -1) * (e.shiftKey ? 1 : 1 / FPS))); sel = clipAt(playhead); follow(); showFrameAt(playhead); renderSide(true); draw(); }
+  else if (k === "ArrowUp") { e.preventDefault(); $("#prevCut").click(); } else if (k === "ArrowDown") { e.preventDefault(); $("#nextCut").click(); }
+  else if ((k === "b" || k === "B") && e.metaKey) { e.preventDefault(); splitAtPlayhead(); }
+  else if (k === "Backspace" || k === "Delete") { e.preventDefault(); wsel ? deleteWords() : delSel(); }
+  else if (k === "Escape") { wsel = null; markWords(); }
+  else if (k.toLowerCase() === "z" && e.metaKey) { e.preventDefault(); (e.shiftKey ? $("#redo") : $("#undo")).click(); }
+  else if (k.toLowerCase() === "j") joinIn(); else if (k.toLowerCase() === "k") joinOut();
+  else if (k === "=" || k === "+") $("#zin").click(); else if (k === "-") $("#zout").click();
+});
+
+// ---------------- fine-tune drawer (waveform close-ups) ----------------
+$("#fine").onclick = () => { $("#drawer").classList.toggle("open"); renderSide(true); };
+const EV = { in: $("#cvIn"), out: $("#cvOut") }, SPAN = 2.5, pcache = new Map();
+async function peaks(take, a, b, n) { const k = `${take}|${a.toFixed(2)}|${b.toFixed(2)}|${n}`; if (!pcache.has(k)) pcache.set(k, (await (await fetch(`/api/peaks?take=${take}&from=${a}&to=${b}&n=${n}`)).json()).peaks); return pcache.get(k); }
+async function drawEdge(edge) { const c = plan[sel], el = EV[edge], d = devicePixelRatio || 1; el.width = el.clientWidth * d; el.height = el.clientHeight * d; const x = el.getContext("2d"); x.scale(d, d);
+  const w = el.clientWidth, h = el.clientHeight, at = edge === "in" ? c.cutIn : c.cutOut, a = Math.max(0, at - SPAN), b = at + SPAN; el._v = { a, b };
+  const pk = await peaks(c.take, a, b, Math.round(w)); const X = t => (t - a) / (b - a) * w; x.clearRect(0, 0, w, h);
+  for (let i = 0; i < pk.length; i++) { const t = a + i / pk.length * (b - a), ins = t >= c.cutIn && t <= c.cutOut; x.strokeStyle = ins ? "#3ccfbf" : "#3a3b40";
+    x.beginPath(); x.moveTo(i + .5, Math.max(26, h / 2 - pk[i][1] * h * 1.6)); x.lineTo(i + .5, Math.min(h - 2, h / 2 - pk[i][0] * h * 1.6)); x.stroke(); }
+  x.font = "10px ui-monospace,Menlo,monospace"; x.textBaseline = "top";
+  (words[c.take] || []).filter(w2 => w2[1] >= a && w2[0] <= b).forEach(([s, e2, t], k) => { const wx = X(s); x.fillStyle = s >= c.cutIn - .02 && e2 <= c.cutOut + .02 ? "#ececec" : "#6b6c73"; x.fillText(t, wx + 2, 2 + (k % 2) * 12); x.fillStyle = "rgba(255,255,255,.1)"; x.fillRect(wx, 0, 1, h); });
+  x.fillStyle = "#f2c94c"; x.fillRect(X(at) - 1, 0, 3, h);
+  $(edge === "in" ? "#inInfo" : "#outInfo").textContent = ` ${c.take} ${at.toFixed(3)}s`; }
+for (const edge of ["in", "out"]) { const el = EV[edge]; let dr = false;
+  const tAt = e => { const r = el.getBoundingClientRect(); return el._v.a + (e.clientX - r.left) / r.width * (el._v.b - el._v.a); };
+  el.addEventListener("mousedown", () => { dr = true; snapshot(); });
+  window.addEventListener("mousemove", e => { if (!dr) return; const c = plan[sel], t = tAt(e); if (edge === "in") c.cutIn = Math.max(0, Math.min(c.cutOut - .1, t)); else c.cutOut = Math.max(c.cutIn + .1, Math.min(meta.takes[c.take], t)); drawEdge(edge); draw(); });
+  window.addEventListener("mouseup", () => { if (dr) { dr = false; changed(); } }); }
+document.querySelectorAll("[data-n]").forEach(b => b.onclick = () => { const [e, f] = b.dataset.n.split(","); nudge(e, +f); });
+
+// ---------------- remove pauses ----------------
+function silentRuns(c, thr) {     // silent stretches inside a clip, from the 10 ms loudness envelope
+  const e = env[c.take]; if (!e) return []; const a = Math.ceil(c.cutIn * 100), b = Math.floor(c.cutOut * 100); const runs = []; let s = null;
+  for (let k = a; k <= b; k++) { const sil = (e[k] || 0) < thr; if (sil && s == null) s = k; if ((!sil || k === b) && s != null) { runs.push([s / 100, (sil ? k + 1 : k) / 100]); s = null; } }
+  return runs; }
+function planPauses(minGap, keep, thr, inside) {
+  const out = []; let removed = 0, count = 0; const half = keep / 2;
+  plan.forEach((c, i) => {
+    let pieces = [{ ...c }];
+    const runs = silentRuns(c, thr).filter(([s, e]) => e - s >= minGap);
+    for (const [s, e] of runs) {
+      const p = pieces[pieces.length - 1];
+      const atStart = s <= p.cutIn + 0.011, atEnd = e >= p.cutOut - 0.011;
+      if (atStart && atEnd) continue;
+      if (atStart) { const n = Math.max(p.cutIn, e - half); removed += n - p.cutIn; p.cutIn = n; count++; }
+      else if (atEnd) { const n = Math.min(p.cutOut, s + half); removed += p.cutOut - n; p.cutOut = n; count++; }
+      else if (inside) { const aEnd = s + half, bStart = e - half; if (aEnd - p.cutIn < 0.25 || p.cutOut - bStart < 0.25 || bStart <= aEnd) continue;
+        const q = { ...p, cutIn: bStart, origIn: bStart, origOut: p.origOut, zoom: 0, flag: null }; removed += bStart - aEnd; p.cutOut = aEnd; p.origOut = aEnd; pieces.push(q); count++; }
+    }
+    out.push(...pieces);
+  });
+  return { out, removed, count };
+}
+function silPreview() { const m = +$("#silMin").value, k = +$("#silKeep").value, t = +$("#silThr").value;
+  $("#silMinV").textContent = m.toFixed(2) + " s"; $("#silKeepV").textContent = k.toFixed(2) + " s"; $("#silThrV").textContent = t;
+  const r = planPauses(m, k, t, $("#silInside").checked);
+  $("#silInfo").textContent = `${r.count} pauses · removes ${r.removed.toFixed(1)} s · new length ${fmt(total() - r.removed)} · ${r.out.length - plan.length} new jump cuts`; }
+["#silMin", "#silKeep", "#silThr", "#silInside"].forEach(id => $(id).oninput = silPreview);
+$("#silBtn").onclick = () => { if (!Object.keys(env).length) return; $("#silM").style.display = "flex"; silPreview(); };
+$("#silClose").onclick = () => { $("#silM").style.display = "none"; };
+$("#silGo").onclick = () => { const r = planPauses(+$("#silMin").value, +$("#silKeep").value, +$("#silThr").value, $("#silInside").checked);
+  snapshot(); plan = r.out; sel = Math.min(sel, plan.length - 1); $("#silM").style.display = "none"; changed(); showFrameAt(Math.min(playhead, total() - 0.01)); };
+
+// ---------------- export ----------------
+let poll = null;
+$("#renderBtn").onclick = () => { $("#modal").style.display = "flex"; $("#outPath").value ||= meta.defaultOut; checkRender(); };
+$("#closeM").onclick = () => { $("#modal").style.display = "none"; };
+$("#goRender").onclick = async () => { await save(); const r = await (await fetch("/api/render", { method: "POST", body: JSON.stringify({ out: $("#outPath").value }) })).json(); if (r.error) alert(r.error); checkRender(); };
+$("#goText").onclick = async () => { await save(); const r = await (await fetch("/api/transcribe", { method: "POST", body: JSON.stringify({ out: $("#outPath").value }) })).json(); if (r.error) alert(r.error); checkRender(); };
+$("#goAudio").onclick = async () => { await save(); const r = await (await fetch("/api/render", { method: "POST", body: JSON.stringify({ out: $("#outPath").value.replace(/\.[^.\\/]+$/, "") + ".wav", audioOnly: true }) })).json(); if (r.error) alert(r.error); checkRender(); };
+$("#reveal").onclick = () => fetch("/api/reveal", { method: "POST", body: JSON.stringify({ path: $("#outPath").value }) });
+async function checkRender() { const s = await (await fetch("/api/render")).json(); clearTimeout(poll); const m = [...(s.log || "").matchAll(/seg (\d+)\/(\d+)/g)].pop();
+  $("#bar span").style.width = s.done ? "100%" : m ? (m[1] / m[2] * 90) + "%" : s.running ? "3%" : "0";
+  $("#rlog").textContent = s.running ? "Exporting…\n" + (s.log || "").split("\n").slice(-4).join("\n") : s.done ? (s.error ? s.error + "\n" + s.log : "Done: " + s.out) : "";
+  $("#goRender").disabled = $("#goAudio").disabled = $("#goText").disabled = s.running; $("#reveal").style.display = s.done && !s.error ? "" : "none"; if (s.running) poll = setTimeout(checkRender, 1500); }
+
+// ---------------- project picker and relinking ----------------
+function setStretch() { for (const c of plan) c.stretch = c.audioSource === "camera" && c.dur ? c.dur / Math.max(0.01, c.cutOut - c.cutIn) : 1; }
+async function showPicker() {
+  const r = await (await fetch("/api/projects")).json();
+  $("#pickList").innerHTML = (r.recent || []).map(p => `<button class="ghost pick" data-p="${p.replace(/"/g, "&quot;")}">${p}</button>`).join("") || "<p>No recent projects.</p>";
+  for (const b of document.querySelectorAll(".pick")) b.onclick = () => openPath(b.dataset.p);
+  $("#picker").style.display = "flex";
+}
+async function openPath(p) {
+  const r = await (await fetch("/api/open", { method: "POST", body: JSON.stringify({ path: p.trim().replace(/^"|"$/g, "") }) })).json();
+  if (r.error) { $("#pickErr").textContent = r.error; return; }
+  location.reload();
+}
+$("#pickGo").onclick = () => openPath($("#pickPath").value);
+$("#openProj").onclick = showPicker;
+function showRelink(missing) {
+  $("#relink").style.display = missing && missing.length ? "flex" : "none";
+  $("#relinkMsg").textContent = missing && missing.length ? `Camera files not found on this computer: ${missing.join(", ")}. You can review and edit with the previews; the 4K export needs the camera files.` : "";
+}
+$("#relinkGo").onclick = async () => {
+  const r = await (await fetch("/api/relink", { method: "POST", body: JSON.stringify({ folder: $("#relinkPath").value.trim().replace(/^"|"$/g, "") }) })).json();
+  showRelink(r.missing); if (!r.missing.length) $("#saved").textContent = "camera files linked";
+};
+
+// ---------------- boot ----------------
+(async () => {
+  const m0 = await fetch("/api/meta"); if (m0.status === 409) return showPicker();
+  meta = await m0.json(); FPS = meta.fps; $("#projName").textContent = meta.project; document.title = `Eyeline Edit · ${meta.project}`;
+  makePlayers(meta.previews); showRelink(meta.missingFootage);
+  const planResponse = await fetch("/api/plan"); planRevision = planResponse.headers.get("ETag");
+  plan = await planResponse.json(); setStretch();
+  const fl = new Map(); for (const f of meta.flags || []) fl.set(f.clip, (fl.get(f.clip) ? fl.get(f.clip) + " " : "") + `[suggested ${f.fix}${f.takeTime ? " @ " + f.takeTime + "s" : f.seconds ? " " + f.seconds + "s" : f.db ? " " + f.db + " dB" : ""}] ${f.reason}`);
+  let first = false; plan.forEach(c => { if (c.origIn == null) { c.origIn = c.cutIn; c.origOut = c.cutOut; first = true; } if (c.flag === undefined) { c.flag = fl.get(c.id) || null; first = true; } });
+  // Initial display must not silently rewrite the project.
+  for (const t of meta.previews) { fetch(`/api/env?take=${t}`).then(r => r.arrayBuffer()).then(b => { env[t] = new Uint8Array(b); draw(); });
+    fetch(`/api/words?take=${t}&from=0&to=99999`).then(r => r.json()).then(w => { words[t] = w; draw(); renderList(); }); }
+  pps = zoomToPps(+$("#zoom").value); size(); renderSide(); if (plan.length) showFrameAt(0.001);
+})();
+</script>
+</body>
+</html>

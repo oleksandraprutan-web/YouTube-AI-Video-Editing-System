@@ -1,0 +1,28 @@
+{
+  "audience": "TODO",
+  "language": "en",
+  "canvas": {
+    "width": 1920,
+    "height": 1080
+  },
+  "fps": "24000/1001",
+  "design": {
+    "tool": "Claude Design or your own HTML design tool",
+    "palette": "TODO",
+    "fonts": "TODO",
+    "cameraSafeArea": "TODO"
+  },
+  "motion": {
+    "style": "TODO",
+    "deterministicSeeking": true
+  },
+  "audio": {
+    "music": false,
+    "soundEffects": false,
+    "preserveApprovedWav": true
+  },
+  "camera": {
+    "backgroundRemoval": false,
+    "zooms": false
+  }
+}
