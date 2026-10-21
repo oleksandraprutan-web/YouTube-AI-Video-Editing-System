@@ -22,3 +22,6 @@ __pycache__/
 node_modules/
 .DS_Store
 .cache/
+# Synthetic geometric clips used by the public animation demos only.
+!templates/design/animated/assets/sample-source.mp4
+!templates/design/animated/assets/sample-result.mp4

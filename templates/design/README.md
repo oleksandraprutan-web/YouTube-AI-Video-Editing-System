@@ -1,6 +1,14 @@
-# Unbranded explainer design pack
+# Explainer board starter library
 
-Open [index.html](index.html) locally for the visual gallery. GitHub shows HTML source; download or clone the repo to preview it in a browser. No build step, external fonts, network requests, logos, footage, or accounts are needed.
+> **Style these yourself.** These are starter templates, not a finished visual identity. Customize the colors, fonts, shapes, and layouts for your own videos. Adapt the animation examples to your content.
+
+## Start with the animated library
+
+Serve [index.html](index.html) using the command below for the **267-board library and player**, including 246 animated boards plus 21 static/reference layouts. Search, play, pause, replay, and scrub through the original animation mechanics. The visual theme is now generic; the owner's personal branding and signature styling are removed. Read the [animated library guide](animated/README.md) for details and customization.
+
+GitHub shows HTML source. Download/clone the repo, run `python3 -m http.server 5331 --directory templates/design` from the repository root and visit `http://localhost:5331/`.
+
+The eight simple static starters below are optional extras. [Browse their gallery](static.html).
 
 ## Choose a layout
 
@@ -40,8 +48,6 @@ uv run tools/render_boards.py examples/design-starters-timeline.json .local/desi
 
 Install the renderer dependencies and browser as described in [the design guide](../../docs/design-animation.md). Preserve the approved narration. Add any final motion through deterministic `seek(seconds)` states after board approval.
 
-## Reference and branding boundary
+## Source boundary
 
-The owner-supplied explainer board library was a layout reference for process, comparison, chart, sequence, layered-system, code, evidence, and recap patterns. This pack is freshly authored and does not redistribute that library. Original branded CSS, identities, product logos, community links, promotions, source screenshots, footage, personal stories, and episode-specific numbers are not included. The original reference stays separate for future consultation.
-
-There are no attribution banners, product endorsements, waitlist links, or promotional footers inside this pack. Tool names in workflow documentation identify optional software; they are not part of the board artwork. Private skill contents remain excluded. These new templates follow the repository's MIT code/template license.
+The animated library adapts the owner-supplied HTML reference, preserving animation mechanics while replacing personal branding and styling. The eight static starters are separately authored examples. The original source folder stays untouched. No private skills are distributed; prompts and skill placeholders remain configurable.

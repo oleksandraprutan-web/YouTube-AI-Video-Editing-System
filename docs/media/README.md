@@ -14,4 +14,6 @@ Code/templates are MIT. These demonstration images and GIFs are supplied for doc
 
 ## Design starter preview
 
-`design-starters.png` is a browser capture of the newly authored unbranded HTML starter gallery. It contains synthetic example content and no source-library media. It is covered by the repository's MIT code/template license.
+`design-starters.png` is a browser capture of the restyled animated HTML board player. It contains synthetic example content and no source-library media. It is covered by the repository's MIT code/template license.
+
+The adapted animated library uses newly generated neutral SVG/video placeholders. Its two third-party tool icons are credited and excluded from MIT in `templates/design/animated/README.md`. Personal reference footage, screenshots, and logos are not distributed.

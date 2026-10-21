@@ -1,0 +1,1338 @@
+window.BOARDS = [
+  {
+    "file": "A136FileAnatomy.html",
+    "title": "136 \u00b7 File anatomy",
+    "animated": true
+  },
+  {
+    "file": "A137FolderTree.html",
+    "title": "137 \u00b7 Folder tree",
+    "animated": true
+  },
+  {
+    "file": "A138Diff.html",
+    "title": "138 \u00b7 Diff view",
+    "animated": true
+  },
+  {
+    "file": "A139ErrorFix.html",
+    "title": "139 \u00b7 Error \u2192 fix",
+    "animated": true
+  },
+  {
+    "file": "A140Stack.html",
+    "title": "140 \u00b7 Stack layers",
+    "animated": true
+  },
+  {
+    "file": "A141Decision.html",
+    "title": "141 \u00b7 Decision flowchart",
+    "animated": true
+  },
+  {
+    "file": "AR01Promise.html",
+    "title": "72 \u00b7 What nobody tells you about AI APIs.",
+    "animated": true
+  },
+  {
+    "file": "AR02Thirteen.html",
+    "title": "73 \u00b7 One video, 13 prices.",
+    "animated": true
+  },
+  {
+    "file": "AR03Cheaper.html",
+    "title": "74 \u00b7 Cheaper than the maker?",
+    "animated": true
+  },
+  {
+    "file": "AR04OwnTeam.html",
+    "title": "75 \u00b7 Your own team, cheaper.",
+    "animated": true
+  },
+  {
+    "file": "AR05HiddenReceipt.html",
+    "title": "76 \u00b7 The answer is on a receipt.",
+    "animated": true
+  },
+  {
+    "file": "AR06WhoTalking.html",
+    "title": "77 \u00b7 Who\u2019s talking.",
+    "animated": true
+  },
+  {
+    "file": "AR07ListPrice.html",
+    "title": "78 \u00b7 Start with the list price.",
+    "animated": true
+  },
+  {
+    "file": "AR08Ladder.html",
+    "title": "79 \u00b7 Every price sits on this ladder.",
+    "animated": true
+  },
+  {
+    "file": "AR09Sellers.html",
+    "title": "80 \u00b7 Meet the three sellers.",
+    "animated": true
+  },
+  {
+    "file": "AR10Flow.html",
+    "title": "81 \u00b7 Your app \u2192 seller \u2192 maker.",
+    "animated": true
+  },
+  {
+    "file": "AR11Isolate.html",
+    "title": "82 \u00b7 Price \u00b1 deals nobody prints.",
+    "animated": true
+  },
+  {
+    "file": "AR12LadderTop.html",
+    "title": "83 \u00b7 Ladder: the top.",
+    "animated": true
+  },
+  {
+    "file": "AR13Volume.html",
+    "title": "84 \u00b7 Model 1: the volume deal.",
+    "animated": true
+  },
+  {
+    "file": "AR14PayToGetIn.html",
+    "title": "85 \u00b7 Model 2: pay to get in.",
+    "animated": true
+  },
+  {
+    "file": "AR15MarginOnTop.html",
+    "title": "86 \u00b7 The margin goes on top.",
+    "animated": true
+  },
+  {
+    "file": "AR16Cascade.html",
+    "title": "87 \u00b7 Then it cascades.",
+    "animated": true
+  },
+  {
+    "file": "AR17CompanyBC.html",
+    "title": "88 \u00b7 Above the list, and under it.",
+    "animated": true
+  },
+  {
+    "file": "AR18Commitment.html",
+    "title": "89 \u00b7 One commitment, many models.",
+    "animated": true
+  },
+  {
+    "file": "AR19Arbitrage.html",
+    "title": "90 \u00b7 Information arbitrage.",
+    "animated": true
+  },
+  {
+    "file": "AR20Speed.html",
+    "title": "91 \u00b7 Same model, different speed.",
+    "animated": true
+  },
+  {
+    "file": "AR21LevelDown.html",
+    "title": "92 \u00b7 You start one level down.",
+    "animated": true
+  },
+  {
+    "file": "AR22Routing.html",
+    "title": "93 \u00b7 Wrappers route around.",
+    "animated": true
+  },
+  {
+    "file": "AR23LadderUnder.html",
+    "title": "94 \u00b7 Ladder: under the list.",
+    "animated": true
+  },
+  {
+    "file": "AR24TwoLines.html",
+    "title": "95 \u00b7 Two lines under the list.",
+    "animated": true
+  },
+  {
+    "file": "AR25Capture.html",
+    "title": "96 \u00b7 Capturing the market.",
+    "animated": true
+  },
+  {
+    "file": "AR26ReadTerms.html",
+    "title": "97 \u00b7 Read the terms.",
+    "animated": true
+  },
+  {
+    "file": "AR27LadderQ.html",
+    "title": "98 \u00b7 Ladder: the ? zone.",
+    "animated": true
+  },
+  {
+    "file": "AR28YearlyPlan.html",
+    "title": "99 \u00b7 A yearly plan, flipped into an API.",
+    "animated": true
+  },
+  {
+    "file": "AR29Shortcut.html",
+    "title": "100 \u00b7 How a reverse-engineered endpoint is made.",
+    "animated": true
+  },
+  {
+    "file": "AR30Upstream.html",
+    "title": "101 \u00b7 Every unofficial API has an upstream.",
+    "animated": true
+  },
+  {
+    "file": "AR31EveryRung.html",
+    "title": "102 \u00b7 Every line is a business.",
+    "animated": true
+  },
+  {
+    "file": "AR32WhereStart.html",
+    "title": "103 \u00b7 Here\u2019s where you start.",
+    "animated": true
+  },
+  {
+    "file": "AR33EveryLine.html",
+    "title": "104 \u00b7 Every line is somebody\u2019s business.",
+    "animated": true
+  },
+  {
+    "file": "AR34CreateWithoutLimits.html",
+    "title": "105 \u00b7 Create without limits.",
+    "animated": true
+  },
+  {
+    "file": "B131Calculator.html",
+    "title": "131 \u00b7 Cost calculator",
+    "animated": true
+  },
+  {
+    "file": "B132UnitEcon.html",
+    "title": "132 \u00b7 Unit economics",
+    "animated": true
+  },
+  {
+    "file": "B133MarketMap.html",
+    "title": "133 \u00b7 Market map",
+    "animated": true
+  },
+  {
+    "file": "B134Request.html",
+    "title": "134 \u00b7 Request \u2192 response",
+    "animated": true
+  },
+  {
+    "file": "B135DocHighlight.html",
+    "title": "135 \u00b7 Document highlight",
+    "animated": true
+  },
+  {
+    "file": "C06Title.html",
+    "title": "06 \u00b7 Title and marker",
+    "animated": true
+  },
+  {
+    "file": "C07Cards.html",
+    "title": "07 \u00b7 Cards",
+    "animated": false
+  },
+  {
+    "file": "C08Tile.html",
+    "title": "08 \u00b7 Footage tile",
+    "animated": true
+  },
+  {
+    "file": "C09Stickers.html",
+    "title": "09 \u00b7 Stickers and stamps",
+    "animated": true
+  },
+  {
+    "file": "C108Waterfall.html",
+    "title": "108 \u00b7 Waterfall",
+    "animated": true
+  },
+  {
+    "file": "C109Stacked.html",
+    "title": "109 \u00b7 Stacked bars",
+    "animated": true
+  },
+  {
+    "file": "C10NotesArrows.html",
+    "title": "10 \u00b7 Notes and arrows",
+    "animated": true
+  },
+  {
+    "file": "C110Grouped.html",
+    "title": "110 \u00b7 Grouped bars",
+    "animated": true
+  },
+  {
+    "file": "C111Slope.html",
+    "title": "111 \u00b7 Slope chart",
+    "animated": true
+  },
+  {
+    "file": "C112Scatter.html",
+    "title": "112 \u00b7 Dot plot",
+    "animated": true
+  },
+  {
+    "file": "C113KPI.html",
+    "title": "113 \u00b7 KPI row + sparklines",
+    "animated": true
+  },
+  {
+    "file": "C114Ranking.html",
+    "title": "114 \u00b7 Ranking table",
+    "animated": true
+  },
+  {
+    "file": "C115Gauge.html",
+    "title": "115 \u00b7 Gauge + progress",
+    "animated": true
+  },
+  {
+    "file": "C116Heatmap.html",
+    "title": "116 \u00b7 Heatmap",
+    "animated": true
+  },
+  {
+    "file": "C11Data.html",
+    "title": "11 \u00b7 Data components",
+    "animated": true
+  },
+  {
+    "file": "C12Verdicts.html",
+    "title": "12 \u00b7 Questions and verdicts",
+    "animated": true
+  },
+  {
+    "file": "C13Limits.html",
+    "title": "13 \u00b7 Limits table",
+    "animated": true
+  },
+  {
+    "file": "C14Prompt.html",
+    "title": "14 \u00b7 Prompt panel",
+    "animated": true
+  },
+  {
+    "file": "C15Social.html",
+    "title": "15 \u00b7 Social proof",
+    "animated": true
+  },
+  {
+    "file": "C16Illustration.html",
+    "title": "16 \u00b7 Drawn illustrations",
+    "animated": true
+  },
+  {
+    "file": "C238Effects.html",
+    "title": "238 \u00b7 Effect vocabulary",
+    "animated": true
+  },
+  {
+    "file": "C239PriceCard.html",
+    "title": "239 \u00b7 Price card reveal",
+    "animated": true
+  },
+  {
+    "file": "C240TableFocus.html",
+    "title": "240 \u00b7 Table: cascade + row focus",
+    "animated": true
+  },
+  {
+    "file": "C241ChartFocus.html",
+    "title": "241 \u00b7 Chart: build + focus bar",
+    "animated": true
+  },
+  {
+    "file": "C242AppFocus.html",
+    "title": "242 \u00b7 App window: build + focus area",
+    "animated": true
+  },
+  {
+    "file": "C243CodeFocus.html",
+    "title": "243 \u00b7 Code panel: type + line focus",
+    "animated": true
+  },
+  {
+    "file": "C244Receipt.html",
+    "title": "244 \u00b7 Receipt prints out",
+    "animated": true
+  },
+  {
+    "file": "C245NodeGraph.html",
+    "title": "245 \u00b7 Node graph: build + pulse + focus",
+    "animated": true
+  },
+  {
+    "file": "C246Phone.html",
+    "title": "246 \u00b7 Phone: spring + scroll + notify",
+    "animated": true
+  },
+  {
+    "file": "C247ChipFilter.html",
+    "title": "247 \u00b7 Chips: cloud \u2192 filter",
+    "animated": true
+  },
+  {
+    "file": "C248KPIFocus.html",
+    "title": "248 \u00b7 KPI tiles: flip + count + focus",
+    "animated": true
+  },
+  {
+    "file": "C249VersusCards.html",
+    "title": "249 \u00b7 Versus cards: enter + winner",
+    "animated": true
+  },
+  {
+    "file": "C250CommentCard.html",
+    "title": "250 \u00b7 Comment card: blur in + read",
+    "animated": true
+  },
+  {
+    "file": "C251FolderTree.html",
+    "title": "251 \u00b7 Folder tree: grow + open",
+    "animated": true
+  },
+  {
+    "file": "C252Lens.html",
+    "title": "252 \u00b7 Magnifier lens",
+    "animated": true
+  },
+  {
+    "file": "C253CardMorph.html",
+    "title": "253 \u00b7 Card \u2192 detail morph",
+    "animated": true
+  },
+  {
+    "file": "C254DealPull.html",
+    "title": "254 \u00b7 Stack: deal + pull one out",
+    "animated": true
+  },
+  {
+    "file": "D42Audit.html",
+    "title": "42 \u00b7 Audit: what was missing",
+    "animated": false
+  },
+  {
+    "file": "D43Bars.html",
+    "title": "43 \u00b7 Bar chart",
+    "animated": true
+  },
+  {
+    "file": "D44Line.html",
+    "title": "44 \u00b7 Line chart",
+    "animated": true
+  },
+  {
+    "file": "D45Numbers.html",
+    "title": "45 \u00b7 Share and big numbers",
+    "animated": true
+  },
+  {
+    "file": "D46Pyramid.html",
+    "title": "46 \u00b7 Pyramid",
+    "animated": true
+  },
+  {
+    "file": "D47Cycle.html",
+    "title": "47 \u00b7 Cycle / loop",
+    "animated": true
+  },
+  {
+    "file": "D48Funnel.html",
+    "title": "48 \u00b7 Funnel",
+    "animated": true
+  },
+  {
+    "file": "D49Timeline.html",
+    "title": "49 \u00b7 Timeline",
+    "animated": true
+  },
+  {
+    "file": "D50Venn.html",
+    "title": "50 \u00b7 Venn",
+    "animated": true
+  },
+  {
+    "file": "D51Matrix.html",
+    "title": "51 \u00b7 2\u00d72 matrix",
+    "animated": true
+  },
+  {
+    "file": "D52Tree.html",
+    "title": "52 \u00b7 Tree",
+    "animated": true
+  },
+  {
+    "file": "D53Steps.html",
+    "title": "53 \u00b7 Numbered steps",
+    "animated": true
+  },
+  {
+    "file": "D54Terminal.html",
+    "title": "54 \u00b7 Terminal",
+    "animated": true
+  },
+  {
+    "file": "D55Screen.html",
+    "title": "55 \u00b7 Screen recording + zoom",
+    "animated": true
+  },
+  {
+    "file": "D56Chapter.html",
+    "title": "56 \u00b7 Chapter divider + lower third",
+    "animated": true
+  },
+  {
+    "file": "D57Quote.html",
+    "title": "57 \u00b7 Kinetic quote",
+    "animated": true
+  },
+  {
+    "file": "E117Timeline.html",
+    "title": "117 \u00b7 Edit timeline",
+    "animated": true
+  },
+  {
+    "file": "E118TimelineDrag.html",
+    "title": "118 \u00b7 Drag onto the timeline",
+    "animated": true
+  },
+  {
+    "file": "E119NodeUI.html",
+    "title": "119 \u00b7 Node editor UI",
+    "animated": true
+  },
+  {
+    "file": "E120NodeDrag.html",
+    "title": "120 \u00b7 Drag, connect, run",
+    "animated": true
+  },
+  {
+    "file": "E121Gantt.html",
+    "title": "121 \u00b7 Roadmap / Gantt",
+    "animated": true
+  },
+  {
+    "file": "E122DragBuild.html",
+    "title": "161 \u00b7 Drag cards onto a timeline",
+    "animated": true
+  },
+  {
+    "file": "E123Workspace.html",
+    "title": "162 \u00b7 Pan + zoom workspace",
+    "animated": true
+  },
+  {
+    "file": "E17Blur.html",
+    "title": "17 \u00b7 Blur teaser",
+    "animated": true
+  },
+  {
+    "file": "E18Swipe.html",
+    "title": "18 \u00b7 Swipe reveal",
+    "animated": true
+  },
+  {
+    "file": "E19Wipe.html",
+    "title": "19 \u00b7 Outline wipe",
+    "animated": true
+  },
+  {
+    "file": "E20ScanPeel.html",
+    "title": "20 \u00b7 Scan and peel",
+    "animated": true
+  },
+  {
+    "file": "E21Tokens.html",
+    "title": "21 \u00b7 Token travel",
+    "animated": true
+  },
+  {
+    "file": "E22Highlight.html",
+    "title": "22 \u00b7 Spring highlight and rings",
+    "animated": true
+  },
+  {
+    "file": "E23Veil.html",
+    "title": "23 \u00b7 Veil pop-up",
+    "animated": true
+  },
+  {
+    "file": "E24Insert.html",
+    "title": "24 \u00b7 Full-screen insert",
+    "animated": true
+  },
+  {
+    "file": "E25Inserts.html",
+    "title": "25 \u00b7 Burned-in inserts",
+    "animated": false
+  },
+  {
+    "file": "E26Freeze.html",
+    "title": "26 \u00b7 Freeze sync",
+    "animated": true
+  },
+  {
+    "file": "E27Closeups.html",
+    "title": "27 \u00b7 Close-ups and zoom to fill",
+    "animated": true
+  },
+  {
+    "file": "E28Layers.html",
+    "title": "28 \u00b7 Layer list and layer video",
+    "animated": true
+  },
+  {
+    "file": "E29Hook.html",
+    "title": "29 \u00b7 Hook: the result grows to fill",
+    "animated": true
+  },
+  {
+    "file": "F01Canvas.html",
+    "title": "01 \u00b7 Canvas and safe zones",
+    "animated": false
+  },
+  {
+    "file": "F02Colour.html",
+    "title": "02 \u00b7 Colour",
+    "animated": false
+  },
+  {
+    "file": "F03Type.html",
+    "title": "03 \u00b7 Typography",
+    "animated": false
+  },
+  {
+    "file": "F04Shape.html",
+    "title": "04 \u00b7 Shape and elevation",
+    "animated": false
+  },
+  {
+    "file": "F05Layouts.html",
+    "title": "05 \u00b7 Layout patterns",
+    "animated": false
+  },
+  {
+    "file": "F126ShotBreakdown.html",
+    "title": "126 \u00b7 Shot breakdown",
+    "animated": true
+  },
+  {
+    "file": "F127Failures.html",
+    "title": "127 \u00b7 Failure gallery",
+    "animated": true
+  },
+  {
+    "file": "F128Settings.html",
+    "title": "128 \u00b7 Settings panel",
+    "animated": true
+  },
+  {
+    "file": "F129Iterations.html",
+    "title": "129 \u00b7 Iteration strip",
+    "animated": true
+  },
+  {
+    "file": "F130RefStack.html",
+    "title": "130 \u00b7 Reference stack",
+    "animated": true
+  },
+  {
+    "file": "F255LineReveal.html",
+    "title": "255 \u00b7 Line \u2192 frame reveal",
+    "animated": true
+  },
+  {
+    "file": "F256Slider.html",
+    "title": "256 \u00b7 Before / after slider",
+    "animated": true
+  },
+  {
+    "file": "F257WallHero.html",
+    "title": "257 \u00b7 Video wall \u2192 hero",
+    "animated": true
+  },
+  {
+    "file": "F258PiP.html",
+    "title": "258 \u00b7 Full frame \u2192 corner + list",
+    "animated": true
+  },
+  {
+    "file": "F259FilmStrip.html",
+    "title": "259 \u00b7 Film strip \u2192 pick one",
+    "animated": true
+  },
+  {
+    "file": "F260GlassCaption.html",
+    "title": "260 \u00b7 Frosted glass caption",
+    "animated": true
+  },
+  {
+    "file": "F261Exploded.html",
+    "title": "261 \u00b7 Exploded footage layers",
+    "animated": true
+  },
+  {
+    "file": "F262CinemaOpen.html",
+    "title": "262 \u00b7 Cinematic open",
+    "animated": true
+  },
+  {
+    "file": "F263IrisVersions.html",
+    "title": "263 \u00b7 Iris: draft \u2192 final",
+    "animated": true
+  },
+  {
+    "file": "F264Laptop.html",
+    "title": "264 \u00b7 Clip in a laptop",
+    "animated": true
+  },
+  {
+    "file": "F265TileAssemble.html",
+    "title": "265 \u00b7 Tiles assemble the clip",
+    "animated": true
+  },
+  {
+    "file": "F266Knockout.html",
+    "title": "266 \u00b7 Text knockout \u2192 full clip",
+    "animated": true
+  },
+  {
+    "file": "H142ColdOpen.html",
+    "title": "142 \u00b7 Cold-open hook",
+    "animated": true
+  },
+  {
+    "file": "H143Agenda.html",
+    "title": "143 \u00b7 Agenda / chapter map",
+    "animated": true
+  },
+  {
+    "file": "H144MythFact.html",
+    "title": "144 \u00b7 Myth vs fact",
+    "animated": true
+  },
+  {
+    "file": "H145Recap.html",
+    "title": "145 \u00b7 3 things to remember",
+    "animated": true
+  },
+  {
+    "file": "H146MidRoll.html",
+    "title": "146 \u00b7 Mid-roll community plug",
+    "animated": true
+  },
+  {
+    "file": "H147SignOff.html",
+    "title": "147 \u00b7 Sign-off",
+    "animated": true
+  },
+  {
+    "file": "H35Handoff.html",
+    "title": "35 \u00b7 Data schema and handoff",
+    "animated": false
+  },
+  {
+    "file": "K122SamePrompt.html",
+    "title": "122 \u00b7 Same prompt, many models",
+    "animated": true
+  },
+  {
+    "file": "K123Scorecard.html",
+    "title": "123 \u00b7 Scorecard",
+    "animated": true
+  },
+  {
+    "file": "K124BlindTest.html",
+    "title": "124 \u00b7 Blind test",
+    "animated": true
+  },
+  {
+    "file": "K125SpeedRace.html",
+    "title": "125 \u00b7 Speed race",
+    "animated": true
+  },
+  {
+    "file": "L106Logos.html",
+    "title": "106 \u00b7 Tool logos",
+    "animated": true
+  },
+  {
+    "file": "L107Session.html",
+    "title": "107 \u00b7 Agent session card",
+    "animated": true
+  },
+  {
+    "file": "M30Motion.html",
+    "title": "30 \u00b7 Motion tokens",
+    "animated": true
+  },
+  {
+    "file": "M31Timing.html",
+    "title": "31 \u00b7 Timing and word sync",
+    "animated": true
+  },
+  {
+    "file": "Main.html",
+    "title": "00 \u00b7 Cover",
+    "animated": false
+  },
+  {
+    "file": "P194Easing.html",
+    "title": "194 \u00b7 Easing",
+    "animated": true
+  },
+  {
+    "file": "P195Anticipation.html",
+    "title": "195 \u00b7 Anticipation + overshoot",
+    "animated": true
+  },
+  {
+    "file": "P196Kinetic.html",
+    "title": "196 \u00b7 Kinetic type",
+    "animated": true
+  },
+  {
+    "file": "P197MaskReveal.html",
+    "title": "197 \u00b7 Mask line reveal",
+    "animated": true
+  },
+  {
+    "file": "P198Odometer.html",
+    "title": "198 \u00b7 Odometer roll",
+    "animated": true
+  },
+  {
+    "file": "P199Scramble.html",
+    "title": "199 \u00b7 Scramble decode",
+    "animated": true
+  },
+  {
+    "file": "P200LineDraw.html",
+    "title": "200 \u00b7 Line draw + follow",
+    "animated": true
+  },
+  {
+    "file": "P201Parallax.html",
+    "title": "201 \u00b7 Parallax layers",
+    "animated": true
+  },
+  {
+    "file": "P202Chrome.html",
+    "title": "202 \u00b7 3D chrome title",
+    "animated": true
+  },
+  {
+    "file": "P203Looks.html",
+    "title": "203 \u00b7 Grain, leak, glitch",
+    "animated": true
+  },
+  {
+    "file": "P204GridWave.html",
+    "title": "204 \u00b7 Grid wave",
+    "animated": true
+  },
+  {
+    "file": "P205Squash.html",
+    "title": "205 \u00b7 Squash + follow-through",
+    "animated": true
+  },
+  {
+    "file": "P206Liquid.html",
+    "title": "206 \u00b7 Liquid metal blob",
+    "animated": true
+  },
+  {
+    "file": "P207SFX.html",
+    "title": "207 \u00b7 SFX timing",
+    "animated": true
+  },
+  {
+    "file": "P208Morph.html",
+    "title": "208 \u00b7 Shape morph",
+    "animated": true
+  },
+  {
+    "file": "P209Flip.html",
+    "title": "209 \u00b7 Card flip",
+    "animated": true
+  },
+  {
+    "file": "P210Iris.html",
+    "title": "210 \u00b7 Iris reveal",
+    "animated": true
+  },
+  {
+    "file": "P211Fan.html",
+    "title": "211 \u00b7 Deck fan-out",
+    "animated": true
+  },
+  {
+    "file": "P212Snap.html",
+    "title": "212 \u00b7 Elastic snap",
+    "animated": true
+  },
+  {
+    "file": "P213Scribble.html",
+    "title": "213 \u00b7 Scribble highlight",
+    "animated": true
+  },
+  {
+    "file": "P214Marquee.html",
+    "title": "214 \u00b7 Marquee ticker",
+    "animated": true
+  },
+  {
+    "file": "P215Carousel.html",
+    "title": "215 \u00b7 3D carousel",
+    "animated": true
+  },
+  {
+    "file": "P216Mosaic.html",
+    "title": "216 \u00b7 Mosaic dissolve",
+    "animated": true
+  },
+  {
+    "file": "P217Cable.html",
+    "title": "217 \u00b7 Live cable",
+    "animated": true
+  },
+  {
+    "file": "P218Loader.html",
+    "title": "218 \u00b7 Loader \u2192 done",
+    "animated": true
+  },
+  {
+    "file": "P219Chat.html",
+    "title": "219 \u00b7 Chat + typing",
+    "animated": true
+  },
+  {
+    "file": "P220LetterWave.html",
+    "title": "220 \u00b7 Letter wave",
+    "animated": true
+  },
+  {
+    "file": "P221Confetti.html",
+    "title": "221 \u00b7 Confetti burst",
+    "animated": true
+  },
+  {
+    "file": "P222TapRipple.html",
+    "title": "222 \u00b7 Tap ripple \u2192 appear",
+    "animated": true
+  },
+  {
+    "file": "P223WaterRipple.html",
+    "title": "223 \u00b7 Water ripple",
+    "animated": false
+  },
+  {
+    "file": "P224FocusRack.html",
+    "title": "224 \u00b7 Focus rack",
+    "animated": true
+  },
+  {
+    "file": "P225Spotlight.html",
+    "title": "225 \u00b7 Spotlight",
+    "animated": true
+  },
+  {
+    "file": "P226LiquidFill.html",
+    "title": "226 \u00b7 Liquid text fill",
+    "animated": true
+  },
+  {
+    "file": "P227ScribbleFill.html",
+    "title": "227 \u00b7 Scribble fill",
+    "animated": true
+  },
+  {
+    "file": "P228CrossOut.html",
+    "title": "228 \u00b7 Cross out + rewrite",
+    "animated": true
+  },
+  {
+    "file": "P229Annotate.html",
+    "title": "229 \u00b7 Hand annotations",
+    "animated": true
+  },
+  {
+    "file": "P230WordSlot.html",
+    "title": "230 \u00b7 Rotating word",
+    "animated": true
+  },
+  {
+    "file": "P231TypeCollage.html",
+    "title": "231 \u00b7 Type collage",
+    "animated": true
+  },
+  {
+    "file": "P232TrackingIn.html",
+    "title": "232 \u00b7 Tracking-in title",
+    "animated": true
+  },
+  {
+    "file": "P233Gooey.html",
+    "title": "233 \u00b7 Gooey merge",
+    "animated": true
+  },
+  {
+    "file": "P234Shimmer.html",
+    "title": "234 \u00b7 Shimmer + sparkle",
+    "animated": true
+  },
+  {
+    "file": "P235Brush.html",
+    "title": "235 \u00b7 Brush stroke reveal",
+    "animated": true
+  },
+  {
+    "file": "P236Checklist.html",
+    "title": "236 \u00b7 Scribble checklist",
+    "animated": true
+  },
+  {
+    "file": "P237Highlighter.html",
+    "title": "237 \u00b7 Highlighter sweep",
+    "animated": true
+  },
+  {
+    "file": "P36Focus.html",
+    "title": "36 \u00b7 Focus pull",
+    "animated": true
+  },
+  {
+    "file": "P37Keyframes.html",
+    "title": "37 \u00b7 Keyframes",
+    "animated": true
+  },
+  {
+    "file": "P38Camera.html",
+    "title": "38 \u00b7 Virtual camera",
+    "animated": true
+  },
+  {
+    "file": "P39Stagger.html",
+    "title": "39 \u00b7 Stagger and collapse",
+    "animated": true
+  },
+  {
+    "file": "P62Receipt.html",
+    "title": "62 \u00b7 Receipt",
+    "animated": true
+  },
+  {
+    "file": "P63Stickers.html",
+    "title": "63 \u00b7 Price card + stickers",
+    "animated": true
+  },
+  {
+    "file": "P64PriceBars.html",
+    "title": "64 \u00b7 Price bars + truth line",
+    "animated": true
+  },
+  {
+    "file": "P65PriceGrid.html",
+    "title": "65 \u00b7 Price grid + circled",
+    "animated": true
+  },
+  {
+    "file": "P66Ladder.html",
+    "title": "66 \u00b7 Recurring anchor: ladder",
+    "animated": true
+  },
+  {
+    "file": "P67Metaphors.html",
+    "title": "67 \u00b7 Physical metaphors",
+    "animated": true
+  },
+  {
+    "file": "P68Characters.html",
+    "title": "68 \u00b7 Characters + bubbles",
+    "animated": true
+  },
+  {
+    "file": "Q34QA.html",
+    "title": "34 \u00b7 QA checks",
+    "animated": false
+  },
+  {
+    "file": "S148Comment.html",
+    "title": "148 \u00b7 Comment card",
+    "animated": true
+  },
+  {
+    "file": "S149Post.html",
+    "title": "149 \u00b7 Post card",
+    "animated": true
+  },
+  {
+    "file": "S150Showcase.html",
+    "title": "150 \u00b7 Community showcase",
+    "animated": true
+  },
+  {
+    "file": "S151Phone.html",
+    "title": "151 \u00b7 Phone frame",
+    "animated": true
+  },
+  {
+    "file": "S152MindMap.html",
+    "title": "152 \u00b7 Mind map",
+    "animated": true
+  },
+  {
+    "file": "S32Recipes1.html",
+    "title": "32 \u00b7 Story recipes: explaining",
+    "animated": false
+  },
+  {
+    "file": "S33Recipes2.html",
+    "title": "33 \u00b7 Story recipes: proof and close",
+    "animated": false
+  },
+  {
+    "file": "S58Repo.html",
+    "title": "58 \u00b7 GitHub repo screen",
+    "animated": true
+  },
+  {
+    "file": "S59Readme.html",
+    "title": "59 \u00b7 README + setup commands",
+    "animated": true
+  },
+  {
+    "file": "S60ShortPrompt.html",
+    "title": "60 \u00b7 Short prompt",
+    "animated": true
+  },
+  {
+    "file": "S61LongPrompt.html",
+    "title": "61 \u00b7 Long prompt",
+    "animated": true
+  },
+  {
+    "file": "T158ThumbWord.html",
+    "title": "158 \u00b7 Thumbnail: big word",
+    "animated": true
+  },
+  {
+    "file": "T159ThumbVS.html",
+    "title": "159 \u00b7 Thumbnail: before / after",
+    "animated": true
+  },
+  {
+    "file": "T160ThumbLogos.html",
+    "title": "160 \u00b7 Thumbnail: tool vs tool",
+    "animated": true
+  },
+  {
+    "file": "V153Hook.html",
+    "title": "153 \u00b7 Same performance, 20 seconds",
+    "animated": true
+  },
+  {
+    "file": "V154Chart.html",
+    "title": "154 \u00b7 8\u00d7 cheaper by v6",
+    "animated": true
+  },
+  {
+    "file": "V155Prompt.html",
+    "title": "155 \u00b7 The one-line prompt",
+    "animated": true
+  },
+  {
+    "file": "V156VS.html",
+    "title": "156 \u00b7 Original vs AI",
+    "animated": true
+  },
+  {
+    "file": "V157Rules.html",
+    "title": "157 \u00b7 9:16 rules",
+    "animated": true
+  },
+  {
+    "file": "W69Nodes.html",
+    "title": "69 \u00b7 Node graph",
+    "animated": true
+  },
+  {
+    "file": "W70NodeEdit.html",
+    "title": "70 \u00b7 Editing a node",
+    "animated": true
+  },
+  {
+    "file": "W71Workflows.html",
+    "title": "71 \u00b7 Workflow cards",
+    "animated": true
+  },
+  {
+    "file": "X40Ending.html",
+    "title": "40 \u00b7 Ending: Your channel",
+    "animated": true
+  },
+  {
+    "file": "X41EndLayout.html",
+    "title": "41 \u00b7 End-screen layout",
+    "animated": false
+  },
+  {
+    "file": "Y163Share.html",
+    "title": "163 \u00b7 Share split",
+    "animated": true
+  },
+  {
+    "file": "Y164Versus.html",
+    "title": "164 \u00b7 Versus ledger",
+    "animated": true
+  },
+  {
+    "file": "Y165Devices.html",
+    "title": "165 \u00b7 Device connections",
+    "animated": true
+  },
+  {
+    "file": "Y166Prompter.html",
+    "title": "166 \u00b7 Live text app screen",
+    "animated": true
+  },
+  {
+    "file": "Y167Folder.html",
+    "title": "167 \u00b7 Project folder",
+    "animated": true
+  },
+  {
+    "file": "Y168Retake.html",
+    "title": "168 \u00b7 Data file + rule",
+    "animated": true
+  },
+  {
+    "file": "Y169DataVsGuess.html",
+    "title": "169 \u00b7 Dot grid: two approaches",
+    "animated": true
+  },
+  {
+    "file": "Y170Runbook.html",
+    "title": "170 \u00b7 Checklist runbook",
+    "animated": true
+  },
+  {
+    "file": "Y171Cleanup.html",
+    "title": "171 \u00b7 Waveform clean-up",
+    "animated": true
+  },
+  {
+    "file": "Y172TextEdit.html",
+    "title": "172 \u00b7 Text-based edit",
+    "animated": true
+  },
+  {
+    "file": "Y173Triage.html",
+    "title": "173 \u00b7 Line triage",
+    "animated": true
+  },
+  {
+    "file": "Y174Sync.html",
+    "title": "174 \u00b7 Audio \u2192 graphics sync",
+    "animated": true
+  },
+  {
+    "file": "Y175Render.html",
+    "title": "175 \u00b7 Render pipeline",
+    "animated": true
+  },
+  {
+    "file": "Y176Math.html",
+    "title": "176 \u00b7 Cost bars on one scale",
+    "animated": true
+  },
+  {
+    "file": "Y177Stat.html",
+    "title": "177 \u00b7 Cited stat",
+    "animated": true
+  },
+  {
+    "file": "Y178Shifts.html",
+    "title": "178 \u00b7 Three-part anchor",
+    "animated": true
+  },
+  {
+    "file": "Y179Hourly.html",
+    "title": "179 \u00b7 Effective hourly",
+    "animated": true
+  },
+  {
+    "file": "Y180JobBecame.html",
+    "title": "180 \u00b7 Role shift: before / after",
+    "animated": true
+  },
+  {
+    "file": "Y181Gear.html",
+    "title": "181 \u00b7 What you need",
+    "animated": true
+  },
+  {
+    "file": "Y182SystemMap.html",
+    "title": "182 \u00b7 Steps on a track",
+    "animated": true
+  },
+  {
+    "file": "Y183Eyeline.html",
+    "title": "183 \u00b7 Prompter screen, live word",
+    "animated": true
+  },
+  {
+    "file": "Y184EyelineSetup.html",
+    "title": "184 \u00b7 Screenshot push-in",
+    "animated": true
+  },
+  {
+    "file": "Y185EditWords.html",
+    "title": "185 \u00b7 Delete words in a transcript",
+    "animated": true
+  },
+  {
+    "file": "Y186EditTrim.html",
+    "title": "186 \u00b7 Trim on the timeline",
+    "animated": true
+  },
+  {
+    "file": "Y187EyelineEdit.html",
+    "title": "187 \u00b7 Real app screen",
+    "animated": true
+  },
+  {
+    "file": "Y188TakeJson.html",
+    "title": "188 \u00b7 Retake detection",
+    "animated": true
+  },
+  {
+    "file": "Y189Attempts.html",
+    "title": "189 \u00b7 Attempts map",
+    "animated": true
+  },
+  {
+    "file": "Y190EditPlan.html",
+    "title": "190 \u00b7 Edit plan + progress ring",
+    "animated": true
+  },
+  {
+    "file": "Y191TakeReport.html",
+    "title": "191 \u00b7 Recording report card",
+    "animated": true
+  },
+  {
+    "file": "Y192Delivery.html",
+    "title": "192 \u00b7 Bars vs a threshold",
+    "animated": true
+  },
+  {
+    "file": "Y193SystemUI.html",
+    "title": "193 \u00b7 Diagram workspace: zoom + drag",
+    "animated": true
+  }
+]
+;

@@ -4,6 +4,8 @@
 
 # YouTube AI Video Editing System
 
+> **Style the boards yourself.** The included boards are starter templates, not a finished visual identity. Customize the colors, fonts, shapes, and layouts for your own videos. The animation examples are there to adapt.
+
 **An open-source workflow for recording, AI-assisted editing, design, Claude Design, animation, motion graphics, and the final editor handoff.**
 
 <p align="center"><strong>Want more open-source AI filmmaking workflows?</strong><br>Join the TEIN AI waitlist for updates on new workflows, tools, and releases.<br><a href="https://tein.ai"><strong>Join the TEIN AI waitlist →</strong></a></p>
@@ -22,8 +24,8 @@ Eyeline connects the script you read, the takes you record, the source clips you
 | **Eyeline Edit** | Review source-linked clips, inspect waveforms and word timings, adjust cut edges, relink camera originals, and export video/audio. |
 | **AI editing tools** | Transcribe takes, estimate camera sync and drift, build full-take proxies, propose a candidate cut, and report possible transcription or edge issues. |
 | **Agent instructions** | Separate recording, cutting, review, design, animation, and editor handoff responsibilities. Use with a coding agent that can read files and run commands. |
-| **Design / Claude Design workflow** | Eight unbranded HTML starter boards, three filled design briefs, and prompts for planning, building, and reviewing boards. Use your design tool of choice, including Claude Design. |
-| **Animation / motion graphics** | A generic seekable board template, JSON timeline, and local frame renderer for narration-aligned graphics. |
+| **Design / Claude Design workflow** | 267 restyled HTML reference boards (246 animated), eight simple static starters, three filled design briefs, and prompts for planning, building, and reviewing boards. Use your design tool of choice, including Claude Design. |
+| **Animation / motion graphics** | An animated board library with play/pause/scrubbing, JSON timelines, and a local frame renderer for narration-aligned graphics. |
 | **Editor handoff** | A predictable folder tree, approved audio, source mapping, rendered boards, captions, and a finishing checklist for Resolve, Premiere, or another editor. |
 | **Placeholder skills** | Fresh, intentionally unconfigured templates you can fine-tune for your own voice, design, pacing, and motion. No private production skills are included. |
 
@@ -90,16 +92,17 @@ Edit the original source intervals. Keep complete source handles available. A pl
 
 Work from the **approved final-cut transcript**. The [unbranded design pack](templates/design/README.md) includes:
 
-- **Eight complete HTML starter layouts:** process flow, comparison, chart, timeline, layers, code, evidence, and recap.
+- **267 restyled HTML reference boards:** 246 animated examples and 21 static/reference layouts, preserving the original motion mechanics. Includes typography, charts, diagrams, reveals, masks, transitions, and motion studies.
+- **Eight additional simple static starters:** process, comparison, chart, timeline, layers, code, evidence, and recap.
 - **Three filled example briefs:** a review process, a comparison, and a measurement explanation.
 - **Three reusable prompts:** transcript to brief, brief to HTML, and board review.
-- **An offline visual gallery** and a [sample rendering timeline](examples/design-starters-timeline.json).
+- **A searchable player with Play/Pause, Replay, and scrubbing**, plus [rendering examples](examples/design-starters-timeline.json).
 
-![Eight unbranded explainer board starters](docs/media/design-starters.png)
+![Animated board library and playback controls](docs/media/design-starters.png)
 
-Download or clone the repo and open `templates/design/index.html` in a browser to browse the gallery. GitHub displays the HTML source rather than running it. Every board is self-contained, uses system fonts, and keeps the camera area clear. They are static starters ready for customization and review; motion is a separate approved step. Example numbers and copy are labeled as illustrative.
+Download or clone the repo, then run `python3 -m http.server 5331 --directory templates/design` from its root and open `http://localhost:5331/` to browse and play the boards. GitHub displays HTML source rather than running it. The library uses a generic editorial theme and system fonts. Its animation timing and effects are preserved, while personal media is replaced with neutral placeholders. **Style the boards yourself before production.** Example copy, quotes, and numbers require verification or replacement. See the [library guide](templates/design/animated/README.md) for dimensions, media/rendering limits, and asset credits.
 
-Start with the [design brief](templates/design-brief.md) and [Claude Design prompt](templates/claude-design-prompt.md), or adapt one of the [filled briefs](templates/design/briefs). The supplied reference library informed layout choices; its branded assets, private skills, and episode-specific content are not bundled.
+Start with the [design brief](templates/design-brief.md) and [Claude Design prompt](templates/claude-design-prompt.md), or adapt one of the [filled briefs](templates/design/briefs). The reference HTML is included with personal branding and signature styling removed. Private skills and identifiable source media are not bundled.
 
 ### 4. Add animation and motion graphics
 

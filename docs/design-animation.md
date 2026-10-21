@@ -2,13 +2,13 @@
 
 Design begins after the cut is approved. The transcript of the approved WAV determines what visuals explain and when they appear. An earlier recording script is only a reference.
 
-## Unbranded starter library
+## Style the templates yourself
 
-The [design pack](../templates/design/README.md) contains eight complete, static HTML layouts and a local [gallery](../templates/design/index.html). The layouts cover process, comparison, chart, timeline, layers, code, evidence, and recap. They have no logos, promotional copy, external fonts, or media dependencies.
+The [design pack](../templates/design/README.md) now opens a **267-board library**: 246 animated examples and 21 static/reference layouts. Its player includes search, Play/Pause, Replay, and scrubbing. Original CSS motion mechanics remain; the personal branding and signature styling are replaced by a generic editorial theme. Customize fonts, colors, shapes, and layouts for your own visual identity before production.
 
-Use the [filled briefs](../templates/design/briefs) to see how to specify actual board content and evidence. The [prompt sequence](../templates/design/prompts) covers transcript-to-brief, brief-to-HTML, and visual review. These are editable public templates, not private production skills.
+Read the [animated library guide](../templates/design/animated/README.md) for styling and playback details. Boards share `theme.css` and `playback.js`; copy the entire `animated/` directory when using them. Some studies use vertical dimensions. Video-bearing boards need render verification because browser media seeks asynchronously.
 
-The new boards have a static `seek(seconds)` adapter for the renderer. Their sample timeline is [design-starters-timeline.json](../examples/design-starters-timeline.json); its six-second scene lengths are demonstration values. Use real final-cut word timings for production. The earlier [generic board](../templates/board/index.html) remains available as a minimal fade example.
+The [eight simple static starters](../templates/design/static.html) remain optional extras. Their [sample timeline](../examples/design-starters-timeline.json) uses six-second demonstration scenes, not narration timing. The [filled briefs](../templates/design/briefs) and [prompts](../templates/design/prompts) work with either library. These are public templates, not private production skills.
 
 ## Design handoff
 

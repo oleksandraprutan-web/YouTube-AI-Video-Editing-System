@@ -5,6 +5,13 @@ ROOT = Path(__file__).resolve().parents[1]
 ALLOWED_SKILLS = {"writing", "recording", "cutting", "review", "design", "animation", "editor"}
 MEDIA = {"editor-demo.gif", "teleprompter-demo.gif", "edge-trimming.gif", "take-files.png", "project-files.png", "edit-plan-architecture.png", "take-report-architecture.png", "tries-to-cut.png", "agent-cut-layers.png", "teleprompter-layers.png", "design-starters.png"}
 
+# Exact allowlist: generated neutral clips and a third-party tool icon in the design library.
+DESIGN_MEDIA = {
+    "templates/design/animated/assets/sample-source.mp4",
+    "templates/design/animated/assets/sample-result.mp4",
+    "templates/design/animated/assets/claude.png",
+}
+
 def check(root=ROOT):
     errors = []
     for p in root.rglob("*"):
@@ -12,6 +19,7 @@ def check(root=ROOT):
         if any(x in {".git", ".local", ".venv", "__pycache__", "node_modules"} for x in rel.parts): continue
         if p.is_symlink(): errors.append(f"symlink: {rel}"); continue
         if not p.is_file(): continue
+        if rel.as_posix() in DESIGN_MEDIA: continue
         if p.name.startswith(".env") or p.suffix.lower() in {".wav", ".mov", ".mp4", ".mp3", ".key", ".pem", ".bak", ".log"}:
             errors.append(f"private/media file: {rel}")
         if p.suffix.lower() in {".png", ".gif", ".jpg"}:
