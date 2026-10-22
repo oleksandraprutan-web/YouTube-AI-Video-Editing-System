@@ -1,6 +1,8 @@
 import json, subprocess, os, sys, math
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import infographics as ig
 
 W, H, FPS = 1080, 1920, 30
 SRC = 'src/video.mp4'  # overridden by timeline.py
@@ -34,6 +36,12 @@ PILL_Y = 120        # top of first pill row (move down to chest to keep the head
 QUOTES = []         # (t0, t1, text) white quote card with orange quote mark, top of frame
 BROLL = []          # (t0, t1) cutaways: frame stays still (no zoom, no push, centre anchor)
 CUTS = []           # hard cut times; the zoom anchor is constant within each shot/zoom segment
+CALENDARS = []      # (t0, t1, label1, row1_t, label2, row2_t)
+STAMPS = []         # (t0, t1, text, (x, y))
+CHECKS = []         # (t0, t1, (x, y), radius)
+BADGES = []         # (t0, t1, text, centre_y)
+LINKS = []          # (t0, t1, left, right, label, t_line, t_label, centre_y)
+PLANS = []          # navy layout: {'t0','t1','title','title_t','items':[(t, text)],'cy'} card on top, soft oval below
 SFX = []            # (file, time, peak_db, 'start'|'peak')
 FIXES = {}          # word index -> corrected text (ASR fixes)
 MERGE = []          # (index, text): merge word index with next into text
@@ -306,6 +314,15 @@ def xmark_layer(p, pos, size=150):
     sh = lay.filter(ImageFilter.GaussianBlur(10)); sh2 = Image.new('RGBA', (W, H)); sh2.alpha_composite(fade(sh, 0.6), (0, 6))
     sh2.alpha_composite(lay); return sh2
 
+def plan_frame(src, t, p):
+    out = Image.new('RGBA', (W, H), NAVY + (255,))
+    ccy = p['cy']; f0 = face_at(t)
+    vid = zoom_frame(src, 1.25, f0)
+    layer = Image.new('RGBA', (W, H)); layer.paste(vid, (540 - f0[0], ccy - f0[1] - 30))
+    out.paste(layer, (0, 0), soft_mask(ccy))
+    out.alpha_composite(ig.plan_card(t, p, font))
+    return out
+
 def light_leak(a, b, k):
     """a->b crossfade with warm light flash; k in 0..1"""
     mix = Image.blend(a, b, min(1, max(0, (k - 0.35) / 0.3)))
@@ -338,11 +355,12 @@ def sub_layer(txt):
 
 # ---------------- render ----------------
 def render_frame(src, t):
-    for c in CIRCLES:
+    for c in CIRCLES + [(p['t0'], p['t1'], p) for p in PLANS]:
         if c[1] - 0.25 <= t < c[1] + 0.25:
             k = (t - (c[1] - 0.25)) / 0.5
+            cc = c if t < c[1] else None
             return light_leak(base_frame(src, t, c), base_frame(src, t, None), k)
-    circ = next((c for c in CIRCLES if c[0] <= t < c[1]), None)
+    circ = next((c for c in CIRCLES + [(p['t0'], p['t1'], p) for p in PLANS] if c[0] <= t < c[1]), None)
     out = base_frame(src, t, circ)
     for b in WHIPS:
         k = 1 - abs(t - b) / 0.12
@@ -353,7 +371,9 @@ def render_frame(src, t):
     return out
 
 def base_frame(src, t, circ):
-    if circ:
+    if circ and isinstance(circ[2], dict):
+        out = plan_frame(src, t, circ[2])
+    elif circ:
         out = circle_frame(src, t, circ)
     else:
         out = zoom_frame(src, zoom_at(t), face_at(t)).convert('RGBA')
@@ -391,6 +411,16 @@ def base_frame(src, t, circ):
         for t0, t1, n in SPECS:
             if t0 <= t < t1:
                 out.alpha_composite(specs_layer(t, t0, t1, n))
+        for e in CALENDARS:
+            if e[0] <= t < e[1]: out.alpha_composite(ig.calendar(t, e, font))
+        for e in STAMPS:
+            if e[0] <= t < e[1]: out.alpha_composite(ig.stamp(t, e, font))
+        for e in CHECKS:
+            if e[0] <= t < e[1]: out.alpha_composite(ig.check(t, e, font))
+        for e in BADGES:
+            if e[0] <= t < e[1]: out.alpha_composite(ig.badge(t, e, font))
+        for e in LINKS:
+            if e[0] <= t < e[1]: out.alpha_composite(ig.link(t, e, font))
         for t0, t1, txt in QUOTES:
             if t0 <= t < t1:
                 a, k = ease_pop(t, t0, 0.3)
@@ -403,7 +433,7 @@ def base_frame(src, t, circ):
     if s and not circ: out.alpha_composite(sub_layer(s[2]))
     return out.convert('RGB')
 
-WHIPS = [c[0] for c in CIRCLES]
+WHIPS = [c[0] for c in CIRCLES] + [p['t0'] for p in PLANS]
 def whip(img, k):
     a = np.asarray(img).astype(np.float32); shift = int(160 * k); n = 10
     acc = np.zeros_like(a)
