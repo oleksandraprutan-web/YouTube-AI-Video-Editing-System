@@ -9,6 +9,7 @@ NAVY = (2, 6, 74)
 ORANGE = (244, 122, 58)
 FACE = (560, 680)  # zoom anchor (face) in source pixels
 PREVIEW = '--preview' in sys.argv
+FINAL = '--final' in sys.argv  # high-quality export for download
 
 words = json.load(open('words.json'))
 DUR0 = float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', SRC], capture_output=True, text=True).stdout)
@@ -407,8 +408,8 @@ if __name__ == '__main__':
         sys.exit()
     dec = subprocess.Popen(['ffmpeg', '-v', 'error', '-i', SRC, '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-r', str(FPS), '-'], stdout=subprocess.PIPE)
     enc = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-',
-                            '-i', 'out/mix.wav', '-map', '0:v', '-map', '1:a', '-c:v', 'libx264', '-preset', 'medium', '-crf', '19',
-                            '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', 'out/preview.mp4'], stdin=subprocess.PIPE)
+                            '-i', 'out/mix.wav', '-map', '0:v', '-map', '1:a', '-c:v', 'libx264', '-preset', 'slow' if FINAL else 'medium', '-crf', '14' if FINAL else '19', '-profile:v', 'high',
+                            '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '320k' if FINAL else '192k', '-shortest', '-movflags', '+faststart', 'out/final.mp4' if FINAL else 'out/preview.mp4'], stdin=subprocess.PIPE)
     n = 0
     while True:
         raw = dec.stdout.read(W * H * 3)
