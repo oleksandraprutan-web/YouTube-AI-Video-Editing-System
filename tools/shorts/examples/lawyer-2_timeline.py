@@ -1,12 +1,10 @@
 # Lawyer short 2 — "opieka naprzemienna: 4 kwestie" (50 s source, black tail after 48.07)
-SRC = 'src/video.mp4'
-END = 48.07
+SRC = 'src/video_hq.mp4'
+END = 48.65
 FIXES = {47: 'nauki'}
 MERGE = [(9, 'naprzemiennej,'), (114, 'OZSS'), (123, 'naprzemienną,')]
 
-ZOOMS = [(0, 1.0), (2.0, 1.15), (4.5, 1.3), (6.52, 1.55), (7.83, 1.1), (9.12, 1.25), (10.74, 1.0),
-         (12.47, 1.0), (16.57, 1.0), (19.60, 1.0), (19.60, 1.0), (23.83, 1.0), (27.00, 1.25),
-         (28.78, 1.12), (30.80, 1.0), (33.10, 1.05), (38.13, 1.1), (43.62, 1.2), (46.40, 1.35)]
+ZOOMS = [(0, 1.0), (4.5, 1.1), (6.52, 1.35), (7.83, 1.0), (27.0, 1.12), (30.80, 1.0), (43.62, 1.1)]   # fewer zooms (author)
 QUOTES = [(2.38, 6.40, 'Chcę opieki naprzemiennej, bo kocham swoje dziecko')]   # she quotes what a parent says in court
 XMARKS = [(6.98, 7.70, (540, 190))]                      # "Niestety to nie wystarczy"
 BIGTEXT = []

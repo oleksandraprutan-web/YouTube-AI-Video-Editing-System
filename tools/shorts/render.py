@@ -3,7 +3,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 W, H, FPS = 1080, 1920, 30
-SRC = 'src/video.mp4'
+SRC = 'src/video.mp4'  # overridden by timeline.py
 FONT = os.path.expanduser('~/.fonts/Montserrat-Black.ttf')
 NAVY = (2, 6, 74)
 ORANGE = (244, 122, 58)
@@ -40,6 +40,7 @@ from timeline import *  # noqa
 for i, txt in FIXES.items(): words[i]['w'] = txt  # indices = original words.json
 for i, txt in sorted(MERGE, reverse=True):
     words[i] = dict(words[i], w=txt, e=words[i + 1]['e']); del words[i + 1]
+DUR = float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', SRC], capture_output=True, text=True).stdout)
 if END: DUR = min(DUR, END)
 
 _faces = json.load(open('faces.json')) if os.path.exists('faces.json') else None
