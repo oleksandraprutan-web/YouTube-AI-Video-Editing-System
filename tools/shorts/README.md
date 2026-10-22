@@ -1,20 +1,21 @@
-# Shorts renderer (lawyer profile, first test edit)
+# Shorts renderer
 
-Code used for the first test edit of a lawyer short. The timeline (zooms, navy/circle segments, pills, big text, arrow, sound events) is hard-coded at the top of `render.py` / in `mix.py` for that one video — copy and adjust per video.
+Generic renderer for vertical shorts (1080×1920, 30 fps). Per-video timeline lives in `timeline.py` inside the project folder (see `examples/`).
 
-Run from a project folder under `.local/` (media is never committed):
-
+Project folder (under `.local/`, never committed):
 ```
 project/
-  src/<video>.mp4           # cut source video
-  words.json                # word timings: [{"w","s","e","p"}] from faster-whisper (large-v3-turbo, language="pl")
-  sfx/*.wav, sfx/typing.mp3 # author's sound effects (not in git)
+  src/video.mp4        # cut source
+  words.json           # faster-whisper word timings (large-v3-turbo, language="pl")
+  faces.json           # python3 tools/shorts/face.py src/video.mp4  (face tracking for zoom anchor)
+  sfx/                 # author's sound effects + typing.mp3 (not in git)
+  timeline.py          # zooms, headings, pills, circle, SFX, ASR fixes …
 ```
-
+Run inside the project folder:
 ```
-python3 /path/to/tools/shorts/mix.py          # voice + SFX + typing sound -> out/mix.wav (-14 LUFS)
-python3 /path/to/tools/shorts/render.py --preview   # stills into prev/
-python3 /path/to/tools/shorts/render.py       # -> out/preview.mp4 (1080x1920, 30 fps)
+python3 ../../tools/shorts/mix.py                       # voice + SFX + typing -> out/mix.wav (-14 LUFS)
+python3 ../../tools/shorts/render.py --preview 3 10 25   # stills into prev/
+python3 ../../tools/shorts/render.py                     # -> out/preview.mp4
 ```
-
-Needs: ffmpeg, numpy, Pillow, faster-whisper, font `~/.fonts/Montserrat-Black.ttf`.
+Timeline keys: END, ZOOMS, XMARKS, BIGTEXT, HEADINGS, TINT+PILLS, CIRCLES (start, end, phrase splits, centre_y), TOPTITLE, ARROWS, ZBLUR, SFX, FIXES, MERGE.
+Needs: ffmpeg, numpy, Pillow, faster-whisper, opencv-python-headless<5, `~/.fonts/Montserrat-Black.ttf`.
