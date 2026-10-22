@@ -23,7 +23,7 @@ for e in EV: place(*e)
 EV.append(('click-pop_04_B.wav',39.35,-18,'start')); place(*EV[-1])
 # typing sound under every word that is being typed on the navy background
 typ=load('sfx/typing.mp3')[int(2.45*SR):int(8.9*SR)]
-vrms=np.sqrt(np.mean(voice[np.abs(voice).max(1)>0.02]**2)); typ*=0.22*vrms/np.sqrt(np.mean(typ**2))
+vrms=np.sqrt(np.mean(voice[np.abs(voice).max(1)>0.02]**2)); typ*=0.1*vrms/np.sqrt(np.mean(typ**2))
 pos=0
 for c in render.CIRCLES:
     for w in render.words:

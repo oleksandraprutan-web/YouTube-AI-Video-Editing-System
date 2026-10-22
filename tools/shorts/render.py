@@ -174,18 +174,28 @@ def type_events():
             prev = cur
     return ev
 
+CIRCLE_Y = [720, 850]   # second one lower so the face sits well inside
+OVAL = (470, 500)        # soft oval radii (x, y)
+_masks = {}
+def soft_mask(ccy):
+    if ccy not in _masks:
+        m = Image.new('L', (W, H)); rx, ry = OVAL
+        ImageDraw.Draw(m).ellipse((540 - rx + 60, ccy - ry + 60, 540 + rx - 60, ccy + ry - 60), fill=255)
+        _masks[ccy] = m.filter(ImageFilter.GaussianBlur(55))
+    return _masks[ccy]
+
 def circle_frame(src, t, c):
     out = Image.new('RGBA', (W, H), NAVY + (255,))
-    ccx, ccy, r = 540, 690, 420
+    ccx, ccy = 540, CIRCLE_Y[CIRCLES.index(c)]
     vid = zoom_frame(src, 1.3 + 0.01 * (t - c[0]))
-    m = Image.new('L', (W, H)); ImageDraw.Draw(m).ellipse((ccx - r, ccy - r, ccx + r, ccy + r), fill=255)
+    m = soft_mask(ccy)
     layer = Image.new('RGBA', (W, H)); layer.paste(vid, (ccx - FACE[0], ccy - FACE[1] - 30))
     out.paste(layer, (0, 0), m)
     txt = typed_text(t, c)
     f = font(58); lines = wrap(txt, f) if txt else ['']
     blink = int(t * 2.5) % 2 == 0
     lines[-1] = lines[-1] + ('_' if (blink or (txt and not txt.endswith(' '))) else ' ')
-    d = ImageDraw.Draw(out); lh = 66; y0 = 1310
+    d = ImageDraw.Draw(out); lh = 66; y0 = ccy + OVAL[1] + 30
     for i, ln in enumerate(lines):
         full = d.textlength(ln.rstrip('_ ') + '_', font=f)
         d.text(((W - full) / 2, y0 + i * lh), ln, font=f, fill=ORANGE + (255,))
