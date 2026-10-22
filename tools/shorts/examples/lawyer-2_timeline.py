@@ -1,5 +1,5 @@
 # Lawyer short 2 — "opieka naprzemienna: 4 kwestie" (50 s source, black tail after 48.07)
-SRC = 'src/video_hq.mp4'
+SRC = 'src/video_v3.mp4'
 END = 48.65
 FIXES = {47: 'nauki'}
 MERGE = [(9, 'naprzemiennej,'), (114, 'OZSS'), (123, 'naprzemienną,')]
@@ -19,6 +19,8 @@ PILLS = [(33.18, 'WIEK', 0, 0), (34.40, 'ZDROWIE', 0, 1),
          (35.12, 'RELACJE Z RODZEŃSTWEM', 1, None), (36.60, 'PRZYSTOSOWANIE DO ZMIAN', 2, None)]
 CIRCLES = [(39.70, 43.55, [39.88, 41.04], 760)]          # only once: OZSS opinion
 TOPTITLE = []
+BROLL = [(12.47, 16.57), (19.60, 23.83)]               # author's cutaways: keep still
+CUTS = [7.78, 12.47, 16.57, 19.60, 23.83, 38.07]
 ZBLUR = [6.52, 12.47, 16.57, 19.60, 23.83, 38.05]        # punch + cuts to/from B-roll
 
 SFX = [('whoosh-rise_01_A.wav', 2.38, -18, 'peak'), ('click-pop_01_A.wav', 2.45, -18, 'start'),

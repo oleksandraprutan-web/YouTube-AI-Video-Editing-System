@@ -32,6 +32,8 @@ SPEC_ROWS = []      # [(label, value)]
 PILL_END = None     # end of pills when there is no TINT
 PILL_Y = 120        # top of first pill row (move down to chest to keep the head clear)
 QUOTES = []         # (t0, t1, text) white quote card with orange quote mark, top of frame
+BROLL = []          # (t0, t1) cutaways: frame stays still (no zoom, no push, centre anchor)
+CUTS = []           # hard cut times; the zoom anchor is constant within each shot/zoom segment
 SFX = []            # (file, time, peak_db, 'start'|'peak')
 FIXES = {}          # word index -> corrected text (ASR fixes)
 MERGE = []          # (index, text): merge word index with next into text
@@ -44,12 +46,18 @@ DUR = float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=d
 if END: DUR = min(DUR, END)
 
 _faces = json.load(open('faces.json')) if os.path.exists('faces.json') else None
+def in_broll(t): return any(a <= t < b for a, b in BROLL)
+
+_anchor = {}
 def face_at(t):
-    """smoothed face centre from faces.json (fallback: FACE / frame centre on B-roll)"""
-    if not _faces: return FACE
-    near = [(x, y) for ft, x, y, w in _faces if abs(ft - t) <= 0.6 and x is not None]
-    if len(near) < 3: return (W // 2, H // 2)
-    return (int(np.median([p[0] for p in near])), int(np.median([p[1] for p in near])))
+    """constant face anchor per (shot x zoom segment): no frame-to-frame jitter; centre on B-roll"""
+    if in_broll(t) or not _faces: return (W // 2, H // 2) if _faces else FACE
+    marks = sorted({0.0, DUR} | {z for z, _ in ZOOMS} | set(CUTS) | {x for ab in BROLL for x in ab})
+    a = max(m for m in marks if m <= t); b = min([m for m in marks if m > t] or [DUR])
+    if (a, b) not in _anchor:
+        pts = [(x, y) for ft, x, y, w in _faces if a <= ft < b and x is not None]
+        _anchor[(a, b)] = (int(np.median([p[0] for p in pts])), int(np.median([p[1] for p in pts]))) if len(pts) >= 3 else (W // 2, H // 2)
+    return _anchor[(a, b)]
 
 def arrow_layer(scale=1.0):
     S = 2  # supersample
@@ -75,13 +83,15 @@ def arrow_layer(scale=1.0):
 _ARROW = None
 
 def zoom_at(t):
+    if in_broll(t): return 1.0
     s = ZOOMS[0][1]; prev = s; t0 = 0
     for zt, zs in ZOOMS:
         if t >= zt: prev, s, t0 = s, zs, zt
     e = min(1, (t - t0) / 0.18)  # quick eased punch
     e = 1 - (1 - e) ** 3
     base = prev + (s - prev) * e
-    return base * (1 + 0.012 * (t - t0))  # slow push
+    tp = max([t0] + [c for c in CUTS if c <= t] + [b for a, b in BROLL if b <= t])
+    return base * (1 + min(0.04, 0.012 * (t - tp)))  # slow push, restarts after each cut, capped
 
 def ease_pop(t, t0, d=0.22):
     x = min(1, max(0, (t - t0) / d))
