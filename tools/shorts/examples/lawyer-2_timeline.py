@@ -36,5 +36,5 @@ SFX = [('whoosh-rise_01_A.wav', 2.38, -18, 'peak'), ('click-pop_01_A.wav', 2.45,
        ('click-pop_05_C.wav', 33.18, -16, 'start'), ('click-pop_05_C.wav', 34.40, -16, 'start'),
        ('click-pop_05_C.wav', 35.12, -16, 'start'), ('click-pop_05_C.wav', 36.60, -16, 'start'),
 
-       ('whoosh-rise_03_C.wav', 39.70, -16, 'peak'), ('whoosh-rise_04_C.wav', 43.55, -17, 'peak'),
+       ('whoosh-rise_04_C.wav', 39.70, -17, 'peak'), ('whoosh-rise_04_C.wav', 43.55, -17, 'peak'),
 ]
