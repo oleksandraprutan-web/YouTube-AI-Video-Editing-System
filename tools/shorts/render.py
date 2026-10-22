@@ -26,6 +26,10 @@ XMARKS = []         # (t0, t1, (x, y))
 TOPTITLE = []       # (t0, t1, text with \n)
 ARROWS = []         # (t0, t1, (x, y))
 ZBLUR = []          # zoom-blur transition times (hard cuts, punches)
+SPECS = []          # (t0, t1, n): HF2-style list, rows 1..n shown, row n active
+SPEC_ROWS = []      # [(label, value)]
+PILL_END = None     # end of pills when there is no TINT
+PILL_Y = 120        # top of first pill row (move down to chest to keep the head clear)
 QUOTES = []         # (t0, t1, text) white quote card with orange quote mark, top of frame
 SFX = []            # (file, time, peak_db, 'start'|'peak')
 FIXES = {}          # word index -> corrected text (ASR fixes)
@@ -133,7 +137,7 @@ TINT_L = Image.fromarray(tint, 'RGBA')
 
 def pill_geom(row, slot, text):
     f = font(60); w = int(ImageDraw.Draw(Image.new('RGB', (1, 1))).textlength(text, font=f)) + 110
-    h = 124; y = 120 + row * 150
+    h = 124; y = PILL_Y + row * 150
     if slot is None: x = (W - w) // 2
     elif slot == 0: x = W // 2 - 20 - w
     else: x = W // 2 + 20
@@ -149,7 +153,7 @@ def draw_pill(base, text, row, slot, k, a):
     region = base.crop((x, y, x + w2, y + h2)).filter(ImageFilter.GaussianBlur(14))
     glass = Image.new('RGBA', (w2, h2), (255, 255, 255, 0))
     gl = Image.new('RGBA', (w2, h2)); gd = ImageDraw.Draw(gl)
-    gd.rounded_rectangle((0, 0, w2 - 1, h2 - 1), h2 // 2, fill=(255, 255, 255, int(45 * a)), outline=(255, 255, 255, int(200 * a)), width=4)
+    gd.rounded_rectangle((0, 0, w2 - 1, h2 - 1), h2 // 2, fill=(2, 6, 74, int(150 * a)) if PILL_Y > 600 else (255, 255, 255, int(45 * a)), outline=(255, 255, 255, int(200 * a)), width=4)
     gd.rounded_rectangle((h2 // 3, 6, w2 - h2 // 3, h2 // 2.6), h2 // 5, fill=(255, 255, 255, int(40 * a)))
     base.paste(region, (x, y), mask)
     base.alpha_composite(gl, (x, y))
@@ -226,6 +230,39 @@ def glow_text(txt, sz, cy):
         g = text_layer([txt], sz, (255, 150, 40, 255), cy, shadow=False).filter(ImageFilter.GaussianBlur(18))
         g.alpha_composite(g); g.alpha_composite(core); _glow[(txt, sz, cy)] = g
     return _glow[(txt, sz, cy)]
+
+MED = os.path.expanduser('~/.fonts/Montserrat-Medium.ttf')
+_med = {}
+def med(sz):
+    if sz not in _med: _med[sz] = ImageFont.truetype(MED, sz)
+    return _med[sz]
+
+def specs_layer(t, t0, t1, n):
+    """HF2 (mk-specs-list) look: navy top scrim, rows slide in, orange underline draws; earlier rows dimmed"""
+    a_all = min(1, (t - t0) / 0.3, (t1 - t) / 0.3)
+    lay = Image.new('RGBA', (W, H))
+    lay.alpha_composite(fade(TINT_L, a_all * 0.95))
+    d = ImageDraw.Draw(lay); x = 80; y0 = 95; rh = 104
+    for i in range(n):
+        label, value = SPEC_ROWS[i]
+        active = i == n - 1
+        if active:
+            a, k = ease_pop(t, t0 + 0.1, 0.5); dx = int(-36 * (1 - k))
+        else:
+            a, dx = 1.0, 0
+        al = int(255 * a * a_all * (1.0 if active else 0.55))
+        y = y0 + i * rh
+        d.text((x + dx, y), label, font=font(56), fill=(255, 255, 255, al))
+        lw = d.textlength(label, font=font(56))
+        d.text((x + dx + lw + 18, y + 11), value, font=med(46), fill=(220, 222, 235, al))
+        ly = y + 74
+        d.rectangle((x, ly, x + 760, ly + 3), fill=(255, 255, 255, int(46 * a_all)))
+        if active:
+            _, kk = ease_pop(t, t0 + 0.25, 0.8); fw = int(760 * kk)
+        else:
+            fw = 760
+        if fw > 0: d.rectangle((x, ly, x + fw, ly + 4), fill=ORANGE + (int(255 * a_all * (1 if active else 0.6)),))
+    return lay
 
 _quotes = {}
 def quote_layer(txt, cy=300):
@@ -311,10 +348,12 @@ def base_frame(src, t, circ):
         if TINT[0] <= t < TINT[1]:
             a = min(1, (t - TINT[0]) / 0.3, (TINT[1] - t) / 0.3)
             out.alpha_composite(fade(TINT_L, a))
+        pend = PILL_END or TINT[1]
+        if PILLS and PILLS[0][0] <= t < pend:
             for pt, txt, row, slot in PILLS:
                 if t >= pt:
                     a2, k = ease_pop(t, pt)
-                    draw_pill(out, txt, row, slot, k, a2 * min(1, (TINT[1] - t) / 0.3))
+                    draw_pill(out, txt, row, slot, k, a2 * min(1, (pend - t) / 0.3))
         for t0, t1, txt in BIGTEXT:
             if t0 <= t < t1:
                 _, k = ease_pop(t, t0, 0.25)
@@ -337,6 +376,9 @@ def base_frame(src, t, circ):
                 a = min(1, (t1 - t) / 0.2)
                 out.alpha_composite(fade(scale_layer(glow_text(str(num), 150, 150), 0.6 + 0.4 * k, 540, 150), k * a))
                 out.alpha_composite(fade(scale_layer(text_layer(title.split('\n'), 66, (255, 255, 255, 255), 290), 0.8 + 0.2 * k2, 540, 290), k2 * a))
+        for t0, t1, n in SPECS:
+            if t0 <= t < t1:
+                out.alpha_composite(specs_layer(t, t0, t1, n))
         for t0, t1, txt in QUOTES:
             if t0 <= t < t1:
                 a, k = ease_pop(t, t0, 0.3)
