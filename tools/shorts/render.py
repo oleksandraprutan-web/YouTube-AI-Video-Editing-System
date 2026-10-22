@@ -26,6 +26,7 @@ XMARKS = []         # (t0, t1, (x, y))
 TOPTITLE = []       # (t0, t1, text with \n)
 ARROWS = []         # (t0, t1, (x, y))
 ZBLUR = []          # zoom-blur transition times (hard cuts, punches)
+QUOTES = []         # (t0, t1, text) white quote card with orange quote mark, top of frame
 SFX = []            # (file, time, peak_db, 'start'|'peak')
 FIXES = {}          # word index -> corrected text (ASR fixes)
 MERGE = []          # (index, text): merge word index with next into text
@@ -226,6 +227,21 @@ def glow_text(txt, sz, cy):
         g.alpha_composite(g); g.alpha_composite(core); _glow[(txt, sz, cy)] = g
     return _glow[(txt, sz, cy)]
 
+_quotes = {}
+def quote_layer(txt, cy=300):
+    if txt in _quotes: return _quotes[txt]
+    f = font(52); lines = wrap(txt.upper(), f, 840); lh = 62
+    h = lh * len(lines) + 70; w = 960; x0, y0 = (W - w) // 2, cy - h // 2
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    sh = Image.new('RGBA', (W, H)); ImageDraw.Draw(sh).rounded_rectangle((x0, y0 + 10, x0 + w, y0 + h + 10), 26, fill=(0, 0, 0, 120))
+    lay.alpha_composite(sh.filter(ImageFilter.GaussianBlur(16)))
+    d.rounded_rectangle((x0, y0, x0 + w, y0 + h), 26, fill=(255, 255, 255, 250))
+    d.rectangle((x0 + 30, y0 - 38, x0 + 108, y0 + 40), fill=ORANGE + (255,))
+    d.text((x0 + 69, y0 + 18), '\u201c', font=font(96), fill=(255, 255, 255, 255), anchor='mm')
+    for i, ln in enumerate(lines):
+        d.text((W // 2, y0 + 38 + i * lh + lh // 2), ln, font=f, fill=(20, 20, 24, 255), anchor='mm')
+    _quotes[txt] = lay; return lay
+
 def xmark_layer(p, pos, size=150):
     """red hand-drawn X; p = draw progress 0..1"""
     lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
@@ -321,6 +337,11 @@ def base_frame(src, t, circ):
                 a = min(1, (t1 - t) / 0.2)
                 out.alpha_composite(fade(scale_layer(glow_text(str(num), 150, 150), 0.6 + 0.4 * k, 540, 150), k * a))
                 out.alpha_composite(fade(scale_layer(text_layer(title.split('\n'), 66, (255, 255, 255, 255), 290), 0.8 + 0.2 * k2, 540, 290), k2 * a))
+        for t0, t1, txt in QUOTES:
+            if t0 <= t < t1:
+                a, k = ease_pop(t, t0, 0.3)
+                a = min(a, (t1 - t) / 0.2)
+                out.alpha_composite(fade(scale_layer(quote_layer(txt), 0.85 + 0.15 * k, 540, 300), a))
         for t0, t1, pos in XMARKS:
             if t0 <= t < t1:
                 out.alpha_composite(xmark_layer(min(1, (t - t0) / 0.3), pos))
