@@ -32,6 +32,7 @@ ZBLUR = []          # zoom-blur transition times (hard cuts, punches)
 SPECS = []          # (t0, t1, n): HF2-style list, rows 1..n shown, row n active
 SPEC_ROWS = []      # [(label, value)]
 PILL_END = None     # end of pills when there is no TINT
+PILL_ROWS_Y = None  # optional explicit y per pill row, e.g. [150, 1070, 1220]
 PILL_Y = 120        # top of first pill row (move down to chest to keep the head clear)
 QUOTES = []         # (t0, t1, text) white quote card with orange quote mark, top of frame
 BROLL = []          # (t0, t1) cutaways: frame stays still (no zoom, no push, centre anchor)
@@ -157,7 +158,7 @@ TINT_L = Image.fromarray(tint, 'RGBA')
 
 def pill_geom(row, slot, text):
     f = font(60); w = int(ImageDraw.Draw(Image.new('RGB', (1, 1))).textlength(text, font=f)) + 110
-    h = 124; y = PILL_Y + row * 150
+    h = 124; y = PILL_ROWS_Y[row] if PILL_ROWS_Y else PILL_Y + row * 150
     if slot is None: x = (W - w) // 2
     elif slot == 0: x = W // 2 - 20 - w
     else: x = W // 2 + 20
@@ -173,7 +174,7 @@ def draw_pill(base, text, row, slot, k, a):
     region = base.crop((x, y, x + w2, y + h2)).filter(ImageFilter.GaussianBlur(14))
     glass = Image.new('RGBA', (w2, h2), (255, 255, 255, 0))
     gl = Image.new('RGBA', (w2, h2)); gd = ImageDraw.Draw(gl)
-    gd.rounded_rectangle((0, 0, w2 - 1, h2 - 1), h2 // 2, fill=(2, 6, 74, int(150 * a)) if PILL_Y > 600 else (255, 255, 255, int(45 * a)), outline=(255, 255, 255, int(200 * a)), width=4)
+    gd.rounded_rectangle((0, 0, w2 - 1, h2 - 1), h2 // 2, fill=(2, 6, 74, int(150 * a)) if (PILL_ROWS_Y or PILL_Y > 600) else (255, 255, 255, int(45 * a)), outline=(255, 255, 255, int(200 * a)), width=4)
     gd.rounded_rectangle((h2 // 3, 6, w2 - h2 // 3, h2 // 2.6), h2 // 5, fill=(255, 255, 255, int(40 * a)))
     base.paste(region, (x, y), mask)
     base.alpha_composite(gl, (x, y))
