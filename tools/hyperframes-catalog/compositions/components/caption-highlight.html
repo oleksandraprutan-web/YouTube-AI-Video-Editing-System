@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Highlight</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1080px;
+        height: 1920px;
+        margin: 0;
+        overflow: hidden;
+        background: transparent;
+      }
+      #highlight {
+        pointer-events: none;
+        position: relative;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: transparent;
+      }
+      #hl-video {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .hl-overlay {
+        position: absolute;
+        inset: 0;
+        background: transparent;
+        z-index: 1;
+        pointer-events: none;
+      }
+      #hl-container {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+        pointer-events: none;
+      }
+      .hl-group {
+        position: absolute;
+        bottom: 430px;
+        left: 0;
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 8px;
+        padding: 0 60px;
+        opacity: 0;
+        visibility: hidden;
+      }
+      .hl-word {
+        font-family: "Montserrat", sans-serif;
+        font-weight: 900;
+        font-size: 70px;
+        text-transform: uppercase;
+        color: #ffffff;
+        display: inline-block;
+        letter-spacing: 0.02em;
+        line-height: 1;
+        position: relative;
+        padding: 6px 12px 8px;
+        text-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+        transform-origin: 50% 58%;
+        will-change: transform, filter;
+      }
+      .hl-word-bg {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, #ff9d42 0%, #F47A3A 100%);
+        border-radius: 10px;
+        box-shadow: 0 12px 30px rgba(244, 122, 58, 0.35);
+        opacity: 0;
+        transform: scaleX(0);
+        transform-origin: 0% 50%;
+        z-index: -1;
+      }
+      .hl-word-text {
+        position: relative;
+        z-index: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="highlight"
+      data-composition-id="caption-highlight"
+      data-timeline-locked
+      data-start="0"
+      data-duration="4.5"
+      data-fps="30"
+      data-width="1080"
+      data-height="1920"
+    >
+      <div class="hl-overlay"></div>
+      <div id="hl-container"></div>
+    </div>
+
+    <script>
+      (function () {
+        window.__timelines = window.__timelines || {};
+
+        var _fitCanvas = document.createElement("canvas");
+        var _fitCtx = _fitCanvas.getContext("2d");
+        function fitFontSize(text, baseFontSize, fontWeight, fontFamily, maxWidth) {
+          var size = baseFontSize;
+          var minSize = Math.floor(baseFontSize * 0.45);
+          while (size > minSize) {
+            _fitCtx.font = fontWeight + " " + size + "px " + fontFamily;
+            if (_fitCtx.measureText(text).width <= maxWidth) return size;
+            size -= 2;
+          }
+          return minSize;
+        }
+
+        var WORDS = [
+          { text: "być", start: 0.12, end: 0.32 },
+          { text: "również", start: 0.32, end: 0.54 },
+          { text: "opinia", start: 0.54, end: 1.06 },
+          { text: "OZSS", start: 1.06, end: 1.68 },
+          { text: "zlecana", start: 1.68, end: 2.32 },
+          { text: "przez", start: 2.32, end: 2.54 },
+          { text: "sąd", start: 2.54, end: 2.86 },
+          { text: "Dlatego", start: 3.12, end: 3.64 },
+          { text: "zanim", start: 3.64, end: 4.10 },
+          { text: "wystąpisz", start: 4.10, end: 4.58 }
+        ];
+
+        var RAW_GROUPS = [[0, 2], [3, 5], [6, 8], [9, 9]];
+        var GROUPS = RAW_GROUPS.map(function (pair, gi) {
+          var ws = pair[0],
+            we = pair[1];
+          var nextStart = gi + 1 < RAW_GROUPS.length ? WORDS[RAW_GROUPS[gi + 1][0]].start : 4.5;
+          var gEnd = Math.min(WORDS[we].end + 0.5, nextStart - 0.05);
+          return { wordStart: ws, wordEnd: we, start: WORDS[ws].start, end: gEnd };
+        });
+
+        var container = document.getElementById("hl-container");
+        var tl = gsap.timeline({ paused: true });
+
+        GROUPS.forEach(function (g, gi) {
+          var groupWords = WORDS.slice(g.wordStart, g.wordEnd + 1);
+          var grp = document.createElement("div");
+          grp.className = "hl-group";
+          grp.id = "hl-grp-" + gi;
+
+          var groupText = groupWords
+            .map(function (w) {
+              return w.text.toUpperCase();
+            })
+            .join(" ");
+          var computedSize = fitFontSize(groupText, 70, "900", "Montserrat", 940);
+
+          groupWords.forEach(function (w, i) {
+            var wi = g.wordStart + i;
+            var wordEl = document.createElement("span");
+            wordEl.className = "hl-word";
+            wordEl.id = "hl-w-" + wi;
+            wordEl.style.fontSize = computedSize + "px";
+
+            var bgEl = document.createElement("span");
+            bgEl.className = "hl-word-bg";
+            bgEl.id = "hl-bg-" + wi;
+
+            var textEl = document.createElement("span");
+            textEl.className = "hl-word-text";
+            textEl.textContent = w.text.toUpperCase();
+
+            wordEl.appendChild(bgEl);
+            wordEl.appendChild(textEl);
+            grp.appendChild(wordEl);
+          });
+
+          container.appendChild(grp);
+
+          tl.set(grp, { visibility: "visible" }, g.start);
+          tl.fromTo(
+            grp,
+            { opacity: 0 },
+            { opacity: 1, duration: 0.12, ease: "power2.out" },
+            g.start,
+          );
+
+          groupWords.forEach(function (w, i) {
+            var wi = g.wordStart + i;
+            var bgEl = document.getElementById("hl-bg-" + wi);
+            var wordEl = document.getElementById("hl-w-" + wi);
+
+            tl.to(bgEl, { opacity: 1, scaleX: 1, duration: 0.15, ease: "power2.out" }, w.start);
+            tl.to(
+              wordEl,
+              { filter: "brightness(1.05)", duration: 0.08, ease: "power2.out" },
+              w.start,
+            );
+            tl.to(
+              wordEl,
+              { filter: "brightness(1)", duration: 0.16, ease: "power2.out" },
+              w.start + 0.08,
+            );
+            tl.to(bgEl, { opacity: 0, scaleX: 1.02, duration: 0.1, ease: "power2.in" }, w.end);
+            tl.set(bgEl, { scaleX: 0 }, w.end + 0.1);
+          });
+
+          tl.to(grp, { opacity: 0, duration: 0.1, ease: "power2.in" }, g.end - 0.1);
+          tl.set(grp, { opacity: 0, visibility: "hidden" }, g.end);
+        });
+
+        tl.seek(0);
+        window.__timelines["caption-highlight"] = tl;
+      })();
+    </script>
+  </body>
+</html>

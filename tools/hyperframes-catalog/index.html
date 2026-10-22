@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --navy: #02064a;
+        --orange: #f47a3a;
+        --ink: #ffffff;
+        --font-display: "Montserrat", sans-serif;
+        --brand: #f47a3a;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+      #root { position: relative; width: 1080px; height: 1920px; font-family: var(--font-display); }
+      #bg { position: absolute; inset: 0; width: 1080px; height: 1920px; object-fit: cover; }
+      .tag {
+        position: absolute; left: 40px; top: 1360px; padding: 14px 26px; border-radius: 40px;
+        background: rgba(2, 6, 74, 0.88); color: #fff; font-weight: 900; font-size: 40px; letter-spacing: 0.01em;
+      }
+      .tag b { color: var(--orange); }
+      .host { position: absolute; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="21" data-width="1080" data-height="1920">
+      <video id="bg" src="assets/bg.mp4" data-start="0" data-duration="21" data-track-index="0" data-has-audio="true"></video>
+
+      <!-- 1 count-up -->
+      <div id="h-count" class="host" style="left:0; top:120px; width:1080px; height:460px; --fg:#ffffff;"
+        data-composition-id="count-up" data-composition-src="compositions/components/count-up.html"
+        data-start="0" data-duration="3.5" data-track-index="1"
+        data-variable-values='{"start":0,"end":2500,"prefix":"","suffix":" zł","accent":"green","glow":true,"exit":"fade"}'></div>
+      <div id="t1" class="tag clip" data-start="0" data-duration="3.5" data-track-index="5"><b>1</b> · СЧЁТЧИК СУММЫ</div>
+
+      <!-- 2 specs list -->
+      <div id="h-specs" data-composition-id="mk-specs-list" data-composition-src="compositions/mk-specs-list.html"
+        data-start="3.5" data-duration="4.5" data-track-index="1" data-width="1080" data-height="1920"></div>
+      <div id="t2" class="tag clip" data-start="3.5" data-duration="4.5" data-track-index="5"><b>2</b> · СПИСОК С ЛИНИЯМИ</div>
+
+      <!-- 3 lower third -->
+      <div id="h-lt" data-composition-id="lt-kicker-name" data-composition-src="compositions/lt-kicker-name.html"
+        data-start="8" data-duration="4.5" data-track-index="1" data-width="1080" data-height="1920"></div>
+      <div id="t3" class="tag clip" data-start="8" data-duration="4" data-track-index="5"><b>3</b> · ПЛАШКА С ИМЕНЕМ</div>
+
+      <!-- 4 marker checklist card -->
+      <div id="h-marker" class="host" style="left:0; top:0; width:1080px; height:1920px; --bg:#02064a;"
+        data-composition-id="marker-checklist-card" data-composition-src="compositions/components/marker-checklist-card.html"
+        data-start="12" data-duration="4.5" data-track-index="1"
+        data-variable-values='{"top":"OPIEKA","mid":"NA","circled":"ZMIANE","rest":"!","l1":"DOM","v1":"OK","l2":"SZKOLA","v2":"BLISKO","l3":"RODZICE","v3":"ZGODA"}'></div>
+      <div id="t4" class="tag clip" data-start="12" data-duration="4.5" data-track-index="5" style="top:80px"><b>4</b> · КАРТОЧКА-МАРКЕР</div>
+
+      <!-- 5 highlight captions -->
+      <div id="h-cap" data-composition-id="caption-highlight" data-composition-src="compositions/components/caption-highlight.html"
+        data-start="16.5" data-duration="4.5" data-track-index="1" data-width="1080" data-height="1920"></div>
+      <div id="t5" class="tag clip" data-start="16.5" data-duration="4.5" data-track-index="5" style="top:150px"><b>5</b> · СУБТИТРЫ С ПОДСВЕТКОЙ</div>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      ["#t1", "#t2", "#t3", "#t4", "#t5"].forEach((id) => {
+        tl.fromTo(id, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" }, Number(document.querySelector(id).dataset.start));
+      });
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
