@@ -43,6 +43,7 @@ CHECKS = []         # (t0, t1, (x, y), radius)
 BADGES = []         # (t0, t1, text, centre_y)
 LINKS = []          # (t0, t1, left, right, label, t_line, t_label, centre_y)
 PLANS = []          # navy layout: {'t0','t1','title','title_t','items':[(t, text)],'cy'} card on top, soft oval below
+BLURS = []          # privacy blur in source px: (t0, t1, (x0,y0,x1,y1) at t0, (x0,y0,x1,y1) at t1)
 SFX = []            # (file, time, peak_db, 'start'|'peak')
 FIXES = {}          # word index -> corrected text (ASR fixes)
 MERGE = []          # (index, text): merge word index with next into text
@@ -355,7 +356,19 @@ def sub_layer(txt):
     return _sub_cache[txt]
 
 # ---------------- render ----------------
+def apply_blurs(src, t):
+    for t0, t1, b0, b1 in BLURS:
+        if t0 <= t < t1:
+            k = (t - t0) / max(1e-6, t1 - t0)
+            x0, y0, x1, y1 = [int(a + (b - a) * k) for a, b in zip(b0, b1)]
+            a = min(1, (t1 - t) / 0.12)
+            m = Image.new('L', (W, H)); ImageDraw.Draw(m).rectangle((x0, y0, x1, y1), fill=int(255 * a))
+            m = m.filter(ImageFilter.GaussianBlur(20))
+            src = Image.composite(src.filter(ImageFilter.GaussianBlur(28)), src, m)
+    return src
+
 def render_frame(src, t):
+    src = apply_blurs(src, t)
     for c in CIRCLES + [(p['t0'], p['t1'], p) for p in PLANS]:
         if c[1] - 0.25 <= t < c[1] + 0.25:
             k = (t - (c[1] - 0.25)) / 0.5
