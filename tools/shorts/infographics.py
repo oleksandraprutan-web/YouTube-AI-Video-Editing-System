@@ -273,3 +273,79 @@ def scene_inheritance(t, e, font):
         d.line([(cx0 - 18, y), (cx0 - 4, y + 16), (cx0 + 22, y - 16)], fill=(255, 255, 255, int(255 * kv)), width=9, joint='curve')
         d.text((W / 2 + 30, y + 2), cfg['verdict'], font=f, fill=(255, 255, 255, int(255 * kv)), anchor='mm')
     return lay
+
+
+def _phone(lay, cx, cy, w, h, k, bubbles, t):
+    d = ImageDraw.Draw(lay)
+    x0, y0 = cx - w / 2, cy - h / 2
+    d.rounded_rectangle((x0 - 14, y0 - 14, x0 + w + 14, y0 + h + 14), 60, fill=(15, 18, 40, int(255 * k)))
+    d.rounded_rectangle((x0, y0, x0 + w, y0 + h), 48, fill=(245, 246, 250, int(255 * k)))
+    d.rounded_rectangle((cx - 60, y0 + 14, cx + 60, y0 + 40), 13, fill=(15, 18, 40, int(255 * k)))
+    for i, (bt, side) in enumerate(bubbles):
+        kb = ease(t, bt, 0.25)
+        if kb <= 0: continue
+        by = y0 + 90 + i * 120; bw = w * 0.62
+        bx = x0 + 26 if side == 'L' else x0 + w - 26 - bw
+        bx += (-40 if side == 'L' else 40) * (1 - kb)
+        col = (225, 228, 238) if side == 'L' else (60, 110, 230)
+        d.rounded_rectangle((bx, by, bx + bw, by + 90), 34, fill=col + (int(255 * kb * k),))
+        lc = (120, 125, 140) if side == 'L' else (230, 236, 255)
+        d.rounded_rectangle((bx + 26, by + 26, bx + bw - 40, by + 40), 7, fill=lc + (int(255 * kb * k),))
+        d.rounded_rectangle((bx + 26, by + 52, bx + bw * 0.6, by + 66), 7, fill=lc + (int(255 * kb * k),))
+
+
+def scene_evidence(t, e, font):
+    """navy animation: messages appear in a phone, screenshot flash, then a documentation checklist ticks"""
+    t0, t1, cfg = e
+    lay = Image.new('RGBA', (W, H), NAVY + (255,))
+    glow = Image.new('RGBA', (W, H)); g = ImageDraw.Draw(glow)
+    for i, (bx, by, br, col) in enumerate([(250, 500, 420, (40, 70, 200)), (850, 1350, 520, (30, 50, 170)), (650, 800, 300, (244, 122, 58))]):
+        ph = (t - t0) * 0.35 + i * 2.1
+        x = bx + 60 * math.sin(ph); y = by + 50 * math.cos(ph * 0.8)
+        g.ellipse((x - br, y - br, x + br, y + br), fill=col + (60 if i < 2 else 24,))
+    lay.alpha_composite(glow.filter(ImageFilter.GaussianBlur(120)))
+    d = ImageDraw.Draw(lay)
+    k = ease(t, t0, 0.3)
+    f = font(56); tw = d.textlength(cfg['title'], font=f); y = 190 - 30 * (1 - k)
+    d.rounded_rectangle((W / 2 - tw / 2 - 40, y - 52, W / 2 + tw / 2 + 40, y + 52), 52, fill=ORANGE + (int(255 * k),))
+    d.text((W / 2, y + 2), cfg['title'], font=f, fill=(255, 255, 255, int(255 * k)), anchor='mm')
+    # phone: shrinks/moves up when the checklist arrives
+    kc = ease(t, cfg['t_list'], 0.6)
+    pw, ph_ = 430 - 110 * kc, 760 - 160 * kc
+    pcx, pcy = W / 2 - 330 * kc, 720 + 140 * kc
+    _phone(lay, pcx, pcy, pw, ph_, ease(t, t0 + 0.1, 0.4), [(b, s) for b, s in cfg['bubbles']], t)
+    d = ImageDraw.Draw(lay)
+    # screenshot: white flash over phone + 'ZRZUT EKRANU' label + corner brackets
+    ts = cfg['t_shot']
+    fl = max(0, 1 - abs(t - ts) / 0.15) if t >= ts - 0.15 else 0
+    if fl > 0:
+        x0, y0 = pcx - pw / 2, pcy - ph_ / 2
+        d.rounded_rectangle((x0, y0, x0 + pw, y0 + ph_), 48, fill=(255, 255, 255, int(230 * fl)))
+    ksh = ease(t, ts, 0.3)
+    if ksh > 0 and t < cfg['t_list'] + 0.2:
+        a = ksh * (1 - ease(t, cfg['t_list'] - 0.2, 0.4))
+        x0, y0, x1, y1 = pcx - pw / 2 - 40, pcy - ph_ / 2 - 40, pcx + pw / 2 + 40, pcy + ph_ / 2 + 40
+        L = 70
+        for (cx, cy, sx, sy) in [(x0, y0, 1, 1), (x1, y0, -1, 1), (x0, y1, 1, -1), (x1, y1, -1, -1)]:
+            d.line([(cx, cy + sy * L), (cx, cy), (cx + sx * L, cy)], fill=ORANGE + (int(255 * a),), width=12, joint='curve')
+        f2 = font(44); lbl = cfg['shot_label']; tw2 = d.textlength(lbl, font=f2); ly = y1 + 70
+        d.rounded_rectangle((W / 2 - tw2 / 2 - 30, ly - 38, W / 2 + tw2 / 2 + 30, ly + 38), 38, fill=(255, 255, 255, int(240 * a)))
+        d.text((W / 2, ly + 2), lbl, font=f2, fill=NAVY + (int(255 * a),), anchor='mm')
+    # checklist card on the right/below
+    if kc > 0:
+        x0, y0, x1 = 400, 520, W - 40
+        items = cfg['items']; y1 = y0 + 150 + 170 * len(items)
+        d.rounded_rectangle((x0, y0 + 40 * (1 - kc), x1, y1 + 40 * (1 - kc)), 30, fill=(255, 255, 255, int(245 * kc)))
+        d.text(((x0 + x1) / 2, y0 + 72 + 40 * (1 - kc)), cfg['list_title'], font=font(54), fill=NAVY + (int(255 * kc),), anchor='mm')
+        for i, (it, txt) in enumerate(items):
+            ki = ease(t, it, 0.3)
+            yy = y0 + 220 + i * 170 + 40 * (1 - kc)
+            bx = x0 + 40
+            d.rounded_rectangle((bx, yy - 40, bx + 80, yy + 40), 18, outline=(200, 205, 220, int(255 * kc)), width=5)
+            if ki > 0:
+                d.rounded_rectangle((bx, yy - 40, bx + 80, yy + 40), 18, fill=GREEN + (int(255 * ki),))
+                d.line([(bx + 18, yy + 2), (bx + 35, yy + 20), (bx + 63, yy - 18)], fill=(255, 255, 255, int(255 * ki)), width=10, joint='curve')
+            lines = txt.split('\n')
+            for j, ln in enumerate(lines):
+                d.text((bx + 110, yy + (j - (len(lines) - 1) / 2) * 54), ln, font=font(46), fill=(20, 20, 30, int(255 * max(ki, 0.35) * kc)), anchor='lm')
+    return lay

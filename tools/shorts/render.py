@@ -30,6 +30,8 @@ TOPTITLE = []       # (t0, t1, text with \n)
 ARROWS = []         # (t0, t1, (x, y))
 ZBLUR = []          # zoom-blur transition times (hard cuts, punches)
 SPECS = []          # (t0, t1, n): HF2-style list, rows 1..n shown, row n active
+SPECS_Y = 95        # top of the HF2 list (move to ~1000 to put it on the chest; no tint then)
+PILL_GROUPS = []    # [(t_end, rows_y, [(t, text, row, slot), ...]), ...] several pill sets per video
 SPEC_ROWS = []      # [(label, value)]
 PILL_END = None     # end of pills when there is no TINT
 STEMS = None        # dir with demucs vocals.wav / no_vocals.wav to rebalance the author's music
@@ -269,8 +271,8 @@ def specs_layer(t, t0, t1, n):
     """HF2 (mk-specs-list) look: navy top scrim, rows slide in, orange underline draws; earlier rows dimmed"""
     a_all = min(1, (t - t0) / 0.3, (t1 - t) / 0.3)
     lay = Image.new('RGBA', (W, H))
-    lay.alpha_composite(fade(TINT_L, a_all * 0.95))
-    d = ImageDraw.Draw(lay); x = 80; y0 = 95; rh = 104
+    if SPECS_Y < 600: lay.alpha_composite(fade(TINT_L, a_all * 0.95))
+    d = ImageDraw.Draw(lay); x = 80; y0 = SPECS_Y; rh = 104
     for i in range(n):
         label, value = SPEC_ROWS[i]
         active = i == n - 1
@@ -294,7 +296,7 @@ def specs_layer(t, t0, t1, n):
 
 _quotes = {}
 def quote_layer(txt, cy=300):
-    if txt in _quotes: return _quotes[txt]
+    if (txt, cy) in _quotes: return _quotes[(txt, cy)]
     f = font(52); lines = wrap(txt.upper(), f, 840); lh = 62
     h = lh * len(lines) + 70; w = 960; x0, y0 = (W - w) // 2, cy - h // 2
     lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
@@ -305,7 +307,7 @@ def quote_layer(txt, cy=300):
     d.text((x0 + 69, y0 + 18), '\u201c', font=font(96), fill=(255, 255, 255, 255), anchor='mm')
     for i, ln in enumerate(lines):
         d.text((W // 2, y0 + 38 + i * lh + lh // 2), ln, font=f, fill=(20, 20, 24, 255), anchor='mm')
-    _quotes[txt] = lay; return lay
+    _quotes[(txt, cy)] = lay; return lay
 
 def xmark_layer(p, pos, size=150):
     """red hand-drawn X; p = draw progress 0..1"""
@@ -418,6 +420,10 @@ def base_frame(src, t, circ):
         if TINT[0] <= t < TINT[1]:
             a = min(1, (t - TINT[0]) / 0.3, (TINT[1] - t) / 0.3)
             out.alpha_composite(fade(TINT_L, a))
+        global PILLS, PILL_ROWS_Y, PILL_END
+        for gend, grows, gpills in PILL_GROUPS:
+            if gpills and gpills[0][0] <= t < gend:
+                PILLS, PILL_ROWS_Y, PILL_END = gpills, grows, gend
         pend = PILL_END or TINT[1]
         if PILLS and PILLS[0][0] <= t < pend:
             for pt, txt, row, slot in PILLS:
@@ -463,11 +469,12 @@ def base_frame(src, t, circ):
             if e[0] <= t < e[1]: out.alpha_composite(ig.badge(t, e, font))
         for e in LINKS:
             if e[0] <= t < e[1]: out.alpha_composite(ig.link(t, e, font))
-        for t0, t1, txt in QUOTES:
+        for q in QUOTES:
+            t0, t1, txt = q[:3]; qcy = q[3] if len(q) > 3 else 300
             if t0 <= t < t1:
                 a, k = ease_pop(t, t0, 0.3)
                 a = min(a, (t1 - t) / 0.2)
-                out.alpha_composite(fade(scale_layer(quote_layer(txt), 0.85 + 0.15 * k, 540, 300), a))
+                out.alpha_composite(fade(scale_layer(quote_layer(txt, qcy), 0.85 + 0.15 * k, 540, qcy), a))
         for t0, t1, pos in XMARKS:
             if t0 <= t < t1:
                 out.alpha_composite(xmark_layer(min(1, (t - t0) / 0.3), pos))
