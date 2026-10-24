@@ -349,3 +349,58 @@ def scene_evidence(t, e, font):
             for j, ln in enumerate(lines):
                 d.text((bx + 110, yy + (j - (len(lines) - 1) / 2) * 54), ln, font=font(46), fill=(20, 20, 30, int(255 * max(ki, 0.35) * kc)), anchor='lm')
     return lay
+
+
+def strike(t, e, font):
+    """dark glass pill with a word that gets struck through by a red pen line"""
+    t0, t1, text, t_strike, (cx, cy) = e
+    a = min(1, (t1 - t) / 0.2) * ease(t, t0, 0.3)
+    f = font(76); tw = ImageDraw.Draw(Image.new('RGB', (1, 1))).textlength(text, font=f)
+    w, h = tw + 120, 150; x0, y0 = cx - w / 2, cy - h / 2
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    _glass(d, (x0, y0, x0 + w, y0 + h), h // 2, a)
+    ks = ease(t, t_strike, 0.35)
+    d.text((cx, cy + 3), text, font=f, fill=(255, 255, 255, int(255 * a * (1 - 0.45 * ks))), anchor='mm')
+    if ks > 0:
+        xs, xe = x0 + 30, x0 + 30 + (w - 60) * ks
+        d.line((xs, cy + 10, xe, cy - 6), fill=RED + (int(255 * a),), width=16)
+    return _shadow(lay)
+
+
+def doc_card(t, e, font):
+    """white document card at chest level: icon + 3 lines appearing with the words"""
+    t0, t1, lines, cy = e
+    a = min(1, (t1 - t) / 0.25) * ease(t, t0, 0.35)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    x0, x1 = 90, W - 90; h = 380; y0 = cy - h / 2 + 40 * (1 - ease(t, t0, 0.35))
+    d.rounded_rectangle((x0, y0, x1, y0 + h), 30, fill=(255, 255, 255, int(248 * a)))
+    d.rectangle((x0 + 50, y0 - 24, x0 + 118, y0 + 24), fill=ORANGE + (int(255 * a),))
+    ix, iy = x0 + 60, y0 + 95
+    d.rounded_rectangle((ix, iy, ix + 150, iy + 195), 16, fill=NAVY + (int(255 * a),))
+    for j in range(4):
+        d.rounded_rectangle((ix + 25, iy + 40 + j * 36, ix + 125 - (30 if j == 3 else 0), iy + 54 + j * 36), 7, fill=(255, 255, 255, int(220 * a)))
+    tx = ix + 190
+    sizes = [40, 58, 38]; ys = [y0 + 110, y0 + 190, y0 + 275]
+    cols = [(110, 115, 135), NAVY, ORANGE]
+    for (lt, txt), sz, yy, col in zip(lines, sizes, ys, cols):
+        k = ease(t, lt, 0.3)
+        if k > 0:
+            d.text((tx - 20 * (1 - k), yy), txt, font=font(sz), fill=col + (int(255 * a * k),), anchor='lm')
+    return _shadow(lay, 18, 0.5, 10)
+
+
+def checklist(t, e, font):
+    """dark glass card with rows that tick green one by one"""
+    t0, t1, items, cy = e
+    a = min(1, (t1 - t) / 0.25) * ease(t, t0, 0.3)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    rh = 112; h = 60 + rh * len(items); x0, x1 = 170, W - 170; y0 = cy - h / 2
+    _glass(d, (x0, y0, x1, y0 + h), 34, a)
+    for i, (it, txt) in enumerate(items):
+        k = ease(t, it, 0.3); yy = y0 + 30 + rh * i + rh / 2; bx = x0 + 45
+        d.rounded_rectangle((bx, yy - 36, bx + 72, yy + 36), 16, outline=(255, 255, 255, int(120 * a)), width=4)
+        if k > 0:
+            d.rounded_rectangle((bx, yy - 36, bx + 72, yy + 36), 16, fill=GREEN + (int(255 * a * k),))
+            d.line([(bx + 16, yy + 2), (bx + 31, yy + 18), (bx + 57, yy - 16)], fill=(255, 255, 255, int(255 * a * k)), width=9, joint='curve')
+        d.text((bx + 105, yy + 2), txt, font=font(54), fill=(255, 255, 255, int(255 * a * max(k, 0.3))), anchor='lm')
+    return _shadow(lay)

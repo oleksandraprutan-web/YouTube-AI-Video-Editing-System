@@ -47,6 +47,9 @@ STAMPS = []         # (t0, t1, text, (x, y))
 CHECKS = []         # (t0, t1, (x, y), radius)
 BADGES = []         # (t0, t1, text, centre_y)
 LINKS = []          # (t0, t1, left, right, label, t_line, t_label, centre_y)
+STRIKES = []        # (t0, t1, text, t_strike, (x, y))
+DOCS = []           # (t0, t1, [(t, line1), (t, line2), (t, line3)], centre_y)
+CHECKLISTS = []     # (t0, t1, [(t, text), ...], centre_y)
 MONTHS = []         # (t0, t1, n, label, t_fill, centre_y)
 CAPS = []           # (t0, t1, t_bar, t_cap, centre_y)
 SCENES = []         # full-frame animations: (t0, t1, {'fn': name, ...cfg})
@@ -455,6 +458,12 @@ def base_frame(src, t, circ):
         for t0, t1, n in SPECS:
             if t0 <= t < t1:
                 out.alpha_composite(specs_layer(t, t0, t1, n))
+        for e in STRIKES:
+            if e[0] <= t < e[1]: out.alpha_composite(ig.strike(t, e, font))
+        for e in DOCS:
+            if e[0] <= t < e[1]: out.alpha_composite(ig.doc_card(t, e, font))
+        for e in CHECKLISTS:
+            if e[0] <= t < e[1]: out.alpha_composite(ig.checklist(t, e, font))
         for e in MONTHS:
             if e[0] <= t < e[1]: out.alpha_composite(ig.months(t, e, font))
         for e in CAPS:
