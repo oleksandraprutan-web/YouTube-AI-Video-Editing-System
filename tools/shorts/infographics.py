@@ -420,3 +420,63 @@ def words(t, e, font):
         d.ellipse((x - 52, y - 12, x - 28, y + 12), fill=ORANGE + (int(255 * a * k),))
         d.text((x, y + 2), txt, font=f, fill=(255, 255, 255, int(255 * a * k)), anchor='lm')
     return _shadow(lay, 10, 0.6, 5)
+
+
+def income(t, e, font):
+    """two income bars (RODZIC A / B) + result pill"""
+    t0, t1, t_bars, ratio, t_res, res_text, res_col, cy = e
+    a = min(1, (t - t0) / 0.25, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    x0, x1 = 110, W - 110
+    _glass(d, (x0 - 30, cy - 170, x1 + 30, cy + 110), 34, a)
+    d.text((W / 2, cy - 125), 'ZAROBKI RODZICÓW', font=font(40), fill=(255, 255, 255, int(255 * a)), anchor='mm')
+    bx = x0 + 230; full = x1 - bx
+    for i, (lbl, frac, col) in enumerate([('RODZIC A', 1.0, ORANGE), ('RODZIC B', ratio, (255, 255, 255))]):
+        y = cy - 50 + i * 95
+        k = ease(t, t_bars + i * 0.15, 0.9)
+        d.text((x0, y), lbl, font=font(36), fill=(255, 255, 255, int(255 * a)), anchor='lm')
+        d.rounded_rectangle((bx, y - 26, x1, y + 26), 26, fill=(255, 255, 255, int(35 * a)))
+        w = full * frac * k
+        if w > 30: d.rounded_rectangle((bx, y - 26, bx + w, y + 26), 26, fill=col + (int(240 * a),))
+    kr = ease(t, t_res, 0.3)
+    if kr > 0:
+        f = font(44); tw = d.textlength(res_text, font=f); y = cy + 175 - 15 * (1 - kr)
+        d.rounded_rectangle((W / 2 - tw / 2 - 34, y - 42, W / 2 + tw / 2 + 34, y + 42), 42, fill=res_col + (int(255 * a * kr),))
+        d.text((W / 2, y + 2), res_text, font=f, fill=(255, 255, 255, int(255 * a * kr)), anchor='mm')
+    return _shadow(lay)
+
+
+def scene_two_homes(t, e, font):
+    """navy animation: two houses with living-standard bars that even out"""
+    t0, t1, cfg = e
+    lay = Image.new('RGBA', (W, H), NAVY + (255,))
+    glow = Image.new('RGBA', (W, H)); g = ImageDraw.Draw(glow)
+    for i, (bx, by, br, col) in enumerate([(250, 500, 420, (40, 70, 200)), (850, 1350, 520, (30, 50, 170)), (600, 900, 300, (244, 122, 58))]):
+        ph = (t - t0) * 0.35 + i * 2.1
+        g.ellipse((bx + 60 * math.sin(ph) - br, by + 50 * math.cos(ph * .8) - br, bx + 60 * math.sin(ph) + br, by + 50 * math.cos(ph * .8) + br), fill=col + (60 if i < 2 else 24,))
+    lay.alpha_composite(glow.filter(ImageFilter.GaussianBlur(120)))
+    d = ImageDraw.Draw(lay)
+    k = ease(t, t0, 0.3)
+    f = font(60); tw = d.textlength(cfg['title'], font=f); y = 230 - 30 * (1 - k)
+    d.rounded_rectangle((W / 2 - tw / 2 - 44, y - 56, W / 2 + tw / 2 + 44, y + 56), 56, fill=ORANGE + (int(255 * k),))
+    d.text((W / 2, y + 2), cfg['title'], font=f, fill=(255, 255, 255, int(255 * k)), anchor='mm')
+    kh = ease(t, cfg['t_homes'], 0.4)
+    keq = ease(t, cfg['t_equal'], 0.9)
+    base = 1250; maxh = 420
+    for i, (cx, start) in enumerate([(300, 0.9), (780, 0.35)]):
+        if kh <= 0: break
+        lvl = start + (0.75 - start) * keq
+        _house(d, cx, 640, 120 * (0.6 + 0.4 * kh), (255, 255, 255, int(255 * kh)))
+        d.text((cx, 820), f'DOM {i + 1}', font=font(44), fill=(255, 255, 255, int(255 * kh)), anchor='mm')
+        d.rounded_rectangle((cx - 70, base - maxh, cx + 70, base), 22, fill=(255, 255, 255, int(40 * kh)))
+        hh = maxh * lvl * ease(t, cfg['t_homes'] + 0.2, 0.7)
+        col = ORANGE if keq < 0.5 else GREEN
+        if hh > 10: d.rounded_rectangle((cx - 70, base - hh, cx + 70, base), 22, fill=col + (int(255 * kh),))
+    if kh > 0:
+        d.text((W / 2, base + 70), 'POZIOM ŻYCIA DZIECKA', font=font(42), fill=(255, 255, 255, int(255 * kh)), anchor='mm')
+    kv = ease(t, cfg['t_verdict'], 0.3)
+    if kv > 0:
+        f = font(54); tw = d.textlength(cfg['verdict'], font=f); y = 1500
+        d.rounded_rectangle((W / 2 - tw / 2 - 50, y - 56, W / 2 + tw / 2 + 50, y + 56), 56, fill=GREEN + (int(255 * kv),))
+        d.text((W / 2, y + 2), cfg['verdict'], font=f, fill=(255, 255, 255, int(255 * kv)), anchor='mm')
+    return lay
