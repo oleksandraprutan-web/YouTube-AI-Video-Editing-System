@@ -480,3 +480,96 @@ def scene_two_homes(t, e, font):
         d.rounded_rectangle((W / 2 - tw / 2 - 50, y - 56, W / 2 + tw / 2 + 50, y + 56), 56, fill=GREEN + (int(255 * kv),))
         d.text((W / 2, y + 2), cfg['verdict'], font=f, fill=(255, 255, 255, int(255 * kv)), anchor='mm')
     return lay
+
+
+def donut(t, e, font):
+    """50/50 donut that fills in two halves + centre label; optional question line below"""
+    t0, t1, t_a, t_b, centre, t_q, q_text, cy = e
+    a = min(1, (t - t0) / 0.25, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    r, wd = 150, 46; cx = W / 2
+    _glass(d, (90, cy - r - 40, W - 90, cy + r + 40), 40, a)
+    box = (cx - r, cy - r, cx + r, cy + r)
+    d.ellipse(box, outline=(255, 255, 255, int(70 * a)), width=wd)
+    ka, kb = ease(t, t_a, 0.6), ease(t, t_b, 0.6)
+    if ka > 0: d.arc(box, -90, -90 + 180 * ka, fill=ORANGE + (int(255 * a),), width=wd)
+    if kb > 0: d.arc(box, 90, 90 + 180 * kb, fill=(255, 255, 255, int(255 * a)), width=wd)
+    d.text((cx, cy + 4), centre, font=font(70), fill=(255, 255, 255, int(255 * a)), anchor='mm')
+    for x, lbl, col, k in [(cx - r - 120, 'MAMA', ORANGE, ka), (cx + r + 120, 'TATA', (255, 255, 255), kb)]:
+        d.text((x, cy), lbl, font=font(42), fill=col + (int(255 * a * k),), anchor='mm')
+    kq = ease(t, t_q, 0.3)
+    if kq > 0:
+        f = font(46); tw = d.textlength(q_text, font=f); y = cy + r + 85
+        _glass(d, (cx - tw / 2 - 34, y - 42, cx + tw / 2 + 34, y + 42), 42, a * kq)
+        d.text((cx, y + 2), q_text, font=f, fill=(255, 255, 255, int(255 * a * kq)), anchor='mm')
+    return _shadow(lay)
+
+
+def warn(t, e, font):
+    """red warning triangle that pops in with a label"""
+    t0, t1, label, cy = e
+    k = ease(t, t0, 0.25); a = min(1, (t1 - t) / 0.2)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    s = 120 * (0.5 + 0.5 * k); cx = W / 2
+    d.polygon([(cx, cy - s), (cx - s * 1.1, cy + s * 0.8), (cx + s * 1.1, cy + s * 0.8)], fill=RED + (int(255 * a * k),))
+    d.text((cx, cy + s * 0.15), '!', font=font(int(130 * (0.5 + 0.5 * k))), fill=(255, 255, 255, int(255 * a * k)), anchor='mm')
+    if label:
+        d.text((cx, cy + 170), label, font=font(60), fill=(255, 255, 255, int(255 * a * k)), anchor='mm')
+    return _shadow(lay, 12, 0.5, 6)
+
+
+def headline(t, e, font):
+    """big white lines (no background) + red stamp slammed over them"""
+    t0, t1, lines, t_stamp, stamp_text, cy = e
+    a = min(1, (t - t0) / 0.25, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    lh = 86
+    _glass(d, (110, cy - lh / 2 * len(lines) - 40, W - 110, cy + lh / 2 * len(lines) + 40), 34, a)
+    for i, ln in enumerate(lines):
+        k = ease(t, t0 + i * 0.12, 0.3)
+        d.text((W / 2, cy - lh / 2 * (len(lines) - 1) + i * lh + 15 * (1 - k)), ln, font=font(70), fill=(255, 255, 255, int(255 * a * k)), anchor='mm')
+    lay = _shadow(lay)
+    if t >= t_stamp:
+        lay.alpha_composite(stamp(t, (t_stamp, t1, stamp_text, (W / 2 + 160, cy + lh / 2 * len(lines) + 40)), font))
+    return lay
+
+
+def split_costs(t, e, font):
+    """expenses split 50/50 between parents (rows tick in), then '+ ALIMENTY WYRÓWNAWCZE' pill"""
+    t0, t1, rows, t_plus, plus_text, cy = e
+    a = min(1, (t - t0) / 0.25, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    x0, x1 = 90, W - 90; rh = 100; top = cy - 130
+    _glass(d, (x0, top - 70, x1, top + 60 + rh * len(rows)), 34, a)
+    d.text((x0 + 280, top - 22), 'RODZIC A', font=font(30), fill=ORANGE + (int(255 * a),), anchor='mm')
+    d.text((x1 - 170, top - 22), 'RODZIC B', font=font(30), fill=(255, 255, 255, int(255 * a)), anchor='mm')
+    for i, (rt, lbl) in enumerate(rows):
+        k = ease(t, rt, 0.5); y = top + 50 + i * rh
+        d.text((x0 + 30, y), lbl, font=font(38), fill=(255, 255, 255, int(255 * a * max(k, .3))), anchor='lm')
+        bx0, bx1 = x0 + 330, x1 - 30; mid = (bx0 + bx1) / 2
+        d.rounded_rectangle((bx0, y - 24, bx1, y + 24), 24, fill=(255, 255, 255, int(35 * a)))
+        if k > 0:
+            d.rounded_rectangle((mid - (mid - bx0) * k, y - 24, mid, y + 24), 24, fill=ORANGE + (int(240 * a),))
+            d.rounded_rectangle((mid, y - 24, mid + (bx1 - mid) * k, y + 24), 24, fill=(255, 255, 255, int(235 * a)))
+            d.text((mid - 70, y + 1), '50%', font=font(28), fill=(255, 255, 255, int(255 * a * k)), anchor='mm')
+            d.text((mid + 70, y + 1), '50%', font=font(28), fill=NAVY + (int(255 * a * k),), anchor='mm')
+    kp = ease(t, t_plus, 0.3)
+    if kp > 0:
+        f = font(44); tw = d.textlength(plus_text, font=f); y = top + 60 + rh * len(rows) + 70 - 15 * (1 - kp)
+        d.rounded_rectangle((W / 2 - tw / 2 - 34, y - 42, W / 2 + tw / 2 + 34, y + 42), 42, fill=ORANGE + (int(255 * a * kp),))
+        d.text((W / 2, y + 2), plus_text, font=f, fill=(255, 255, 255, int(255 * a * kp)), anchor='mm')
+    return _shadow(lay)
+
+
+def not_equal(t, e, font):
+    """'A' ≠ 'B' takeaway: left text, big orange ≠, right text appear with the words"""
+    t0, t1, (ta, txa), (tn, sym), (tb, txb), cy = e
+    a = min(1, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    _glass(d, (110, cy - 190, W - 110, cy + 190), 34, a * ease(t, ta - 0.1, 0.3))
+    for (tt, txt, y, sz, col) in [(ta, txa, cy - 120, 64, (255, 255, 255)), (tn, sym, cy, 120, ORANGE), (tb, txb, cy + 120, 64, (255, 255, 255))]:
+        k = ease(t, tt, 0.3)
+        if k > 0:
+            f = font(int(sz * (0.8 + 0.2 * k)))
+            d.text((W / 2, y + 15 * (1 - k)), txt, font=f, fill=col + (int(255 * a * k),), anchor='mm')
+    return _shadow(lay, 10, 0.7, 5)

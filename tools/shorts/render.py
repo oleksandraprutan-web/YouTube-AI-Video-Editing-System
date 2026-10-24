@@ -50,6 +50,11 @@ BADGES = []         # (t0, t1, text, centre_y)
 LINKS = []          # (t0, t1, left, right, label, t_line, t_label, centre_y)
 STRIKES = []        # (t0, t1, text, t_strike, (x, y))
 DOCS = []           # (t0, t1, [(t, line1), (t, line2), (t, line3)], centre_y)
+DONUTS = []         # ig.donut entries
+WARNS = []          # (t0, t1, label, centre_y)
+HEADLINES = []      # (t0, t1, [lines], t_stamp, stamp_text, centre_y)
+SPLITS = []         # (t0, t1, [(t, label)], t_plus, plus_text, centre_y)
+NOTEQ = []          # (t0, t1, (t, a), (t, '≠'), (t, b), centre_y)
 INCOMES = []        # (t0, t1, t_bars, ratio_B, t_result, result_text, result_rgb, centre_y)
 WORDS = []          # (t0, t1, [(t, text), ...], centre_y) simple stacked words
 CHECKLISTS = []     # (t0, t1, [(t, text), ...], centre_y)
@@ -465,6 +470,9 @@ def base_frame(src, t, circ):
             if e[0] <= t < e[1]: out.alpha_composite(ig.strike(t, e, font))
         for e in DOCS:
             if e[0] <= t < e[1]: out.alpha_composite(ig.doc_card(t, e, font))
+        for name, fn in (('DONUTS', ig.donut), ('WARNS', ig.warn), ('HEADLINES', ig.headline), ('SPLITS', ig.split_costs), ('NOTEQ', ig.not_equal)):
+            for e in globals()[name]:
+                if e[0] <= t < e[1]: out.alpha_composite(fn(t, e, font))
         for e in INCOMES:
             if e[0] <= t < e[1]: out.alpha_composite(ig.income(t, e, font))
         for e in WORDS:
