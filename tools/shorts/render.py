@@ -356,15 +356,29 @@ def sub_layer(txt):
     return _sub_cache[txt]
 
 # ---------------- render ----------------
+BLUR_STYLE = 'soft'  # 'soft' (subtle blur) | 'glass' (frosted panel with label)
+BLUR_LABEL = 'POUFNE'
 def apply_blurs(src, t):
     for t0, t1, b0, b1 in BLURS:
         if t0 <= t < t1:
             k = (t - t0) / max(1e-6, t1 - t0)
             x0, y0, x1, y1 = [int(a + (b - a) * k) for a, b in zip(b0, b1)]
             a = min(1, (t1 - t) / 0.12)
-            m = Image.new('L', (W, H)); ImageDraw.Draw(m).rectangle((x0, y0, x1, y1), fill=int(255 * a))
-            m = m.filter(ImageFilter.GaussianBlur(20))
-            src = Image.composite(src.filter(ImageFilter.GaussianBlur(28)), src, m)
+            if BLUR_STYLE == 'glass':
+                m = Image.new('L', (W, H)); ImageDraw.Draw(m).rounded_rectangle((x0, y0, x1, y1), 28, fill=int(255 * a))
+                frost = src.filter(ImageFilter.GaussianBlur(16))
+                frost = Image.blend(frost, Image.new('RGB', (W, H), (245, 246, 250)), 0.35)
+                src = Image.composite(frost, src, m)
+                d = ImageDraw.Draw(src, 'RGBA')
+                d.rounded_rectangle((x0, y0, x1, y1), 28, outline=(255, 255, 255, int(210 * a)), width=4)
+                cx, cy = (x0 + x1) // 2, (y0 + y1) // 2
+                f = font(46); tw = d.textlength(BLUR_LABEL, font=f)
+                d.rounded_rectangle((cx - tw / 2 - 26, cy - 40, cx + tw / 2 + 26, cy + 40), 40, fill=NAVY + (int(220 * a),))
+                d.text((cx, cy + 2), BLUR_LABEL, font=f, fill=(255, 255, 255, int(255 * a)), anchor='mm')
+            else:
+                m = Image.new('L', (W, H)); ImageDraw.Draw(m).rounded_rectangle((x0, y0, x1, y1), 30, fill=int(255 * a))
+                m = m.filter(ImageFilter.GaussianBlur(18))
+                src = Image.composite(src.filter(ImageFilter.GaussianBlur(9)), src, m)
     return src
 
 def render_frame(src, t):

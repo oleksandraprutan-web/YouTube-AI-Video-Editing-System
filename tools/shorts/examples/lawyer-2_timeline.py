@@ -19,7 +19,7 @@ PILLS = [(33.18, 'WIEK', 0, 0), (34.40, 'ZDROWIE', 0, 1),
          (35.12, 'RELACJE Z RODZEŃSTWEM', 1, None), (36.60, 'PRZYSTOSOWANIE DO ZMIAN', 2, None)]
 CIRCLES = [(39.70, 43.55, [39.88, 41.04], 760)]          # only once: OZSS opinion
 TOPTITLE = []
-BLURS = [(0.0, 2.05, (600, 100, 1080, 1920), (700, 100, 1080, 1920))]   # hide folder labels on the shelf
+BLURS = [(0.0, 2.05, (690, 230, 1030, 960), (725, 230, 1040, 960))]   # hide folder labels on the shelf
 BROLL = [(12.47, 16.57), (19.60, 23.83)]               # author's cutaways: keep still
 CUTS = [7.78, 12.47, 16.57, 19.60, 23.83, 38.07]
 ZBLUR = [6.52, 12.47, 16.57, 19.60, 23.83, 38.05]        # punch + cuts to/from B-roll
