@@ -312,7 +312,7 @@ def scene_evidence(t, e, font):
     # phone: shrinks/moves up when the checklist arrives
     kc = ease(t, cfg['t_list'], 0.6)
     pw, ph_ = 430 - 110 * kc, 760 - 160 * kc
-    pcx, pcy = W / 2 - 330 * kc, 720 + 140 * kc
+    pcx, pcy = W / 2 - 330 * kc, 720 + 250 * kc
     _phone(lay, pcx, pcy, pw, ph_, ease(t, t0 + 0.1, 0.4), [(b, s) for b, s in cfg['bubbles']], t)
     d = ImageDraw.Draw(lay)
     # screenshot: white flash over phone + 'ZRZUT EKRANU' label + corner brackets
@@ -333,7 +333,7 @@ def scene_evidence(t, e, font):
         d.text((W / 2, ly + 2), lbl, font=f2, fill=NAVY + (int(255 * a),), anchor='mm')
     # checklist card on the right/below
     if kc > 0:
-        x0, y0, x1 = 400, 520, W - 40
+        x0, y0, x1 = 400, 640, W - 40
         items = cfg['items']; y1 = y0 + 150 + 170 * len(items)
         d.rounded_rectangle((x0, y0 + 40 * (1 - kc), x1, y1 + 40 * (1 - kc)), 30, fill=(255, 255, 255, int(245 * kc)))
         d.text(((x0 + x1) / 2, y0 + 72 + 40 * (1 - kc)), cfg['list_title'], font=font(54), fill=NAVY + (int(255 * kc),), anchor='mm')
@@ -372,21 +372,21 @@ def doc_card(t, e, font):
     t0, t1, lines, cy = e
     a = min(1, (t1 - t) / 0.25) * ease(t, t0, 0.35)
     lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
-    x0, x1 = 90, W - 90; h = 380; y0 = cy - h / 2 + 40 * (1 - ease(t, t0, 0.35))
-    d.rounded_rectangle((x0, y0, x1, y0 + h), 30, fill=(255, 255, 255, int(248 * a)))
-    d.rectangle((x0 + 50, y0 - 24, x0 + 118, y0 + 24), fill=ORANGE + (int(255 * a),))
-    ix, iy = x0 + 60, y0 + 95
-    d.rounded_rectangle((ix, iy, ix + 150, iy + 195), 16, fill=NAVY + (int(255 * a),))
+    x0, x1 = 170, W - 170; h = 250; y0 = cy - h / 2 + 40 * (1 - ease(t, t0, 0.35))
+    d.rounded_rectangle((x0, y0, x1, y0 + h), 26, fill=(255, 255, 255, int(248 * a)))
+    d.rectangle((x0 + 40, y0 - 20, x0 + 96, y0 + 20), fill=ORANGE + (int(255 * a),))
+    ix, iy = x0 + 40, y0 + 55
+    d.rounded_rectangle((ix, iy, ix + 115, iy + 150), 14, fill=NAVY + (int(255 * a),))
     for j in range(4):
-        d.rounded_rectangle((ix + 25, iy + 40 + j * 36, ix + 125 - (30 if j == 3 else 0), iy + 54 + j * 36), 7, fill=(255, 255, 255, int(220 * a)))
-    tx = ix + 190
-    sizes = [40, 58, 38]; ys = [y0 + 110, y0 + 190, y0 + 275]
+        d.rounded_rectangle((ix + 20, iy + 30 + j * 28, ix + 95 - (24 if j == 3 else 0), iy + 41 + j * 28), 6, fill=(255, 255, 255, int(220 * a)))
+    tx = ix + 150
+    sizes = [30, 42, 28]; ys = [y0 + 72, y0 + 125, y0 + 182]
     cols = [(110, 115, 135), NAVY, ORANGE]
     for (lt, txt), sz, yy, col in zip(lines, sizes, ys, cols):
         k = ease(t, lt, 0.3)
         if k > 0:
             d.text((tx - 20 * (1 - k), yy), txt, font=font(sz), fill=col + (int(255 * a * k),), anchor='lm')
-    return _shadow(lay, 18, 0.5, 10)
+    return _shadow(lay, 16, 0.5, 8)
 
 
 def checklist(t, e, font):
@@ -404,3 +404,19 @@ def checklist(t, e, font):
             d.line([(bx + 16, yy + 2), (bx + 31, yy + 18), (bx + 57, yy - 16)], fill=(255, 255, 255, int(255 * a * k)), width=9, joint='curve')
         d.text((bx + 105, yy + 2), txt, font=font(54), fill=(255, 255, 255, int(255 * a * max(k, 0.3))), anchor='lm')
     return _shadow(lay)
+
+
+def words(t, e, font):
+    """simple: words stack one by one, white with an orange dot, no background"""
+    t0, t1, items, cy = e
+    a = min(1, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    lh = 80; y0 = cy - lh * (len(items) - 1) / 2
+    for i, (it, txt) in enumerate(items):
+        k = ease(t, it, 0.25)
+        if k <= 0: continue
+        f = font(60); tw = d.textlength(txt, font=f); y = y0 + i * lh + 18 * (1 - k)
+        x = W / 2 - tw / 2 + 22
+        d.ellipse((x - 52, y - 12, x - 28, y + 12), fill=ORANGE + (int(255 * a * k),))
+        d.text((x, y + 2), txt, font=f, fill=(255, 255, 255, int(255 * a * k)), anchor='lm')
+    return _shadow(lay, 10, 0.6, 5)
