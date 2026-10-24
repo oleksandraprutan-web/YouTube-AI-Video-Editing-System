@@ -312,7 +312,7 @@ def scene_evidence(t, e, font):
     # phone: shrinks/moves up when the checklist arrives
     kc = ease(t, cfg['t_list'], 0.6)
     pw, ph_ = 430 - 110 * kc, 760 - 160 * kc
-    pcx, pcy = W / 2 - 330 * kc, 720 + 250 * kc
+    pcx, pcy = W / 2 - 330 * kc, 960 + 10 * kc
     _phone(lay, pcx, pcy, pw, ph_, ease(t, t0 + 0.1, 0.4), [(b, s) for b, s in cfg['bubbles']], t)
     d = ImageDraw.Draw(lay)
     # screenshot: white flash over phone + 'ZRZUT EKRANU' label + corner brackets

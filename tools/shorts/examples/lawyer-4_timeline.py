@@ -17,7 +17,7 @@ SPECS_Y = 110                                                          # top, wi
 SPEC_ROWS = [('NIE ODPOWIADAJ', 'na prowokacje'), ('KONTAKT', 'tylko o dziecku'), ('DZIECKO', 'to nie pośrednik')]
 SPECS = [(26.40, 28.55, 1), (28.60, 32.65, 2), (32.72, 36.65, 3)]
 DOCS = [(42.40, 47.40, [(42.56, 'WNIOSEK DO SĄDU'), (44.16, 'O ZABEZPIECZENIE'), (45.74, 'na czas trwania procesu')], 1300)]
-WORDS = [(50.10, 52.60, [(50.28, 'FAKTY'), (51.06, 'DOWODY'), (51.76, 'DOBRO DZIECKA')], 1270)]
+WORDS = [(50.10, 52.60, [(50.28, 'FAKTY'), (51.06, 'DOWODY'), (51.76, 'DOBRO DZIECKA')], 250)]
 ZBLUR = [6.18, 17.60, 26.33]
 
 SFX = [('click-pop_05_C.wav', 1.78, -21, 'start'), ('click-pop_05_C.wav', 2.72, -21, 'start'), ('click-pop_05_C.wav', 4.30, -21, 'start'),
@@ -26,8 +26,8 @@ SFX = [('click-pop_05_C.wav', 1.78, -21, 'start'), ('click-pop_05_C.wav', 2.72, 
        ('whoosh-rise_04_C.wav', 17.60, -21, 'peak'),
        *[('click-pop_01_A.wav', b, -22, 'start') for b in (17.70, 17.95, 18.20, 18.45)],
        ('click-pop_04_B.wav', 19.26, -19, 'start'), ('click-pop_04_B.wav', 20.92, -21, 'start'),
-       ('pen_scribble.wav', 22.64, -28, 'start'), ('pen_scribble.wav', 24.44, -28, 'start'), ('pen_scribble.wav', 25.34, -28, 'start'),
-       ('chime_ok.wav', 25.50, -24, 'start'),
+       ('pen_scribble.wav', 22.64, -28, 'start'), ('pen_scribble.wav', 24.44, -28, 'start'),
+
        ('whoosh-rise_04_C.wav', 26.33, -21, 'peak'),
        ('click-pop_04_B.wav', 26.42, -21, 'start'), ('click-pop_04_B.wav', 28.62, -21, 'start'), ('click-pop_04_B.wav', 32.74, -21, 'start'),
        ('click-pop_04_B.wav', 38.46, -21, 'start'),
