@@ -16,17 +16,18 @@ SCENES = [(24.30, 36.77, {'fn': 'scene_inheritance', 'title': 'PRZYKŁAD', 't_ti
 BADGES = [(40.86, 42.95, 'BRAK MAJĄTKU, TYLKO DŁUGI', 260), (43.14, 46.55, 'PAMIĘTAJ', 260)]
 ZBLUR = [9.04, 24.30, 36.77]
 
-SFX = [*[('click-pop_01_A.wav', 0.42 + 0.22 * i, -20, 'start') for i in range(6)],
-       ('click-pop_04_B.wav', 4.58, -17, 'start'),
-       ('hit_01_A.wav', 9.04, -13, 'start'), ('click-pop_01_A.wav', 9.16, -16, 'start'),
-       ('whoosh-rise_04_C.wav', 10.80, -17, 'peak'), ('whoosh-rise_04_C.wav', 16.95, -17, 'peak'),
-       ('click-pop_04_B.wav', 19.44, -18, 'start'), ('click-pop_04_B.wav', 21.48, -16, 'start'),
-       ('whoosh-rise_04_C.wav', 24.30, -17, 'peak'), ('click-pop_04_B.wav', 24.40, -17, 'start'),
-       ('click-pop_01_A.wav', 26.76, -16, 'start'), ('click-pop_01_A.wav', 29.76, -16, 'start'),
-       ('click-pop_04_B.wav', 32.82, -17, 'start'), ('click-pop_04_B.wav', 35.84, -15, 'start'),
-       ('whoosh-rise_04_C.wav', 36.77, -17, 'peak'),
-       ('click-pop_04_B.wav', 40.88, -17, 'start'), ('click-pop_04_B.wav', 43.16, -17, 'start'),
-       ('click-pop_04_B.wav', 46.72, -17, 'start')]
+SFX = [*[('click-pop_01_A.wav', 0.42 + 0.22 * i, -24, 'start') for i in range(6)],
+       ('click-pop_04_B.wav', 4.58, -21, 'start'),
+       ('hit_01_A.wav', 9.04, -17, 'start'), ('chime_ok.wav', 9.10, -23, 'start'), ('pen_scribble.wav', 9.16, -28, 'start'),
+       ('whoosh-rise_04_C.wav', 10.80, -21, 'peak'), ('whoosh-rise_04_C.wav', 16.95, -21, 'peak'),
+       ('counter_ticks.wav', 19.44, -25, 'start'), ('pen_scribble.wav', 21.48, -28, 'start'),
+       ('whoosh-rise_04_C.wav', 24.30, -21, 'peak'), ('click-pop_04_B.wav', 24.40, -21, 'start'),
+       ('click-pop_01_A.wav', 26.76, -20, 'start'), ('counter_ticks.wav', 27.48, -25, 'start'),
+       ('click-pop_01_A.wav', 29.76, -20, 'start'), ('counter_ticks.wav', 30.78, -25, 'start'),
+       ('click-pop_04_B.wav', 32.82, -21, 'start'), ('chime_ok.wav', 35.84, -22, 'start'),
+       ('whoosh-rise_04_C.wav', 36.77, -21, 'peak'),
+       ('buzz_no.wav', 40.88, -26, 'start'), ('click-pop_04_B.wav', 43.16, -21, 'start'),
+       ('click-pop_04_B.wav', 46.72, -21, 'start')]
 STEMS = 'sep/htdemucs/audio'
 MUSIC_GAIN_DB = -8          # author: music quieter
 SUB_SIZE = 62               # author: subtitles a bit smaller
