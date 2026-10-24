@@ -178,7 +178,7 @@ def cap_bar(t, e, font):
     a = min(1, (t - t0) / 0.25, (t1 - t) / 0.25)
     lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
     x0, x1 = 90, W - 90; lim = x0 + (x1 - x0) * 0.58
-    _glass(d, (x0 - 30, cy - 150, x1 + 30, cy + 110), 34, a)
+    _glass(d, (x0 - 30, cy - 150, x1 + 30, cy + 175), 34, a)
     d.text((x0, cy - 100), 'TWOJA ODPOWIEDZIALNOŚĆ', font=font(40), fill=(255, 255, 255, int(255 * a)), anchor='lm')
     kc = ease(t, t_cap, 0.4)
     grow = ease(t, t_bar, 1.4)
@@ -189,9 +189,12 @@ def cap_bar(t, e, font):
         d.rounded_rectangle((x0, cy - 30, end, cy + 30), 30, fill=RED + (int(235 * a),))
         d.text((x0 + 24, cy + 1), 'DŁUGI', font=font(34), fill=(255, 255, 255, int(255 * a)), anchor='lm')
     if kc > 0:
-        ly = int(80 * kc)
+        ly = int(52 * kc)
         d.line((lim, cy - ly, lim, cy + ly), fill=ORANGE + (int(255 * a),), width=10)
-        d.text((lim, cy + 80), 'LIMIT = AKTYWA SPADKU', font=font(34), fill=ORANGE + (int(255 * a * kc),), anchor='mt')
+        f = font(40); lbl = 'LIMIT = AKTYWA SPADKU'; tw = d.textlength(lbl, font=f)
+        px = min(max(lim, x0 + tw / 2 + 30), x1 - tw / 2 - 30); py = cy + 112
+        d.rounded_rectangle((px - tw / 2 - 28, py - 34, px + tw / 2 + 28, py + 34), 34, fill=ORANGE + (int(255 * a * kc),))
+        d.text((px, py + 2), lbl, font=f, fill=(255, 255, 255, int(255 * a * kc)), anchor='mm')
     return _shadow(lay)
 
 
