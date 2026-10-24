@@ -150,3 +150,123 @@ def plan_card(t, e, font):
         d.line([(bx + 14, y + 2), (bx + 26, y + 15), (bx + 47, y - 13)], fill=(255, 255, 255, int(255 * ki)), width=8, joint='curve')
         d.text((bx + 95 - 20 * (1 - ki), y + 2), txt, font=font(48), fill=(20, 20, 30, int(255 * ki)), anchor='lm')
     return _shadow(lay, 18, 0.5, 10)
+
+
+def months(t, e, font):
+    """row of N month dots filling one by one + label (e.g. '6 MIESIĘCY')"""
+    t0, t1, n, label, t_fill, cy = e
+    a = min(1, (t - t0) / 0.25, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    r, gap = 46, 30; total = n * 2 * r + (n - 1) * gap; x0 = (W - total) / 2
+    _glass(d, (x0 - 50, cy - 150, x0 + total + 50, cy + r + 40), 34, a)
+    kl = ease(t, t0, 0.3)
+    d.text((W / 2, cy - 92), label, font=font(56), fill=(255, 255, 255, int(255 * a * kl)), anchor='mm')
+    for i in range(n):
+        cx = x0 + r + i * (2 * r + gap)
+        k = ease(t, t_fill + i * 0.22, 0.25)
+        d.ellipse((cx - r, cy - r, cx + r, cy + r), outline=(255, 255, 255, int(110 * a)), width=4)
+        if k > 0:
+            rr = r * k
+            d.ellipse((cx - rr, cy - rr, cx + rr, cy + rr), fill=ORANGE + (int(255 * a),))
+            d.text((cx, cy + 2), str(i + 1), font=font(36), fill=(255, 255, 255, int(255 * a * k)), anchor='mm')
+    return _shadow(lay)
+
+
+def cap_bar(t, e, font):
+    """liability capped: red 'DŁUGI' bar grows, stops at an orange limit line 'AKTYWA SPADKU'"""
+    t0, t1, t_bar, t_cap, cy = e
+    a = min(1, (t - t0) / 0.25, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    x0, x1 = 90, W - 90; lim = x0 + (x1 - x0) * 0.58
+    _glass(d, (x0 - 30, cy - 150, x1 + 30, cy + 110), 34, a)
+    d.text((x0, cy - 100), 'TWOJA ODPOWIEDZIALNOŚĆ', font=font(40), fill=(255, 255, 255, int(255 * a)), anchor='lm')
+    kc = ease(t, t_cap, 0.4)
+    grow = ease(t, t_bar, 1.4)
+    want = x0 + (x1 - x0) * 0.95 * grow
+    end = min(want, lim) if kc > 0 else want
+    d.rounded_rectangle((x0, cy - 30, x1, cy + 30), 30, fill=(255, 255, 255, int(40 * a)))
+    if end > x0 + 10:
+        d.rounded_rectangle((x0, cy - 30, end, cy + 30), 30, fill=RED + (int(235 * a),))
+        d.text((x0 + 24, cy + 1), 'DŁUGI', font=font(34), fill=(255, 255, 255, int(255 * a)), anchor='lm')
+    if kc > 0:
+        ly = int(80 * kc)
+        d.line((lim, cy - ly, lim, cy + ly), fill=ORANGE + (int(255 * a),), width=10)
+        d.text((lim, cy + 80), 'LIMIT = AKTYWA SPADKU', font=font(34), fill=ORANGE + (int(255 * a * kc),), anchor='mt')
+    return _shadow(lay)
+
+
+def _house(d, cx, cy, s, col):
+    d.polygon([(cx - s, cy - 0.1 * s), (cx, cy - s), (cx + s, cy - 0.1 * s)], fill=col)
+    d.rectangle((cx - 0.75 * s, cy - 0.1 * s, cx + 0.75 * s, cy + 0.8 * s), fill=col)
+    d.rectangle((cx - 0.2 * s, cy + 0.3 * s, cx + 0.2 * s, cy + 0.8 * s), fill=NAVY + (255,))
+
+
+def _card(d, cx, cy, s, col):
+    d.rounded_rectangle((cx - s, cy - 0.65 * s, cx + s, cy + 0.65 * s), int(0.18 * s), fill=col)
+    d.rectangle((cx - s, cy - 0.35 * s, cx + s, cy - 0.12 * s), fill=NAVY + (255,))
+    d.text((cx + 0.45 * s, cy + 0.32 * s), '%', font=None, fill=NAVY + (255,))
+
+
+def _num(v):
+    return f'{int(round(v)):,}'.replace(',', ' ') + ' zł'
+
+
+def scene_inheritance(t, e, font):
+    """full-frame animated example on navy: balance of assets vs debts, counters, verdict"""
+    t0, t1, cfg = e
+    lay = Image.new('RGBA', (W, H), NAVY + (255,)); d = ImageDraw.Draw(lay)
+    # slow drifting light blobs
+    glow = Image.new('RGBA', (W, H)); g = ImageDraw.Draw(glow)
+    for i, (bx, by, br, col) in enumerate([(250, 500, 420, (40, 70, 200)), (850, 1300, 520, (30, 50, 170)), (600, 900, 300, (244, 122, 58))]):
+        ph = (t - t0) * 0.35 + i * 2.1
+        x = bx + 60 * math.sin(ph); y = by + 50 * math.cos(ph * 0.8)
+        g.ellipse((x - br, y - br, x + br, y + br), fill=col + (60 if i < 2 else 26,))
+    lay.alpha_composite(glow.filter(ImageFilter.GaussianBlur(120)))
+    d = ImageDraw.Draw(lay)
+    # title pill
+    k = ease(t, cfg['t_title'], 0.3)
+    if k > 0:
+        f = font(54); tw = d.textlength(cfg['title'], font=f)
+        y = 230 - 30 * (1 - k)
+        d.rounded_rectangle((W / 2 - tw / 2 - 40, y - 52, W / 2 + tw / 2 + 40, y + 52), 52, fill=ORANGE + (int(255 * k),))
+        d.text((W / 2, y + 2), cfg['title'], font=f, fill=(255, 255, 255, int(255 * k)), anchor='mm')
+    # balance
+    ka = ease(t, cfg['t_asset'], 0.4); kd = ease(t, cfg['t_debt'], 0.4)
+    wa = cfg['asset'] * ease(t, cfg['t_asset_num'], 1.2); wd = cfg['debt'] * ease(t, cfg['t_debt_num'], 1.0)
+    tilt = 0.0 if wa + wd == 0 else 9 * (wa - wd) / max(cfg['asset'], 1)
+    piv = (W / 2, 520); L = 380
+    ang = math.radians(tilt)
+    lx, ly = piv[0] - L * math.cos(ang), piv[1] + L * math.sin(ang)
+    rx, ry = piv[0] + L * math.cos(ang), piv[1] - L * math.sin(ang)
+    kb = ease(t, t0, 0.4)
+    wcol = (255, 255, 255, int(235 * kb))
+    d.polygon([(piv[0], piv[1] + 10), (piv[0] - 70, piv[1] + 520), (piv[0] + 70, piv[1] + 520)], fill=(255, 255, 255, int(40 * kb)))
+    d.rounded_rectangle((piv[0] - 160, piv[1] + 515, piv[0] + 160, piv[1] + 545), 15, fill=wcol)
+    d.line((lx, ly, rx, ry), fill=wcol, width=14)
+    d.ellipse((piv[0] - 22, piv[1] - 22, piv[0] + 22, piv[1] + 22), fill=ORANGE + (int(255 * kb),))
+    for (px, py, kk, lbl, val, col, icon) in [(lx, ly, ka, cfg['asset_label'], wa, GREEN, 'house'), (rx, ry, kd, cfg['debt_label'], wd, RED, 'card')]:
+        hy = py + 210
+        d.line((px - 120, hy - 40, px, py), fill=(255, 255, 255, int(160 * kb)), width=4)
+        d.line((px + 120, hy - 40, px, py), fill=(255, 255, 255, int(160 * kb)), width=4)
+        d.chord((px - 160, hy - 120, px + 160, hy + 40), 0, 180, fill=(255, 255, 255, int(230 * kb)))
+        if kk > 0:
+            s = 70 * (0.6 + 0.4 * kk)
+            if icon == 'house': _house(d, px, hy - 70 - s * 0.2, s, col + (int(255 * kk),))
+            else: _card(d, px, hy - 90, s, col + (int(255 * kk),))
+            d.text((px, hy + 90), lbl, font=font(40), fill=(255, 255, 255, int(255 * kk)), anchor='mm')
+            d.text((px, hy + 150), _num(val), font=font(56), fill=col + (int(255 * kk),), anchor='mm')
+    # equation + verdict
+    ke = ease(t, cfg['t_eq'], 0.35)
+    if ke > 0:
+        y = 1430 + 20 * (1 - ke)
+        d.text((W / 2, y), f"{_num(cfg['asset'])} − {_num(cfg['debt'])}", font=font(50), fill=(255, 255, 255, int(255 * ke)), anchor='mm')
+        d.text((W / 2, y + 80), f"= {_num(cfg['asset'] - cfg['debt'])}", font=font(66), fill=GREEN + (int(255 * ke),), anchor='mm')
+    kv = ease(t, cfg['t_verdict'], 0.25)
+    if kv > 0:
+        f = font(60); tw = d.textlength(cfg['verdict'], font=f); w = tw + 150; y = 1660
+        sc = 0.8 + 0.2 * kv
+        d.rounded_rectangle((W / 2 - w / 2 * sc, y - 60 * sc, W / 2 + w / 2 * sc, y + 60 * sc), int(60 * sc), fill=GREEN + (int(255 * kv),))
+        cx0 = W / 2 - w / 2 * sc + 55
+        d.line([(cx0 - 18, y), (cx0 - 4, y + 16), (cx0 + 22, y - 16)], fill=(255, 255, 255, int(255 * kv)), width=9, joint='curve')
+        d.text((W / 2 + 30, y + 2), cfg['verdict'], font=f, fill=(255, 255, 255, int(255 * kv)), anchor='mm')
+    return lay

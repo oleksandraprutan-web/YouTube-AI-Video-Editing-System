@@ -42,6 +42,9 @@ STAMPS = []         # (t0, t1, text, (x, y))
 CHECKS = []         # (t0, t1, (x, y), radius)
 BADGES = []         # (t0, t1, text, centre_y)
 LINKS = []          # (t0, t1, left, right, label, t_line, t_label, centre_y)
+MONTHS = []         # (t0, t1, n, label, t_fill, centre_y)
+CAPS = []           # (t0, t1, t_bar, t_cap, centre_y)
+SCENES = []         # full-frame animations: (t0, t1, {'fn': name, ...cfg})
 PLANS = []          # navy layout: {'t0','t1','title','title_t','items':[(t, text)],'cy'} card on top, soft oval below
 BLURS = []          # privacy blur in source px: (t0, t1, (x0,y0,x1,y1) at t0, (x0,y0,x1,y1) at t1)
 SFX = []            # (file, time, peak_db, 'start'|'peak')
@@ -399,6 +402,10 @@ def render_frame(src, t):
     return out
 
 def base_frame(src, t, circ):
+    scn = next((sc for sc in SCENES if sc[0] <= t < sc[1]), None)
+    if scn:
+        out = getattr(ig, scn[2]['fn'])(t, (scn[0], scn[1], scn[2]), font)
+        return out.convert('RGB')
     if circ and isinstance(circ[2], dict):
         out = plan_frame(src, t, circ[2])
     elif circ:
@@ -439,6 +446,10 @@ def base_frame(src, t, circ):
         for t0, t1, n in SPECS:
             if t0 <= t < t1:
                 out.alpha_composite(specs_layer(t, t0, t1, n))
+        for e in MONTHS:
+            if e[0] <= t < e[1]: out.alpha_composite(ig.months(t, e, font))
+        for e in CAPS:
+            if e[0] <= t < e[1]: out.alpha_composite(ig.cap_bar(t, e, font))
         for e in CALENDARS:
             if e[0] <= t < e[1]: out.alpha_composite(ig.calendar(t, e, font))
         for e in STAMPS:
