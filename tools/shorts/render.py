@@ -38,6 +38,7 @@ STEMS = None        # dir with demucs vocals.wav / no_vocals.wav to rebalance th
 MUSIC_GAIN_DB = 0   # gain applied to no_vocals (e.g. -8 = quieter music)
 SUB_SIZE = 70       # subtitle font size
 PILL_ROWS_Y = None  # optional explicit y per pill row, e.g. [150, 1070, 1220]
+PILL_FONT = 60      # pill text size
 PILL_Y = 120        # top of first pill row (move down to chest to keep the head clear)
 QUOTES = []         # (t0, t1, text) white quote card with orange quote mark, top of frame
 BROLL = []          # (t0, t1) cutaways: frame stays still (no zoom, no push, centre anchor)
@@ -170,8 +171,8 @@ tint[..., 3] = (np.clip(1 - ys / (H * 0.42), 0, 1) ** 1.3 * 215).astype(np.uint8
 TINT_L = Image.fromarray(tint, 'RGBA')
 
 def pill_geom(row, slot, text):
-    f = font(60); w = int(ImageDraw.Draw(Image.new('RGB', (1, 1))).textlength(text, font=f)) + 110
-    h = 124; y = PILL_ROWS_Y[row] if PILL_ROWS_Y else PILL_Y + row * 150
+    f = font(PILL_FONT); w = int(ImageDraw.Draw(Image.new('RGB', (1, 1))).textlength(text, font=f)) + int(PILL_FONT * 1.8)
+    h = int(PILL_FONT * 2.05); y = PILL_ROWS_Y[row] if PILL_ROWS_Y else PILL_Y + row * 150
     if slot is None: x = (W - w) // 2
     elif slot == 0: x = W // 2 - 20 - w
     else: x = W // 2 + 20
@@ -191,7 +192,7 @@ def draw_pill(base, text, row, slot, k, a):
     gd.rounded_rectangle((h2 // 3, 6, w2 - h2 // 3, h2 // 2.6), h2 // 5, fill=(255, 255, 255, int(40 * a)))
     base.paste(region, (x, y), mask)
     base.alpha_composite(gl, (x, y))
-    t = text_layer([text], int(60 * (0.85 + 0.15 * k)), (255, 255, 255, int(255 * a)), int(cy), shadow=False, align_cx=int(cx))
+    t = text_layer([text], int(PILL_FONT * (0.85 + 0.15 * k)), (255, 255, 255, int(255 * a)), int(cy), shadow=False, align_cx=int(cx))
     base.alpha_composite(t)
 
 def wrap(text, f, maxw=940):

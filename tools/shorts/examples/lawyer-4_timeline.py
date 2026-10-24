@@ -4,7 +4,8 @@ SUB_SIZE = 62
 
 ZOOMS = [(0, 1.0), (6.18, 1.18), (6.94, 1.0), (15.70, 1.08), (16.60, 1.0)]
 CUTS = [6.13, 10.63, 17.6, 26.33, 32.67, 36.7, 47.43]
-PILL_GROUPS = [(6.10, [960, 1100, 1240], [(1.78, 'MANIPULACJE', 0, None), (2.72, 'PROWOKACJE', 1, None), (4.30, 'DZIECI W SPORACH', 2, None)])]
+PILL_FONT = 44
+PILL_GROUPS = [(6.10, [1010, 1115, 1220], [(1.78, 'MANIPULACJE', 0, None), (2.72, 'PROWOKACJE', 1, None), (4.30, 'DZIECI W SPORACH', 2, None)])]
 BADGES = [(6.18, 9.00, 'UWAŻAJ', 170), (38.44, 42.40, 'PILNA SPRAWA', 250)]
 STRIKES = [(14.38, 16.55, 'NARCYZ', 15.70, (540, 1250))]          # "nie opieraj argumentacji wyłącznie na tym, że… jest narcyzem"
 SCENES = [(17.60, 26.33, {'fn': 'scene_evidence', 'title': 'ZBIERAJ DOWODY',
