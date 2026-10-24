@@ -573,3 +573,14 @@ def not_equal(t, e, font):
             f = font(int(sz * (0.8 + 0.2 * k)))
             d.text((W / 2, y + 15 * (1 - k)), txt, font=f, fill=col + (int(255 * a * k),), anchor='mm')
     return _shadow(lay, 10, 0.7, 5)
+
+
+def result_pill(t, e, font):
+    """single coloured result pill that pops in"""
+    t0, t1, text, col, cy = e
+    k = ease(t, t0, 0.3); a = min(1, (t1 - t) / 0.2) * k
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    f = font(int(52 * (0.85 + 0.15 * k))); tw = d.textlength(text, font=f); h = 110
+    d.rounded_rectangle((W / 2 - tw / 2 - 44, cy - h / 2, W / 2 + tw / 2 + 44, cy + h / 2), h // 2, fill=tuple(col) + (int(255 * a),))
+    d.text((W / 2, cy + 2), text, font=f, fill=(255, 255, 255, int(255 * a)), anchor='mm')
+    return _shadow(lay)

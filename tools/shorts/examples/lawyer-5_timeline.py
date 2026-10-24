@@ -11,7 +11,8 @@ CUTS = [6.9, 11.27, 22.33, 25.97, 29.33, 34.67, 43.2]
 DONUTS = [(0.90, 5.10, 1.56, 1.98, '50/50', 3.32, 'ALIMENTY = 0 zł ?', 300)]   # "po równo u obojga… nikt nie musi płacić?"
 WARNS = [(5.16, 6.85, 'UWAŻAJ', 260)]
 HEADLINES = [(7.04, 11.20, ['OBOWIĄZEK', 'ALIMENTACYJNY'], 10.64, 'NIE ZNIKA', 230)]
-INCOMES = [(12.40, 22.25, 12.66, 0.95, 20.66, 'SĄD NIE ZASĄDZA ALIMENTÓW', (46, 196, 110), 330),
+RESULTS = [(20.66, 22.25, 'SĄD NIE ZASĄDZA ALIMENTÓW', (46, 196, 110), 330)]
+INCOMES = [(12.40, 16.60, 12.66, 0.95, 99, '', (46, 196, 110), 330),
            (23.60, 29.28, 24.58, 0.35, 26.76, 'SĄD MOŻE ZASĄDZIĆ ALIMENTY', (244, 122, 58), 330)]
 SCENES = [(29.33, 34.67, {'fn': 'scene_two_homes', 'title': 'DLACZEGO?', 't_homes': 31.70, 't_equal': 33.48,
            't_verdict': 34.10, 'verdict': 'PODOBNY POZIOM'})]
