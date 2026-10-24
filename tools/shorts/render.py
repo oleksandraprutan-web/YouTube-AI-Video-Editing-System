@@ -32,6 +32,9 @@ ZBLUR = []          # zoom-blur transition times (hard cuts, punches)
 SPECS = []          # (t0, t1, n): HF2-style list, rows 1..n shown, row n active
 SPEC_ROWS = []      # [(label, value)]
 PILL_END = None     # end of pills when there is no TINT
+STEMS = None        # dir with demucs vocals.wav / no_vocals.wav to rebalance the author's music
+MUSIC_GAIN_DB = 0   # gain applied to no_vocals (e.g. -8 = quieter music)
+SUB_SIZE = 70       # subtitle font size
 PILL_ROWS_Y = None  # optional explicit y per pill row, e.g. [150, 1070, 1220]
 PILL_Y = 120        # top of first pill row (move down to chest to keep the head clear)
 QUOTES = []         # (t0, t1, text) white quote card with orange quote mark, top of frame
@@ -355,7 +358,7 @@ for i, w in enumerate(words):
     SUBS.append((w['s'], min(nxt, w['e'] + 0.35), clean(w['w'])))
 _sub_cache = {}
 def sub_layer(txt):
-    if txt not in _sub_cache: _sub_cache[txt] = text_layer([txt], 70, (255, 255, 255, 255), 1480)
+    if txt not in _sub_cache: _sub_cache[txt] = text_layer([txt], SUB_SIZE, (255, 255, 255, 255), 1480)
     return _sub_cache[txt]
 
 # ---------------- render ----------------

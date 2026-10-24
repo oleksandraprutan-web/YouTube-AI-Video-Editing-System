@@ -27,3 +27,6 @@ SFX = [*[('click-pop_01_A.wav', 0.42 + 0.22 * i, -20, 'start') for i in range(6)
        ('whoosh-rise_04_C.wav', 36.77, -17, 'peak'),
        ('click-pop_04_B.wav', 40.88, -17, 'start'), ('click-pop_04_B.wav', 43.16, -17, 'start'),
        ('click-pop_04_B.wav', 46.72, -17, 'start')]
+STEMS = 'sep/htdemucs/audio'
+MUSIC_GAIN_DB = -8          # author: music quieter
+SUB_SIZE = 62               # author: subtitles a bit smaller

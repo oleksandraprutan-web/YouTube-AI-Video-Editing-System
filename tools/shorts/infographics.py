@@ -261,12 +261,12 @@ def scene_inheritance(t, e, font):
     # equation + verdict
     ke = ease(t, cfg['t_eq'], 0.35)
     if ke > 0:
-        y = 1430 + 20 * (1 - ke)
+        y = 1160 + 20 * (1 - ke)
         d.text((W / 2, y), f"{_num(cfg['asset'])} − {_num(cfg['debt'])}", font=font(50), fill=(255, 255, 255, int(255 * ke)), anchor='mm')
         d.text((W / 2, y + 80), f"= {_num(cfg['asset'] - cfg['debt'])}", font=font(66), fill=GREEN + (int(255 * ke),), anchor='mm')
     kv = ease(t, cfg['t_verdict'], 0.25)
     if kv > 0:
-        f = font(60); tw = d.textlength(cfg['verdict'], font=f); w = tw + 150; y = 1660
+        f = font(60); tw = d.textlength(cfg['verdict'], font=f); w = tw + 150; y = 1370
         sc = 0.8 + 0.2 * kv
         d.rounded_rectangle((W / 2 - w / 2 * sc, y - 60 * sc, W / 2 + w / 2 * sc, y + 60 * sc), int(60 * sc), fill=GREEN + (int(255 * kv),))
         cx0 = W / 2 - w / 2 * sc + 55

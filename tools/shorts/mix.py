@@ -4,7 +4,13 @@ import render
 SR = 48000
 def load(f):
     return np.frombuffer(subprocess.run(['ffmpeg', '-v', 'error', '-i', f, '-ac', '2', '-ar', str(SR), '-f', 'f32le', '-'], capture_output=True).stdout, dtype=np.float32).reshape(-1, 2).copy()
-voice = load(render.SRC)[:int(render.DUR * SR)]; out = voice.copy()
+if render.STEMS:
+    v = load(os.path.join(render.STEMS, 'vocals.wav')); mu = load(os.path.join(render.STEMS, 'no_vocals.wav'))
+    n = min(len(v), len(mu)); voice = (v[:n] + mu[:n] * 10 ** (render.MUSIC_GAIN_DB / 20))[:int(render.DUR * SR)]
+    vonly = v[:int(render.DUR * SR)]
+else:
+    voice = load(render.SRC)[:int(render.DUR * SR)]; vonly = voice
+out = voice.copy()
 def place(f, t, peak_db, align='start'):
     s = load('sfx/' + f); pk = np.abs(s).max() + 1e-9; s *= 10 ** (peak_db / 20) / pk
     off = int(np.argmax(np.abs(s).max(1))) if align == 'peak' else 0
@@ -14,7 +20,7 @@ for e in render.SFX: place(*e)
 # typing sound under every word typed on the navy background (very quiet)
 if render.CIRCLES and os.path.exists('sfx/typing.mp3'):
     typ = load('sfx/typing.mp3')[int(2.45 * SR):int(8.9 * SR)]
-    vrms = np.sqrt(np.mean(voice[np.abs(voice).max(1) > 0.02] ** 2)); typ *= 0.1 * vrms / np.sqrt(np.mean(typ ** 2))
+    vrms = np.sqrt(np.mean(vonly[np.abs(vonly).max(1) > 0.02] ** 2)); typ *= 0.1 * vrms / np.sqrt(np.mean(typ ** 2))
     pos = 0
     for c in render.CIRCLES:
         for w in render.words:
