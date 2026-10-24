@@ -39,3 +39,4 @@ SFX = [('whoosh-rise_01_A.wav', 2.38, -18, 'peak'), ('click-pop_01_A.wav', 2.45,
 
        ('whoosh-rise_04_C.wav', 39.70, -17, 'peak'), ('whoosh-rise_04_C.wav', 43.55, -17, 'peak'),
 ]
+BLUR_STYLE = 'soft'   # author chose A
