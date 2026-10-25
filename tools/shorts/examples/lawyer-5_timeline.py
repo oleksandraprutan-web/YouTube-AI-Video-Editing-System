@@ -1,5 +1,5 @@
 # Lawyer short 5 — "opieka naprzemienna a alimenty" (47.7 s). 29.33–34.67 orange placeholder → animated scene.
-SRC = 'src/video.mp4'
+SRC = 'src/video_v2.mp4'
 END = 47.36
 SUB_SIZE = 62
 PILL_FONT = 44
@@ -30,6 +30,6 @@ SFX = [('counter_ticks.wav', 1.56, -26, 'start'), ('click-pop_04_B.wav', 3.32, -
        ('whoosh-rise_04_C.wav', 34.67, -21, 'peak'),
        ('click-pop_04_B.wav', 36.42, -21, 'start'), ('counter_ticks.wav', 38.80, -26, 'start'), ('counter_ticks.wav', 39.46, -26, 'start'), ('click-pop_04_B.wav', 42.04, -20, 'start'),
        ('click-pop_01_A.wav', 44.30, -21, 'start'), ('hit_01_A.wav', 45.34, -19, 'start'), ('click-pop_01_A.wav', 46.52, -21, 'start')]
-STEMS = 'sep/htdemucs/audio'
+STEMS = 'sep2/htdemucs/audio_v2'
 MUSIC_GAIN_DB = -80          # author: no music / background bed
 SFX_GAIN_DB = -4             # author: effects a bit quieter
