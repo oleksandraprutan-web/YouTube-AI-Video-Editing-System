@@ -12,7 +12,7 @@ else:
     voice = load(render.SRC)[:int(render.DUR * SR)]; vonly = voice
 out = voice.copy()
 def place(f, t, peak_db, align='start'):
-    s = load('sfx/' + f); pk = np.abs(s).max() + 1e-9; s *= 10 ** (peak_db / 20) / pk
+    s = load('sfx/' + f); pk = np.abs(s).max() + 1e-9; s *= 10 ** ((peak_db + render.SFX_GAIN_DB) / 20) / pk
     off = int(np.argmax(np.abs(s).max(1))) if align == 'peak' else 0
     i = int(t * SR) - off; a = max(0, -i); i = max(0, i); n = min(len(s) - a, len(out) - i)
     if n > 0: out[i:i + n] += s[a:a + n]
@@ -20,7 +20,7 @@ for e in render.SFX: place(*e)
 # typing sound under every word typed on the navy background (very quiet)
 if render.CIRCLES and os.path.exists('sfx/typing.mp3'):
     typ = load('sfx/typing.mp3')[int(2.45 * SR):int(8.9 * SR)]
-    vrms = np.sqrt(np.mean(vonly[np.abs(vonly).max(1) > 0.02] ** 2)); typ *= 0.1 * vrms / np.sqrt(np.mean(typ ** 2))
+    vrms = np.sqrt(np.mean(vonly[np.abs(vonly).max(1) > 0.02] ** 2)); typ *= 0.1 * 10 ** (render.SFX_GAIN_DB / 20) * vrms / np.sqrt(np.mean(typ ** 2))
     pos = 0
     for c in render.CIRCLES:
         for w in render.words:

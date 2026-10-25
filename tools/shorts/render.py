@@ -35,6 +35,7 @@ PILL_GROUPS = []    # [(t_end, rows_y, [(t, text, row, slot), ...]), ...] severa
 SPEC_ROWS = []      # [(label, value)]
 PILL_END = None     # end of pills when there is no TINT
 STEMS = None        # dir with demucs vocals.wav / no_vocals.wav to rebalance the author's music
+SFX_GAIN_DB = 0     # extra gain on all sound effects
 MUSIC_GAIN_DB = 0   # gain applied to no_vocals (e.g. -8 = quieter music)
 SUB_SIZE = 70       # subtitle font size
 PILL_ROWS_Y = None  # optional explicit y per pill row, e.g. [150, 1070, 1220]
