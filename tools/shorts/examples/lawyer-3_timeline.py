@@ -1,5 +1,5 @@
 # Lawyer short 3 — "spadek z dobrodziejstwem inwentarza" (49.6 s). 24.3–36.77 in source is a blue placeholder → animated example.
-SRC = 'src/video_v2.mp4'
+SRC = 'src/video_v3.mp4'
 
 ZOOMS = [(0, 1.0), (4.56, 1.06), (9.04, 1.22), (9.74, 1.0), (17.54, 1.1), (18.98, 1.0), (36.77, 1.0), (43.04, 1.08), (46.70, 1.0)]
 CUTS = [10.8, 24.3, 36.77, 43.0]
@@ -28,6 +28,6 @@ SFX = [*[('click-pop_01_A.wav', 0.42 + 0.22 * i, -24, 'start') for i in range(6)
        ('whoosh-rise_04_C.wav', 36.77, -21, 'peak'),
        ('buzz_no.wav', 40.88, -26, 'start'), ('click-pop_04_B.wav', 43.16, -21, 'start'),
        ('click-pop_04_B.wav', 46.72, -21, 'start')]
-STEMS = 'sep2/htdemucs/audio_v2'
+STEMS = 'sep3/htdemucs/audio_v3'
 MUSIC_GAIN_DB = -8          # author: music quieter
 SUB_SIZE = 62               # author: subtitles a bit smaller
