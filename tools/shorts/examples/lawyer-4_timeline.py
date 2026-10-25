@@ -1,5 +1,5 @@
 # Lawyer short 4 — "rozwód z manipulatorem: dowody" (52.6 s). 17.6–26.33 in source is a blue placeholder → evidence animation.
-SRC = 'src/video.mp4'
+SRC = 'src/video_v2.mp4'
 SUB_SIZE = 62
 
 ZOOMS = [(0, 1.0), (6.18, 1.18), (6.94, 1.0), (15.70, 1.08), (16.60, 1.0)]
@@ -33,3 +33,6 @@ SFX = [('click-pop_05_C.wav', 1.78, -21, 'start'), ('click-pop_05_C.wav', 2.72, 
        ('click-pop_04_B.wav', 38.46, -21, 'start'),
        ('click-pop_04_B.wav', 42.58, -21, 'start'), ('click-pop_04_B.wav', 44.18, -21, 'start'), ('click-pop_04_B.wav', 45.76, -21, 'start'),
        ('click-pop_01_A.wav', 50.28, -21, 'start'), ('click-pop_01_A.wav', 51.06, -21, 'start'), ('click-pop_01_A.wav', 51.76, -21, 'start')]
+STEMS = 'sep2/htdemucs/audio_v2'
+MUSIC_GAIN_DB = -80          # no background bed (as in short 5)
+SFX_GAIN_DB = -4             # effects a bit quieter
