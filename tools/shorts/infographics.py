@@ -59,12 +59,12 @@ def calendar(t, e, font):
 
 def stamp(t, e, font):
     """red rubber stamp slammed on screen (rotated outline box + text)"""
-    t0, t1, text, (cx, cy) = e
+    t0, t1, text, (cx, cy) = e[:4]; ss = e[4] if len(e) > 4 else 1.0
     k = ease(t, t0, 0.18); a = min(1, (t1 - t) / 0.2)
-    f = font(84); tw = ImageDraw.Draw(Image.new('RGB', (1, 1))).textlength(text, font=f)
-    w, h = int(tw + 90), 150
+    f = font(int(84 * ss)); tw = ImageDraw.Draw(Image.new('RGB', (1, 1))).textlength(text, font=f)
+    w, h = int(tw + 90 * ss), int(150 * ss)
     s = Image.new('RGBA', (w + 40, h + 40)); d = ImageDraw.Draw(s)
-    d.rounded_rectangle((20, 20, 20 + w, 20 + h), 22, outline=RED + (255,), width=12)
+    d.rounded_rectangle((20, 20, 20 + w, 20 + h), 22, outline=RED + (255,), width=max(5, int(12 * ss)))
     d.text(((w + 40) / 2, (h + 40) / 2 + 4), text, font=f, fill=RED + (255,), anchor='mm')
     sc = 1.7 - 0.7 * k
     s = s.rotate(8, resample=Image.BICUBIC, expand=True)
@@ -520,17 +520,17 @@ def warn(t, e, font):
 
 def headline(t, e, font):
     """big white lines (no background) + red stamp slammed over them"""
-    t0, t1, lines, t_stamp, stamp_text, cy = e
+    t0, t1, lines, t_stamp, stamp_text, cy = e[:6]; sc = e[6] if len(e) > 6 else 1.0
     a = min(1, (t - t0) / 0.25, (t1 - t) / 0.25)
     lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
-    lh = 86
-    _glass(d, (110, cy - lh / 2 * len(lines) - 40, W - 110, cy + lh / 2 * len(lines) + 40), 34, a)
+    lh = 86 * sc; hw = 430 * sc
+    _glass(d, (W / 2 - hw, cy - lh / 2 * len(lines) - 40 * sc, W / 2 + hw, cy + lh / 2 * len(lines) + 40 * sc), int(34 * sc), a)
     for i, ln in enumerate(lines):
         k = ease(t, t0 + i * 0.12, 0.3)
-        d.text((W / 2, cy - lh / 2 * (len(lines) - 1) + i * lh + 15 * (1 - k)), ln, font=font(70), fill=(255, 255, 255, int(255 * a * k)), anchor='mm')
+        d.text((W / 2, cy - lh / 2 * (len(lines) - 1) + i * lh + 15 * (1 - k)), ln, font=font(int(70 * sc)), fill=(255, 255, 255, int(255 * a * k)), anchor='mm')
     lay = _shadow(lay)
     if t >= t_stamp:
-        lay.alpha_composite(stamp(t, (t_stamp, t1, stamp_text, (W / 2 + 160, cy + lh / 2 * len(lines) + 95)), font))
+        lay.alpha_composite(stamp(t, (t_stamp, t1, stamp_text, (W / 2 + 160 * sc, cy + lh / 2 * len(lines) + 95 * sc), sc), font))
     return lay
 
 
@@ -693,21 +693,21 @@ def dissolve_word(t, e, font):
 
 def ring_timer(t, e, font):
     """6-month ring: sweep fills month by month, centre label"""
-    t0, t1, n, centre, sub, t_fill, cy = e
+    t0, t1, n, centre, sub, t_fill, cy = e[:7]; R = e[7] if len(e) > 7 else 165
     a = min(1, (t - t0) / 0.25, (t1 - t) / 0.25)
     lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
-    r = 165; cx = W / 2; box = (cx - r, cy - r, cx + r, cy + r)
-    _glass(d, (cx - r - 50, cy - r - 50, cx + r + 50, cy + r + 50), r + 50, a)
-    d.ellipse(box, outline=(255, 255, 255, int(60 * a)), width=34)
+    r = R; sc = R / 165; cx = W / 2; box = (cx - r, cy - r, cx + r, cy + r)
+    _glass(d, (cx - r - 50 * sc, cy - r - 50 * sc, cx + r + 50 * sc, cy + r + 50 * sc), r + 50 * sc, a)
+    d.ellipse(box, outline=(255, 255, 255, int(60 * a)), width=int(34 * sc))
     k = ease(t, t_fill, 2.2)
-    if k > 0: d.arc(box, -90, -90 + 360 * k, fill=ORANGE + (int(255 * a),), width=34)
+    if k > 0: d.arc(box, -90, -90 + 360 * k, fill=ORANGE + (int(255 * a),), width=int(34 * sc))
     for i in range(n):
         ang = math.radians(-90 + 360 * (i + 0.5) / n)
         x, y = cx + (r + 0) * math.cos(ang), cy + (r + 0) * math.sin(ang)
         on = k >= (i + 1) / n - 1e-3
-        d.ellipse((x - 14, y - 14, x + 14, y + 14), fill=((255, 255, 255) if on else (120, 125, 160)) + (int(255 * a),))
-    d.text((cx, cy - 18), centre, font=font(110), fill=(255, 255, 255, int(255 * a)), anchor='mm')
-    d.text((cx, cy + 62), sub, font=font(40), fill=ORANGE + (int(255 * a),), anchor='mm')
+        d.ellipse((x - 14 * sc, y - 14 * sc, x + 14 * sc, y + 14 * sc), fill=((255, 255, 255) if on else (120, 125, 160)) + (int(255 * a),))
+    d.text((cx, cy - 18 * sc), centre, font=font(int(110 * sc)), fill=(255, 255, 255, int(255 * a)), anchor='mm')
+    d.text((cx, cy + 62 * sc), sub, font=font(int(40 * sc)), fill=ORANGE + (int(255 * a),), anchor='mm')
     return _shadow(lay)
 
 
@@ -784,34 +784,34 @@ def pulse_alert(t, e, font):
 
 def family_chain(t, e, font):
     """RODZIC → TY (crossed) → DZIECI lighting up; caption"""
-    t0, t1, t_you_x, t_kids, caption, t_cap, cy = e
+    t0, t1, t_you_x, t_kids, caption, t_cap, cy = e[:7]; sc = e[7] if len(e) > 7 else 1.0
     a = min(1, (t - t0) / 0.25, (t1 - t) / 0.25)
     lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
-    xs = [190, 540, 890]; r = 95
-    _glass(d, (60, cy - 150, W - 60, cy + 175), 40, a)
+    xs = [540 - 350 * sc, 540, 540 + 350 * sc]; r = 95 * sc
+    _glass(d, (540 - 480 * sc, cy - 150 * sc, 540 + 480 * sc, cy + 175 * sc), int(40 * sc), a)
     kk = ease(t, t_kids, 0.5)
     for i in range(2):
         x0, x1 = xs[i] + r + 10, xs[i + 1] - r - 10
         prog = 1 if i == 0 else kk
         if prog > 0:
             xe = x0 + (x1 - x0) * prog
-            d.line((x0, cy, xe, cy), fill=(ORANGE if i == 1 else (255, 255, 255)) + (int(230 * a),), width=10)
-            if prog > 0.95: d.polygon([(x1, cy), (x1 - 26, cy - 18), (x1 - 26, cy + 18)], fill=(ORANGE if i == 1 else (255, 255, 255)) + (int(230 * a),))
+            d.line((x0, cy, xe, cy), fill=(ORANGE if i == 1 else (255, 255, 255)) + (int(230 * a),), width=int(10 * sc))
+            if prog > 0.95: d.polygon([(x1, cy), (x1 - 26 * sc, cy - 18 * sc), (x1 - 26 * sc, cy + 18 * sc)], fill=(ORANGE if i == 1 else (255, 255, 255)) + (int(230 * a),))
     for i, (x, lbl) in enumerate(zip(xs, ['RODZIC', 'TY', 'DZIECI'])):
         on = i < 2 or kk > 0.5
         col = ORANGE if (i == 2 and on) else (255, 255, 255)
         fillc = (ORANGE if (i == 2 and on) else NAVY) + (int(240 * a),)
-        d.ellipse((x - r, cy - r, x + r, cy + r), fill=fillc, outline=col + (int(255 * a),), width=6)
-        d.text((x, cy + 2), lbl, font=font(40 if len(lbl) > 3 else 52), fill=(255, 255, 255, int(255 * a * (1 if on else .4))), anchor='mm')
+        d.ellipse((x - r, cy - r, x + r, cy + r), fill=fillc, outline=col + (int(255 * a),), width=max(3, int(6 * sc)))
+        d.text((x, cy + 2), lbl, font=font(int((40 if len(lbl) > 3 else 52) * sc)), fill=(255, 255, 255, int(255 * a * (1 if on else .4))), anchor='mm')
     kx = ease(t, t_you_x, 0.3)
     if kx > 0:
-        s = 70; x = xs[1]
+        s = 70 * sc; x = xs[1]
         for (p0, p1) in [((x - s, cy - s), (x + s, cy + s)), ((x + s, cy - s), (x - s, cy + s))]:
             e2 = (p0[0] + (p1[0] - p0[0]) * kx, p0[1] + (p1[1] - p0[1]) * kx)
-            d.line([p0, e2], fill=RED + (int(255 * a),), width=14)
+            d.line([p0, e2], fill=RED + (int(255 * a),), width=int(14 * sc))
     kc = ease(t, t_cap, 0.3)
     if kc > 0:
-        d.text((W / 2, cy + 135), caption, font=font(38), fill=ORANGE + (int(255 * a * kc),), anchor='mm')
+        d.text((W / 2, cy + 135 * sc), caption, font=font(int(38 * sc)), fill=ORANGE + (int(255 * a * kc),), anchor='mm')
     return _shadow(lay)
 
 

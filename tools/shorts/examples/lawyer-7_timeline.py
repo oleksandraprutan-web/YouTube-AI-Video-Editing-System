@@ -9,12 +9,12 @@ ZOOMS = [(0, 1.0), (6.14, 1.12), (6.82, 1.0)]
 CUTS = [6.1, 7.37, 13.63, 16.7, 23.17, 26.13, 33.47, 40.83]
 DEBTS = [(0.30, 2.70, 'ZOSTAWIŁ PO SOBIE', 120000, 1.04, 290)]                        # "zostawił po sobie same długi"
 DISSOLVES = [(3.50, 7.30, 'PROBLEM', 5.26, 6.14, 290)]                             # "problem zniknie?" … "Niestety nie zawsze" → wraca
-RINGS = [(9.10, 13.60, 6, '6', 'MIESIĘCY', 9.32, 300)]                              # "6 miesięcy od dnia…"
-FLIPS = [(14.50, 16.65, [(15.24, 'SĄD', 'gavel'), (15.84, 'NOTARIUSZ', 'seal')], 300)]
+RINGS = [(9.10, 13.60, 6, '6', 'MIESIĘCY', 9.32, 230, 110)]                              # "6 miesięcy od dnia…"
+FLIPS = [(14.50, 16.65, [(15.24, 'SĄD', 'gavel'), (15.84, 'NOTARIUSZ', 'seal')], 1160)]
 TILES = [(18.40, 23.10, [('MAJĄTEK', 18.72, 'x', 'NIE PRZEJMIESZ'), ('DŁUGI', 20.20, 'ok', 'NIE ODPOWIADASZ')], 300)]
 PULSES = [(23.40, 26.05, 'WIELE OSÓB ZAPOMINA', 230)]
-FAMILY = [(26.13, 33.40, 27.80, 29.34, 'KOLEJNI SPADKOBIERCY', 31.98, 270)]
-HEADLINES = [(34.40, 40.75, ['MAŁOLETNIE', 'DZIECI'], 38.64, 'SĄD RODZINNY', 230)]
+FAMILY = [(26.13, 33.40, 27.80, 29.34, 'KOLEJNI SPADKOBIERCY', 31.98, 220, 0.72)]
+HEADLINES = [(34.40, 40.75, ['MAŁOLETNIE', 'DZIECI'], 38.64, 'SĄD RODZINNY', 190, 0.72)]
 FOLLOW = [(43.40, 45.53, 44.02, 300)]
 ZBLUR = [6.14]
 
