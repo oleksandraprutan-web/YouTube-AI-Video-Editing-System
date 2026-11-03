@@ -7,10 +7,10 @@ SFX_GAIN_DB = -4
 
 ZOOMS = [(0, 1.0), (4.80, 1.12), (5.60, 1.0)]
 CUTS = [7.97, 10.0, 19.2, 26.73]
-TOGGLES = [(0.70, 4.70, 'PRZELEW: ALIMENTY', ('AKTYWNY', 'ZATRZYMANY'), 3.56, 260)]     # "przestałeś płacić alimenty"
-PULSES = [(4.80, 7.15, 'UWAŻAJ', 230)]
-RESULTS = [(7.24, 7.95, 'MOŻE CIĘ SŁONO KOSZTOWAĆ', (225, 25, 30), 300)]
-PEOPLE = [(8.02, 9.95, 5, 8.70, 'TEN SAM BŁĄD', 290)]
+TOGGLES = [(0.70, 4.70, 'PRZELEW: ALIMENTY', ('AKTYWNY', 'ZATRZYMANY'), 3.56, 360)]     # "przestałeś płacić alimenty"
+PULSES = [(4.80, 7.15, 'UWAŻAJ', 330)]
+RESULTS = [(7.24, 7.95, 'MOŻE CIĘ SŁONO KOSZTOWAĆ', (225, 25, 30), 400)]
+PEOPLE = [(8.02, 9.95, 5, 8.70, 'TEN SAM BŁĄD', 380)]
 SCENES = [(10.00, 19.20, {'fn': 'scene_milestones', 'title': 'DZIECKO:',
            'items': [(11.46, 'SKOŃCZYŁO SZKOŁĘ'), (12.74, 'PODJĘŁO PRACĘ'), (14.78, 'UTRZYMUJE SIĘ')],
            't_transfer': 16.20, 't_stop': 17.46, 't_q': 18.14, 'q': 'KONIEC ALIMENTÓW?'})]

@@ -898,16 +898,18 @@ def scene_milestones(t, e, font):
     f = font(54); tw = d.textlength(cfg['title'], font=f); y = 220 - 30 * (1 - k)
     d.rounded_rectangle((W / 2 - tw / 2 - 44, y - 54, W / 2 + tw / 2 + 44, y + 54), 54, fill=ORANGE + (int(255 * k),))
     d.text((W / 2, y + 2), cfg['title'], font=f, fill=(255, 255, 255, int(255 * k)), anchor='mm')
-    # milestones as a vertical path
-    ys = [560, 790, 1020]
+    # milestones as a vertical path, centred and large
+    ys = [520, 760, 1000]; R = 74; fm = font(66)
+    tw = max(d.textlength(lbl, font=fm) for _, lbl in cfg['items'])
+    gx = (W - (2 * R + 40 + tw)) / 2 + R
     for i, (tm, lbl) in enumerate(cfg['items']):
         km = ease(t, tm, 0.35)
         if km <= 0: continue
         y = ys[i]
-        if i > 0: d.line((300, ys[i - 1] + 62, 300, y - 62), fill=(255, 255, 255, int(120 * km)), width=6)
-        d.ellipse((300 - 60, y - 60, 300 + 60, y + 60), fill=GREEN + (int(255 * km),))
-        d.line([(300 - 22, y + 2), (300 - 6, y + 20), (300 + 26, y - 18)], fill=(255, 255, 255, int(255 * km)), width=10, joint='curve')
-        d.text((395 - 20 * (1 - km), y + 2), lbl, font=font(56), fill=(255, 255, 255, int(255 * km)), anchor='lm')
+        if i > 0: d.line((gx, ys[i - 1] + R + 6, gx, y - R - 6), fill=(255, 255, 255, int(120 * km)), width=7)
+        d.ellipse((gx - R, y - R, gx + R, y + R), fill=GREEN + (int(255 * km),))
+        d.line([(gx - 28, y + 3), (gx - 7, y + 25), (gx + 32, y - 22)], fill=(255, 255, 255, int(255 * km)), width=13, joint='curve')
+        d.text((gx + R + 40 - 20 * (1 - km), y + 3), lbl, font=fm, fill=(255, 255, 255, int(255 * km)), anchor='lm')
     # transfer card that stops
     kt = ease(t, cfg['t_transfer'], 0.4)
     if kt > 0:
