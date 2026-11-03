@@ -530,7 +530,7 @@ def headline(t, e, font):
         d.text((W / 2, cy - lh / 2 * (len(lines) - 1) + i * lh + 15 * (1 - k)), ln, font=font(70), fill=(255, 255, 255, int(255 * a * k)), anchor='mm')
     lay = _shadow(lay)
     if t >= t_stamp:
-        lay.alpha_composite(stamp(t, (t_stamp, t1, stamp_text, (W / 2 + 160, cy + lh / 2 * len(lines) + 40)), font))
+        lay.alpha_composite(stamp(t, (t_stamp, t1, stamp_text, (W / 2 + 160, cy + lh / 2 * len(lines) + 95)), font))
     return lay
 
 
@@ -584,3 +584,64 @@ def result_pill(t, e, font):
     d.rounded_rectangle((W / 2 - tw / 2 - 44, cy - h / 2, W / 2 + tw / 2 + 44, cy + h / 2), h // 2, fill=tuple(col) + (int(255 * a),))
     d.text((W / 2, cy + 2), text, font=f, fill=(255, 255, 255, int(255 * a)), anchor='mm')
     return _shadow(lay)
+
+
+def _envelope(d, cx, cy, s, a):
+    d.rounded_rectangle((cx - s, cy - 0.65 * s, cx + s, cy + 0.65 * s), int(0.12 * s), fill=(255, 255, 255, int(255 * a)))
+    d.line([(cx - s, cy - 0.65 * s), (cx, cy + 0.1 * s), (cx + s, cy - 0.65 * s)], fill=NAVY + (int(255 * a),), width=max(3, int(s * 0.08)))
+
+
+def _clock(d, cx, cy, r, a, p):
+    d.ellipse((cx - r, cy - r, cx + r, cy + r), fill=(255, 255, 255, int(255 * a)))
+    d.ellipse((cx - r * .82, cy - r * .82, cx + r * .82, cy + r * .82), outline=NAVY + (int(255 * a),), width=max(3, int(r * .08)))
+    ang = -math.pi / 2 + 2 * math.pi * p
+    d.line((cx, cy, cx + r * .62 * math.cos(ang), cy + r * .62 * math.sin(ang)), fill=ORANGE + (int(255 * a),), width=max(4, int(r * .1)))
+    d.line((cx, cy, cx, cy - r * .45), fill=NAVY + (int(255 * a),), width=max(4, int(r * .1)))
+
+
+def scene_rent_steps(t, e, font):
+    """navy animation: 3 unpaid months crossed out, then step 1 (written notice) and step 2 (extra deadline)"""
+    t0, t1, cfg = e
+    lay = Image.new('RGBA', (W, H), NAVY + (255,))
+    glow = Image.new('RGBA', (W, H)); g = ImageDraw.Draw(glow)
+    for i, (bx, by, br, col) in enumerate([(250, 500, 420, (40, 70, 200)), (850, 1350, 520, (30, 50, 170)), (600, 900, 300, (244, 122, 58))]):
+        ph = (t - t0) * 0.35 + i * 2.1
+        g.ellipse((bx + 60 * math.sin(ph) - br, by + 50 * math.cos(ph * .8) - br, bx + 60 * math.sin(ph) + br, by + 50 * math.cos(ph * .8) + br), fill=col + (60 if i < 2 else 24,))
+    lay.alpha_composite(glow.filter(ImageFilter.GaussianBlur(120)))
+    d = ImageDraw.Draw(lay)
+    k = ease(t, t0, 0.3)
+    f = font(56); tw = d.textlength(cfg['title'], font=f); y = 220 - 30 * (1 - k)
+    d.rounded_rectangle((W / 2 - tw / 2 - 44, y - 54, W / 2 + tw / 2 + 44, y + 54), 54, fill=ORANGE + (int(255 * k),))
+    d.text((W / 2, y + 2), cfg['title'], font=f, fill=(255, 255, 255, int(255 * k)), anchor='mm')
+    # months row
+    km = ease(t, cfg['t_months'], 0.4)
+    if km > 0:
+        d.text((W / 2, 440), cfg['months_label'], font=font(46), fill=(255, 255, 255, int(255 * km)), anchor='mm')
+        cw, gap = 260, 40; x0 = W / 2 - (3 * cw + 2 * gap) / 2
+        for i in range(3):
+            x = x0 + i * (cw + gap); y0 = 500
+            d.rounded_rectangle((x, y0, x + cw, y0 + 200), 24, fill=(255, 255, 255, int(235 * km)))
+            d.rounded_rectangle((x, y0, x + cw, y0 + 54), 24, fill=ORANGE + (int(255 * km),))
+            d.rectangle((x, y0 + 30, x + cw, y0 + 54), fill=ORANGE + (int(255 * km),))
+            d.text((x + cw / 2, y0 + 130), 'CZYNSZ', font=font(38), fill=NAVY + (int(255 * km),), anchor='mm')
+            kx = ease(t, cfg['t_x'][i], 0.25)
+            if kx > 0:
+                s = 70; cx, cy = x + cw / 2, y0 + 120
+                for (p0, p1) in [((cx - s, cy - s), (cx + s, cy + s)), ((cx + s, cy - s), (cx - s, cy + s))]:
+                    e2 = (p0[0] + (p1[0] - p0[0]) * kx, p0[1] + (p1[1] - p0[1]) * kx)
+                    d.line([p0, e2], fill=RED + (255,), width=18)
+    # steps
+    for j, (ts, num, txt, icon) in enumerate(cfg['steps']):
+        ks = ease(t, ts, 0.4)
+        if ks <= 0: continue
+        y0 = 860 + j * 330 + 40 * (1 - ks); x0, x1 = 90, W - 90
+        card = Image.new('RGBA', (W, H)); ImageDraw.Draw(card).rounded_rectangle((x0, y0, x1, y0 + 270), 30, fill=(255, 255, 255, int(30 * ks)), outline=(255, 255, 255, int(110 * ks)), width=3)
+        lay.alpha_composite(card); d = ImageDraw.Draw(lay)
+        d.ellipse((x0 + 40, y0 + 85, x0 + 140, y0 + 185), fill=ORANGE + (int(255 * ks),))
+        d.text((x0 + 90, y0 + 137), str(num), font=font(58), fill=(255, 255, 255, int(255 * ks)), anchor='mm')
+        if icon == 'envelope': _envelope(d, x1 - 110, y0 + 135, 70, ks)
+        else: _clock(d, x1 - 110, y0 + 135, 68, ks, ease(t, ts, 2.0))
+        lines = txt.split('\n')
+        for li, ln in enumerate(lines):
+            d.text((x0 + 180, y0 + 135 + (li - (len(lines) - 1) / 2) * 62), ln, font=font(44), fill=(255, 255, 255, int(255 * ks)), anchor='lm')
+    return lay
