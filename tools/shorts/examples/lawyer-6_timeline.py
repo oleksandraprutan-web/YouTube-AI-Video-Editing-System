@@ -8,7 +8,7 @@ SFX_GAIN_DB = -4
 
 ZOOMS = [(0, 1.0), (8.06, 1.12), (8.76, 1.0)]
 CUTS = [9.37, 17.57, 29.77, 37.27]
-PILL_GROUPS = [(5.20, [110, 210], [(2.38, 'NIE PŁACI CZYNSZU', 0, None), (3.88, 'NIE CHCE SIĘ WYPROWADZIĆ', 1, None)])]
+PILL_GROUPS = [(5.20, [250, 350], [(2.38, 'NIE PŁACI CZYNSZU', 0, None), (3.88, 'NIE CHCE SIĘ WYPROWADZIĆ', 1, None)])]
 QUOTES = [(5.26, 7.98, 'Zmienić zamki i wyrzucić jego rzeczy?')]
 WARNS = [(8.06, 9.30, 'TO NIE TAKIE PROSTE', 250)]
 HEADLINES = [(9.40, 13.75, ['EKSMISJA', 'NA WŁASNĄ RĘKĘ'], 11.32, 'NIE WOLNO', 230)]
