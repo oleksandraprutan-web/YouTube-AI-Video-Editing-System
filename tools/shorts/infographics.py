@@ -645,3 +645,201 @@ def scene_rent_steps(t, e, font):
         for li, ln in enumerate(lines):
             d.text((x0 + 180, y0 + 135 + (li - (len(lines) - 1) / 2) * 62), ln, font=font(44), fill=(255, 255, 255, int(255 * ks)), anchor='lm')
     return lay
+
+
+# ---------- animated set (short 7) ----------
+def debt_counter(t, e, font):
+    """red number counting down into minus with a shake, label above"""
+    t0, t1, label, value, t_count, cy = e
+    a = min(1, (t - t0) / 0.25, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    _glass(d, (170, cy - 150, W - 170, cy + 120), 40, a)
+    d.text((W / 2, cy - 92), label, font=font(42), fill=(255, 255, 255, int(255 * a)), anchor='mm')
+    k = ease(t, t_count, 1.1)
+    v = int(round(value * k / 1000.0)) * 1000
+    shake = 6 * math.sin((t - t0) * 60) * max(0, 1 - abs(t - t_count - 1.1) / 0.3)
+    txt = '−' + f'{v:,}'.replace(',', ' ') + ' zł'
+    d.text((W / 2 + shake, cy + 20), txt, font=font(96), fill=RED + (int(255 * a),), anchor='mm')
+    return _shadow(lay)
+
+
+def dissolve_word(t, e, font):
+    """word that breaks into particles flying up (t_dis), then snaps back (t_back)"""
+    t0, t1, text, t_dis, t_back, cy = e
+    a = min(1, (t - t0) / 0.25, (t1 - t) / 0.2)
+    f = font(110)
+    txt = Image.new('L', (W, 260)); ImageDraw.Draw(txt).text((W / 2, 130), text, font=f, fill=255, anchor='mm')
+    m = np.asarray(txt)
+    lay = Image.new('RGBA', (W, H))
+    if t < t_dis or t >= t_back + 0.35:
+        k = ease(t, t_back, 0.35) if t >= t_back else 1
+        col = ORANGE if t >= t_back else (255, 255, 255)
+        L = Image.new('RGBA', (W, 260), col + (0,)); L.putalpha(Image.fromarray((m * a).astype(np.uint8)))
+        lay.alpha_composite(L, (0, int(cy - 130)))
+        return _shadow(lay, 10, 0.6, 5)
+    p = ease(t, t_dis, 0.9) if t < t_back else 1 - ease(t, t_back, 0.35)
+    ys, xs = np.nonzero(m[::5, ::5]); ys = ys * 5; xs = xs * 5
+    rng = np.random.default_rng(5)
+    dx = rng.normal(0, 90, len(xs)); dy = -rng.uniform(40, 300, len(xs)); ph = rng.uniform(0, 1, len(xs))
+    d = ImageDraw.Draw(lay)
+    for x, y, ddx, ddy, q in zip(xs, ys, dx, dy, ph):
+        pp = min(1, p * (1 + q))
+        X = x + ddx * pp; Y = cy - 130 + y + ddy * pp
+        al = int(255 * a * (1 - pp * 0.6))
+        sz = 7 - 3 * pp
+        d.rectangle((X, Y, X + sz, Y + sz), fill=(255, 255, 255, al))
+    return lay
+
+
+def ring_timer(t, e, font):
+    """6-month ring: sweep fills month by month, centre label"""
+    t0, t1, n, centre, sub, t_fill, cy = e
+    a = min(1, (t - t0) / 0.25, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    r = 165; cx = W / 2; box = (cx - r, cy - r, cx + r, cy + r)
+    _glass(d, (cx - r - 50, cy - r - 50, cx + r + 50, cy + r + 50), r + 50, a)
+    d.ellipse(box, outline=(255, 255, 255, int(60 * a)), width=34)
+    k = ease(t, t_fill, 2.2)
+    if k > 0: d.arc(box, -90, -90 + 360 * k, fill=ORANGE + (int(255 * a),), width=34)
+    for i in range(n):
+        ang = math.radians(-90 + 360 * (i + 0.5) / n)
+        x, y = cx + (r + 0) * math.cos(ang), cy + (r + 0) * math.sin(ang)
+        on = k >= (i + 1) / n - 1e-3
+        d.ellipse((x - 14, y - 14, x + 14, y + 14), fill=((255, 255, 255) if on else (120, 125, 160)) + (int(255 * a),))
+    d.text((cx, cy - 18), centre, font=font(110), fill=(255, 255, 255, int(255 * a)), anchor='mm')
+    d.text((cx, cy + 62), sub, font=font(40), fill=ORANGE + (int(255 * a),), anchor='mm')
+    return _shadow(lay)
+
+
+def flip_cards(t, e, font):
+    """two cards flip in (scale-x) with 'LUB' between"""
+    t0, t1, cards, cy = e
+    a = min(1, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    cw, ch = 360, 230
+    for i, (ct, label, icon) in enumerate(cards):
+        k = ease(t, ct, 0.45)
+        if k <= 0: continue
+        cx = W / 2 + (-235 if i == 0 else 235)
+        sx = abs(math.cos(math.pi * (1 - k) / 2 * 1.0)) if k < 1 else 1
+        sx = max(0.04, 1 - (1 - k) ** 2) if k < 1 else 1
+        w2 = cw * sx
+        d.rounded_rectangle((cx - w2 / 2, cy - ch / 2, cx + w2 / 2, cy + ch / 2), 28, fill=(255, 255, 255, int(250 * a)))
+        if sx > 0.6:
+            q = int(255 * a * (sx - 0.6) / 0.4)
+            if icon == 'gavel':
+                d.rounded_rectangle((cx - 60, cy - 80, cx + 30, cy - 40), 10, fill=NAVY + (q,))
+                d.line((cx - 15, cy - 40, cx + 45, cy + 5), fill=NAVY + (q,), width=14)
+                d.rectangle((cx - 70, cy + 5, cx + 70, cy + 20), fill=ORANGE + (q,))
+            else:
+                d.ellipse((cx - 50, cy - 90, cx + 50, cy + 10), outline=ORANGE + (q,), width=10)
+                d.line((cx - 25, cy - 40, cx + 25, cy - 40), fill=NAVY + (q,), width=8)
+                d.line((cx, cy - 65, cx, cy - 15), fill=NAVY + (q,), width=8)
+            d.text((cx, cy + 70), label, font=font(42), fill=NAVY + (q,), anchor='mm')
+    kl = ease(t, cards[1][0] - 0.2, 0.3)
+    if kl > 0:
+        d.ellipse((W / 2 - 50, cy - 50, W / 2 + 50, cy + 50), fill=ORANGE + (int(255 * a * kl),))
+        d.text((W / 2, cy + 2), 'LUB', font=font(34), fill=(255, 255, 255, int(255 * a * kl)), anchor='mm')
+    return _shadow(lay)
+
+
+def two_tiles(t, e, font):
+    """tiles that resolve: (label, t, verdict 'x'|'ok')"""
+    t0, t1, tiles, cy = e
+    a = min(1, (t - t0) / 0.25, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    tw, th = 420, 150
+    for i, (label, tt, verdict, caption) in enumerate(tiles):
+        cx = W / 2 + (-230 if i == 0 else 230); k = ease(t, tt, 0.35)
+        _glass(d, (cx - tw / 2, cy - th / 2, cx + tw / 2, cy + th / 2), 30, a)
+        d.text((cx, cy - 18), label, font=font(50), fill=(255, 255, 255, int(255 * a * (1 - 0.4 * k))), anchor='mm')
+        if k > 0:
+            col = RED if verdict == 'x' else GREEN
+            d.text((cx, cy + 42), caption, font=font(30), fill=col + (int(255 * a * k),), anchor='mm')
+            bx, by = cx + tw / 2 - 20, cy - th / 2 + 10
+            rr = 36 * (0.5 + 0.5 * k)
+            d.ellipse((bx - rr, by - rr, bx + rr, by + rr), fill=col + (int(255 * a * k),))
+            if verdict == 'x':
+                s = rr * .45; d.line((bx - s, by - s, bx + s, by + s), fill=(255, 255, 255, int(255 * a * k)), width=7); d.line((bx + s, by - s, bx - s, by + s), fill=(255, 255, 255, int(255 * a * k)), width=7)
+            else:
+                d.line([(bx - rr * .45, by), (bx - rr * .1, by + rr * .35), (bx + rr * .5, by - rr * .35)], fill=(255, 255, 255, int(255 * a * k)), width=7, joint='curve')
+    return _shadow(lay)
+
+
+def pulse_alert(t, e, font):
+    """orange '!' circle with expanding pulse rings + text"""
+    t0, t1, text, cy = e
+    k = ease(t, t0, 0.3); a = min(1, (t1 - t) / 0.2)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    cx = W / 2; r = 70 * (0.6 + 0.4 * k)
+    for j in range(3):
+        ph = ((t - t0) * 0.9 + j / 3) % 1
+        rr = r + 150 * ph
+        d.ellipse((cx - rr, cy - rr, cx + rr, cy + rr), outline=ORANGE + (int(200 * a * (1 - ph)),), width=6)
+    d.ellipse((cx - r, cy - r, cx + r, cy + r), fill=ORANGE + (int(255 * a * k),))
+    d.text((cx, cy + 4), '!', font=font(int(110 * (0.6 + 0.4 * k))), fill=(255, 255, 255, int(255 * a * k)), anchor='mm')
+    d.text((cx, cy + 150), text, font=font(46), fill=(255, 255, 255, int(255 * a * k)), anchor='mm')
+    return _shadow(lay, 10, 0.6, 5)
+
+
+def family_chain(t, e, font):
+    """RODZIC → TY (crossed) → DZIECI lighting up; caption"""
+    t0, t1, t_you_x, t_kids, caption, t_cap, cy = e
+    a = min(1, (t - t0) / 0.25, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    xs = [190, 540, 890]; r = 95
+    _glass(d, (60, cy - 150, W - 60, cy + 175), 40, a)
+    kk = ease(t, t_kids, 0.5)
+    for i in range(2):
+        x0, x1 = xs[i] + r + 10, xs[i + 1] - r - 10
+        prog = 1 if i == 0 else kk
+        if prog > 0:
+            xe = x0 + (x1 - x0) * prog
+            d.line((x0, cy, xe, cy), fill=(ORANGE if i == 1 else (255, 255, 255)) + (int(230 * a),), width=10)
+            if prog > 0.95: d.polygon([(x1, cy), (x1 - 26, cy - 18), (x1 - 26, cy + 18)], fill=(ORANGE if i == 1 else (255, 255, 255)) + (int(230 * a),))
+    for i, (x, lbl) in enumerate(zip(xs, ['RODZIC', 'TY', 'DZIECI'])):
+        on = i < 2 or kk > 0.5
+        col = ORANGE if (i == 2 and on) else (255, 255, 255)
+        fillc = (ORANGE if (i == 2 and on) else NAVY) + (int(240 * a),)
+        d.ellipse((x - r, cy - r, x + r, cy + r), fill=fillc, outline=col + (int(255 * a),), width=6)
+        d.text((x, cy + 2), lbl, font=font(40 if len(lbl) > 3 else 52), fill=(255, 255, 255, int(255 * a * (1 if on else .4))), anchor='mm')
+    kx = ease(t, t_you_x, 0.3)
+    if kx > 0:
+        s = 70; x = xs[1]
+        for (p0, p1) in [((x - s, cy - s), (x + s, cy + s)), ((x + s, cy - s), (x - s, cy + s))]:
+            e2 = (p0[0] + (p1[0] - p0[0]) * kx, p0[1] + (p1[1] - p0[1]) * kx)
+            d.line([p0, e2], fill=RED + (int(255 * a),), width=14)
+    kc = ease(t, t_cap, 0.3)
+    if kc > 0:
+        d.text((W / 2, cy + 135), caption, font=font(38), fill=ORANGE + (int(255 * a * kc),), anchor='mm')
+    return _shadow(lay)
+
+
+def follow_button(t, e, font):
+    """'OBSERWUJ' button, cursor taps it, turns into 'OBSERWUJESZ ✓'"""
+    t0, t1, t_tap, cy = e
+    k = ease(t, t0, 0.3); a = min(1, (t1 - t) / 0.2) * k
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    tapped = t >= t_tap
+    press = max(0, 1 - abs(t - t_tap) / 0.12)
+    sc = 1 - 0.08 * press
+    txt = 'OBSERWUJESZ ✓' if tapped else 'OBSERWUJ'
+    f = font(int(56 * sc)); tw = d.textlength('OBSERWUJESZ  ', font=f)
+    w, h = (tw + (190 if tapped else 90)) * sc, 120 * sc
+    col = (255, 255, 255) if tapped else ORANGE
+    d.rounded_rectangle((W / 2 - w / 2, cy - h / 2, W / 2 + w / 2, cy + h / 2), int(h / 2), fill=col + (int(255 * a),))
+    d.text((W / 2 - (40 if tapped else 0), cy + 2), txt.replace(' ✓', ''), font=f, fill=(NAVY if tapped else (255, 255, 255)) + (int(255 * a),), anchor='mm')
+    if tapped:
+        bx = W / 2 + w / 2 - 60
+        d.ellipse((bx - 30, cy - 30, bx + 30, cy + 30), fill=GREEN + (int(255 * a),))
+        d.line([(bx - 13, cy), (bx - 3, cy + 11), (bx + 15, cy - 11)], fill=(255, 255, 255, int(255 * a)), width=6, joint='curve')
+    # cursor
+    kc = ease(t, t_tap - 0.6, 0.55)
+    if t < t_tap + 0.6:
+        cx = W / 2 + 280 - 180 * kc; cyy = cy + 240 - 200 * kc
+        ca = a * min(1, (t_tap + 0.6 - t) / 0.3)
+        pts = [(cx, cyy), (cx, cyy + 70), (cx + 18, cyy + 54), (cx + 32, cyy + 84), (cx + 44, cyy + 78), (cx + 30, cyy + 50), (cx + 52, cyy + 48)]
+        d.polygon(pts, fill=(255, 255, 255, int(255 * ca)), outline=(20, 20, 30, int(255 * ca)))
+        if press > 0:
+            d.ellipse((cx - 40 * press - 10, cyy - 40 * press - 10, cx + 40 * press + 10, cyy + 40 * press + 10), outline=(255, 255, 255, int(200 * press * ca)), width=4)
+    return _shadow(lay)
