@@ -843,3 +843,90 @@ def follow_button(t, e, font):
         if press > 0:
             d.ellipse((cx - 40 * press - 10, cyy - 40 * press - 10, cx + 40 * press + 10, cyy + 40 * press + 10), outline=(255, 255, 255, int(200 * press * ca)), width=4)
     return _shadow(lay)
+
+
+def toggle(t, e, font):
+    """bank-transfer card with a switch flipping ON -> OFF"""
+    t0, t1, title, sub, t_off, cy = e
+    k = ease(t, t0, 0.3); a = min(1, (t1 - t) / 0.25) * k
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    x0, x1, h = 150, W - 150, 170
+    d.rounded_rectangle((x0, cy - h / 2, x1, cy + h / 2), 34, fill=(255, 255, 255, int(248 * a)))
+    d.text((x0 + 40, cy - 28), title, font=font(46), fill=NAVY + (int(255 * a),), anchor='lm')
+    ko = ease(t, t_off, 0.3)
+    st = sub[1] if ko > 0.5 else sub[0]
+    d.text((x0 + 40, cy + 32), st, font=font(32), fill=(RED if ko > 0.5 else GREEN) + (int(255 * a),), anchor='lm')
+    sw, sh = 150, 76; sx = x1 - 40 - sw
+    col = tuple(int(GREEN[i] + (200 - GREEN[i]) * ko) for i in range(3))
+    d.rounded_rectangle((sx, cy - sh / 2, sx + sw, cy + sh / 2), sh // 2, fill=col + (int(255 * a),))
+    kx = sx + sw - sh / 2 - (sw - sh) * ko
+    d.ellipse((kx - sh / 2 + 7, cy - sh / 2 + 7, kx + sh / 2 - 7, cy + sh / 2 - 7), fill=(255, 255, 255, int(255 * a)))
+    return _shadow(lay)
+
+
+def _person(d, cx, cy, s, col):
+    d.ellipse((cx - .32 * s, cy - s, cx + .32 * s, cy - .36 * s), fill=col)
+    d.rounded_rectangle((cx - .55 * s, cy - .28 * s, cx + .55 * s, cy + .6 * s), int(.4 * s), fill=col)
+
+
+def people_row(t, e, font):
+    """row of people turning red one by one + label (many parents make the same mistake)"""
+    t0, t1, n, t_red, label, cy = e
+    a = min(1, (t - t0) / 0.25, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    _glass(d, (110, cy - 120, W - 110, cy + 150), 40, a)
+    s = 52; gap = 140; x0 = W / 2 - gap * (n - 1) / 2
+    for i in range(n):
+        k = ease(t, t_red + i * 0.12, 0.25)
+        col = tuple(int(255 + (RED[j] - 255) * k) for j in range(3))
+        _person(d, x0 + i * gap, cy + 10, s, col + (int(255 * a),))
+    d.text((W / 2, cy + 105), label, font=font(42), fill=(255, 255, 255, int(255 * a)), anchor='mm')
+    return _shadow(lay)
+
+
+def scene_milestones(t, e, font):
+    """orange-placeholder animation: 3 milestones tick, then 'transfer' arrow breaks + question"""
+    t0, t1, cfg = e
+    lay = Image.new('RGBA', (W, H), NAVY + (255,))
+    glow = Image.new('RGBA', (W, H)); g = ImageDraw.Draw(glow)
+    for i, (bx, by, br, col) in enumerate([(250, 500, 420, (40, 70, 200)), (850, 1350, 520, (30, 50, 170)), (600, 900, 300, (244, 122, 58))]):
+        ph = (t - t0) * 0.35 + i * 2.1
+        g.ellipse((bx + 60 * math.sin(ph) - br, by + 50 * math.cos(ph * .8) - br, bx + 60 * math.sin(ph) + br, by + 50 * math.cos(ph * .8) + br), fill=col + (60 if i < 2 else 24,))
+    lay.alpha_composite(glow.filter(ImageFilter.GaussianBlur(120)))
+    d = ImageDraw.Draw(lay)
+    k = ease(t, t0, 0.3)
+    f = font(54); tw = d.textlength(cfg['title'], font=f); y = 220 - 30 * (1 - k)
+    d.rounded_rectangle((W / 2 - tw / 2 - 44, y - 54, W / 2 + tw / 2 + 44, y + 54), 54, fill=ORANGE + (int(255 * k),))
+    d.text((W / 2, y + 2), cfg['title'], font=f, fill=(255, 255, 255, int(255 * k)), anchor='mm')
+    # milestones as a vertical path
+    ys = [560, 790, 1020]
+    for i, (tm, lbl) in enumerate(cfg['items']):
+        km = ease(t, tm, 0.35)
+        if km <= 0: continue
+        y = ys[i]
+        if i > 0: d.line((300, ys[i - 1] + 62, 300, y - 62), fill=(255, 255, 255, int(120 * km)), width=6)
+        d.ellipse((300 - 60, y - 60, 300 + 60, y + 60), fill=GREEN + (int(255 * km),))
+        d.line([(300 - 22, y + 2), (300 - 6, y + 20), (300 + 26, y - 18)], fill=(255, 255, 255, int(255 * km)), width=10, joint='curve')
+        d.text((395 - 20 * (1 - km), y + 2), lbl, font=font(56), fill=(255, 255, 255, int(255 * km)), anchor='lm')
+    # transfer card that stops
+    kt = ease(t, cfg['t_transfer'], 0.4)
+    if kt > 0:
+        y0 = 1230 + 40 * (1 - kt)
+        d.rounded_rectangle((120, y0, W - 120, y0 + 220), 32, fill=(255, 255, 255, int(245 * kt)))
+        d.text((170, y0 + 70), 'PRZELEW', font=font(36), fill=(110, 115, 135, int(255 * kt)), anchor='lm')
+        d.text((170, y0 + 140), 'ALIMENTY', font=font(58), fill=NAVY + (int(255 * kt),), anchor='lm')
+        ks = ease(t, cfg['t_stop'], 0.25)
+        bx, by = W - 230, y0 + 110
+        if ks > 0:
+            r = 70 * (0.6 + 0.4 * ks)
+            pts = [(bx + r * math.cos(math.radians(22.5 + 45 * j)), by + r * math.sin(math.radians(22.5 + 45 * j))) for j in range(8)]
+            d.polygon(pts, fill=RED + (int(255 * ks),))
+            d.text((bx, by + 2), 'STOP', font=font(int(34 * (0.6 + 0.4 * ks))), fill=(255, 255, 255, int(255 * ks)), anchor='mm')
+        else:
+            ph = ((t - cfg['t_transfer']) * 1.5) % 1
+            d.text((bx - 30 + 60 * ph, by + 2), '→', font=font(70), fill=GREEN + (int(255 * kt),), anchor='mm')
+    kq = ease(t, cfg['t_q'], 0.3)
+    if kq > 0:
+        f = font(70); tw = d.textlength(cfg['q'], font=f); y = 1580
+        d.text((W / 2, y + 20 * (1 - kq)), cfg['q'], font=f, fill=ORANGE + (int(255 * kq),), anchor='mm')
+    return lay
