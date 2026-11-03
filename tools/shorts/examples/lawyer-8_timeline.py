@@ -22,14 +22,14 @@ FOLLOW = [(46.40, 48.25, 47.14, 300)]
 ZBLUR = [10.0, 19.2]
 
 SFX = [('pop_soft.wav', 0.72, -22, 'start'), ('snap.wav', 3.56, -20, 'start'),
-       ('blip.wav', 4.80, -22, 'start'), ('thud.wav', 7.24, -18, 'start'),
+       ('pop_low.wav', 4.80, -19, 'start'), ('thud.wav', 7.24, -18, 'start'),
        *[('tick_soft.wav', 8.70 + 0.12 * i, -24, 'start') for i in range(5)],
        ('swoosh_up.wav', 10.00, -24, 'peak'), ('pop_soft.wav', 10.05, -22, 'start'),
        ('marimba.wav', 11.46, -22, 'start'), ('marimba.wav', 12.74, -22, 'start'), ('marimba_hi.wav', 14.78, -22, 'start'),
        ('bubble.wav', 16.20, -22, 'start'), ('thud.wav', 17.46, -18, 'start'), ('glass.wav', 18.14, -24, 'start'),
        ('swoosh_down.wav', 19.20, -24, 'peak'),
-       ('pop_soft.wav', 19.30, -22, 'start'), ('thud.wav', 22.92, -18, 'start'),
-       ('pop_soft.wav', 27.34, -22, 'start'), *[('tick_soft.wav', 28.78 + 0.1 * i, -25, 'start') for i in range(11)],
+       ('pop_low.wav', 19.30, -19, 'start'), ('thud.wav', 22.92, -18, 'start'),
+       ('pop_low.wav', 27.34, -19, 'start'), *[('tick_soft.wav', 28.78 + 0.1 * i, -25, 'start') for i in range(11)],
        ('thud.wav', 31.82, -18, 'start'),
-       ('notify.wav', 39.62, -24, 'start'), ('pop_soft.wav', 41.34, -22, 'start'), ('blip.wav', 43.32, -22, 'start'), ('blip.wav', 43.96, -22, 'start'),
+       ('notify.wav', 39.62, -24, 'start'), ('pop_low.wav', 41.34, -19, 'start'), ('blip.wav', 43.32, -22, 'start'), ('blip.wav', 43.96, -22, 'start'),
        ('swoosh_up.wav', 46.40, -24, 'peak'), ('snap.wav', 47.14, -20, 'start'), ('sparkle.wav', 47.18, -25, 'start')]
