@@ -19,3 +19,6 @@ python3 ../../tools/shorts/render.py                     # -> out/preview.mp4
 ```
 Timeline keys: END, ZOOMS, XMARKS, BIGTEXT, HEADINGS, TINT+PILLS, CIRCLES (start, end, phrase splits, centre_y), TOPTITLE, ARROWS, ZBLUR, SFX, FIXES, MERGE.
 Needs: ffmpeg, numpy, Pillow, faster-whisper, opencv-python-headless<5, `~/.fonts/Montserrat-Black.ttf`.
+
+Text behind the person: `python3 ../../tools/shorts/matte.py src/video.mp4 T0 T1` writes `mattes/` (MODNet, Apache-2.0, model in `.local/models/modnet/model.onnx` from `Xenova/modnet`), then use `BEHIND` in timeline.
+Picture-in-picture: `PIPS = [(t0, t1, {'fn': 'court_doc', 'args': (...)})]`.

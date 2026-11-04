@@ -932,3 +932,146 @@ def scene_milestones(t, e, font):
         f = font(70); tw = d.textlength(cfg['q'], font=f); y = 1580
         d.text((W / 2, y + 20 * (1 - kq)), cfg['q'], font=f, fill=ORANGE + (int(255 * kq),), anchor='mm')
     return lay
+
+
+# ---------- side / depth set (short 9) ----------
+def bubbles(t, e, font):
+    """speech bubbles popping at the sides of the person (not above the head)"""
+    t0, t1, items = e
+    a = min(1, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    for (bt, txt, (cx, cy), side) in items:
+        k = ease(t, bt, 0.28)
+        if k <= 0: continue
+        f = font(int(46 * (0.7 + 0.3 * k))); tw = d.textlength(txt, font=f)
+        w, h = tw + 70, 100 * (0.7 + 0.3 * k)
+        x0, y0 = cx - w / 2, cy - h / 2
+        d.rounded_rectangle((x0, y0, x0 + w, y0 + h), int(h / 2), fill=(255, 255, 255, int(250 * a * k)))
+        tx = x0 + 60 if side == 'L' else x0 + w - 60
+        d.polygon([(tx - 18, y0 + h - 4), (tx + 18, y0 + h - 4), (tx + (24 if side == 'L' else -24), y0 + h + 30)], fill=(255, 255, 255, int(250 * a * k)))
+        d.text((cx, cy + 2), txt, font=f, fill=NAVY + (int(255 * a * k),), anchor='mm')
+    return _shadow(lay)
+
+
+def side_cards(t, e, font):
+    """cards flying in from alternating sides at chest level, stacking"""
+    t0, t1, items, y0 = e
+    a = min(1, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    for i, (ct, txt, side) in enumerate(items):
+        k = ease(t, ct, 0.4)
+        if k <= 0: continue
+        f = font(46); tw = d.textlength(txt, font=f); w, h = tw + 110, 104
+        y = y0 + i * 124
+        tx = 60 if side == 'L' else W - 60 - w
+        x = tx + (-(w + 80) if side == 'L' else (w + 80)) * (1 - k)
+        d.rounded_rectangle((x, y, x + w, y + h), 26, fill=NAVY + (int(235 * a),), outline=(255, 255, 255, int(110 * a)), width=3)
+        d.rounded_rectangle((x, y, x + 14, y + h), 7, fill=ORANGE + (int(255 * a),))
+        d.text((x + 50, y + h / 2 + 2), txt, font=f, fill=(255, 255, 255, int(255 * a)), anchor='lm')
+    return _shadow(lay)
+
+
+def behind_text(t, e, font):
+    """huge text layer meant to sit BEHIND the person (composited under the matte)"""
+    t0, t1, lines, cy, col = e[:5]; sz = e[5] if len(e) > 5 else 250
+    k = ease(t, t0, 0.35); a = min(1, (t1 - t) / 0.2)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    lh = int(sz * 0.92)
+    for i, ln in enumerate(lines):
+        f = font(int(sz * (0.85 + 0.15 * k)))
+        y = cy - lh * (len(lines) - 1) / 2 + i * lh + 60 * (1 - k)
+        d.text((W / 2 + 6, y + 10), ln, font=f, fill=(0, 0, 0, int(90 * a * k)), anchor='mm')
+        d.text((W / 2, y), ln, font=f, fill=tuple(col) + (int(255 * a * k),), anchor='mm')
+    return lay
+
+
+def court_doc(t, e, font):
+    """top-half panel for picture-in-picture: court decision document + question"""
+    t0, t1, title, q, t_q = e
+    k = ease(t, t0 + 0.15, 0.4)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    x0, y0, x1, y1 = 150, 120 + 50 * (1 - k), W - 150, 740 + 50 * (1 - k)
+    d.rounded_rectangle((x0, y0, x1, y1), 30, fill=(255, 255, 255, int(250 * k)))
+    d.rectangle((x0 + 50, y0 - 24, x0 + 120, y0 + 24), fill=ORANGE + (int(255 * k),))
+    d.text(((x0 + x1) / 2, y0 + 90), title, font=font(52), fill=NAVY + (int(255 * k),), anchor='mm')
+    d.line((x0 + 60, y0 + 150, x1 - 60, y0 + 150), fill=(220, 222, 235, int(255 * k)), width=4)
+    for j in range(5):
+        kl = ease(t, t0 + 0.4 + j * 0.15, 0.3)
+        ww = (x1 - x0 - 120) * (0.6 if j == 4 else 1) * kl
+        d.rounded_rectangle((x0 + 60, y0 + 200 + j * 60, x0 + 60 + ww, y0 + 222 + j * 60), 11, fill=(205, 208, 222, int(255 * k)))
+    # seal
+    sx, sy = x1 - 130, y1 - 100
+    d.ellipse((sx - 60, sy - 60, sx + 60, sy + 60), outline=RED + (int(220 * k),), width=8)
+    d.text((sx, sy + 2), 'SĄD', font=font(34), fill=RED + (int(220 * k),), anchor='mm')
+    kq = ease(t, t_q, 0.3)
+    if kq > 0:
+        f = font(58); tw = d.textlength(q, font=f); y = y1 + 85
+        d.rounded_rectangle((W / 2 - tw / 2 - 40, y - 52, W / 2 + tw / 2 + 40, y + 52), 52, fill=ORANGE + (int(255 * kq),))
+        d.text((W / 2, y + 2), q, font=f, fill=(255, 255, 255, int(255 * kq)), anchor='mm')
+    return _shadow(lay)
+
+
+def _moon(d, cx, cy, r, a):
+    d.ellipse((cx - r, cy - r, cx + r, cy + r), fill=(255, 220, 120, int(255 * a)))
+    d.ellipse((cx - r + r * .55, cy - r - r * .15, cx + r + r * .55, cy + r - r * .15), fill=NAVY + (255,))
+
+
+def _eye(d, cx, cy, r, a):
+    d.ellipse((cx - r, cy - r * .55, cx + r, cy + r * .55), fill=(255, 255, 255, int(255 * a)))
+    d.ellipse((cx - r * .38, cy - r * .38, cx + r * .38, cy + r * .38), fill=NAVY + (int(255 * a),))
+    d.ellipse((cx - r * .14, cy - r * .3, cx + r * .1, cy - r * .06), fill=(255, 255, 255, int(255 * a)))
+
+
+def scene_contacts(t, e, font):
+    """blue-placeholder animation: real fears -> court -> 3 options cards with icons"""
+    t0, t1, cfg = e
+    lay = Image.new('RGBA', (W, H), NAVY + (255,))
+    glow = Image.new('RGBA', (W, H)); g = ImageDraw.Draw(glow)
+    for i, (bx, by, br, col) in enumerate([(250, 500, 420, (40, 70, 200)), (850, 1350, 520, (30, 50, 170)), (600, 900, 300, (244, 122, 58))]):
+        ph = (t - t0) * 0.35 + i * 2.1
+        g.ellipse((bx + 60 * math.sin(ph) - br, by + 50 * math.cos(ph * .8) - br, bx + 60 * math.sin(ph) + br, by + 50 * math.cos(ph * .8) + br), fill=col + (60 if i < 2 else 24,))
+    lay.alpha_composite(glow.filter(ImageFilter.GaussianBlur(120)))
+    d = ImageDraw.Draw(lay)
+    # step 1: fears -> court (arrow)
+    k1 = ease(t, t0 + 0.1, 0.35); k2 = ease(t, cfg['t_court'], 0.4)
+    CY = 560
+    for (txt, x, k, col) in [('RZECZYWISTE\nOBAWY', 290, k1, (255, 255, 255)), ('SĄD', 810, k2, ORANGE)]:
+        if k <= 0: continue
+        r = 165
+        ring = Image.new('RGBA', (W, H)); ImageDraw.Draw(ring).ellipse((x - r, CY - r, x + r, CY + r), fill=(255, 255, 255, int(30 * k)), outline=col + (int(255 * k),), width=7)
+        lay.alpha_composite(ring); d = ImageDraw.Draw(lay)
+        for j, ln in enumerate(txt.split('\n')):
+            d.text((x, CY + (j - (len(txt.split('\n')) - 1) / 2) * 52), ln, font=font(36 if '\n' in txt else 70), fill=col + (int(255 * k),), anchor='mm')
+    if k2 > 0:
+        xe = 465 + (635 - 465) * k2
+        d.line((465, CY, xe, CY), fill=ORANGE + (255,), width=12)
+        if k2 > 0.95: d.polygon([(645, CY), (615, CY - 20), (615, CY + 20)], fill=ORANGE + (255,))
+    kt = ease(t, cfg['t_title'], 0.35)
+    if kt > 0:
+        f = font(54); tw = d.textlength(cfg['title'], font=f); y = 860
+        d.rounded_rectangle((W / 2 - tw / 2 - 44, y - 54, W / 2 + tw / 2 + 44, y + 54), 54, fill=ORANGE + (int(255 * kt),))
+        d.text((W / 2, y + 2), cfg['title'], font=f, fill=(255, 255, 255, int(255 * kt)), anchor='mm')
+    # options cards
+    for i, (ct, lbl, icon) in enumerate(cfg['options']):
+        k = ease(t, ct, 0.4)
+        if k <= 0: continue
+        cw, ch = 310, 440; gap = 25; x0 = (W - 3 * cw - 2 * gap) / 2 + i * (cw + gap)
+        y0 = 1000 + 80 * (1 - k)
+        d.rounded_rectangle((x0, y0, x0 + cw, y0 + ch), 30, fill=(255, 255, 255, int(250 * k)))
+        cx, cy = x0 + cw / 2, y0 + 160
+        if icon == 'clock':
+            d.ellipse((cx - 80, cy - 80, cx + 80, cy + 80), fill=NAVY + (int(255 * k),))
+            frac = 1 - 0.5 * ease(t, ct + 0.3, 1.0)
+            d.pieslice((cx - 66, cy - 66, cx + 66, cy + 66), -90, -90 + 360 * frac, fill=ORANGE + (int(255 * k),))
+        elif icon == 'moon':
+            d.ellipse((cx - 80, cy - 80, cx + 80, cy + 80), fill=NAVY + (int(255 * k),))
+            _moon(d, cx, cy, 48, k)
+            kx = ease(t, ct + 0.35, 0.3)
+            if kx > 0:
+                s = 70 * kx; d.line((cx - 70, cy - 70, cx - 70 + 140 * kx, cy - 70 + 140 * kx), fill=RED + (255,), width=12)
+        else:
+            d.ellipse((cx - 80, cy - 80, cx + 80, cy + 80), fill=NAVY + (int(255 * k),))
+            _eye(d, cx, cy, 58, k)
+        for j, ln in enumerate(lbl.split('\n')):
+            d.text((cx, y0 + 315 + j * 52), ln, font=font(42), fill=NAVY + (int(255 * k),), anchor='mm')
+    return lay

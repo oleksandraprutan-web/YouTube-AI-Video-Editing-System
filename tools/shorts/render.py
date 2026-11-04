@@ -58,6 +58,9 @@ SPLITS = []         # (t0, t1, [(t, label)], t_plus, plus_text, centre_y)
 NOTEQ = []          # (t0, t1, (t, a), (t, '≠'), (t, b), centre_y)
 DEBTS = []; DISSOLVES = []; RINGS = []; FLIPS = []; TILES = []; PULSES = []; FAMILY = []; FOLLOW = []
 TOGGLES = []; PEOPLE = []
+BUBBLES = []; SIDECARDS = []
+BEHIND = []         # (t0, t1, [lines], centre_y, rgb) text behind the person (needs mattes/)
+PIPS = []           # (t0, t1, {'fn': ig panel fn name, ...}) picture-in-picture: video shrinks to bottom card, panel on top
 RESULTS = []        # (t0, t1, text, rgb, centre_y) standalone result pill
 INCOMES = []        # (t0, t1, t_bars, ratio_B, t_result, result_text, result_rgb, centre_y)
 WORDS = []          # (t0, t1, [(t, text), ...], centre_y) simple stacked words
@@ -348,6 +351,22 @@ def plan_frame(src, t, p):
     out.alpha_composite(ig.plan_card(t, p, font))
     return out
 
+def pip_frame(full, t, p):
+    t0, t1, cfg = p
+    k = min(ease_pop(t, t0, 0.45)[1], 1 - ease_pop(t, t1 - 0.4, 0.4)[1])
+    bg = Image.new('RGBA', (W, H), NAVY + (255,))
+    sc = 1 - 0.45 * k
+    w, h = int(W * sc), int(H * sc)
+    x, y = (W - w) // 2, int((H - h) * (0.5 + 0.45 * k)) if k < 1 else H - h - 70
+    y = int((H - h) / 2 + ((H - h - 70) - (H - h) / 2) * k)
+    small = full.resize((w, h), Image.BICUBIC)
+    m = Image.new('L', (w, h)); ImageDraw.Draw(m).rounded_rectangle((0, 0, w - 1, h - 1), int(60 * k), fill=255)
+    bg.paste(small, (x, y), m)
+    ImageDraw.Draw(bg).rounded_rectangle((x, y, x + w - 1, y + h - 1), int(60 * k), outline=(255, 255, 255, int(200 * k)), width=6)
+    if k > 0.3:
+        bg.alpha_composite(fade(getattr(ig, cfg['fn'])(t, (t0, t1, *cfg['args']), font), min(1, (k - 0.3) / 0.5)))
+    return bg
+
 def light_leak(a, b, k):
     """a->b crossfade with warm light flash; k in 0..1"""
     mix = Image.blend(a, b, min(1, max(0, (k - 0.35) / 0.3)))
@@ -432,6 +451,15 @@ def base_frame(src, t, circ):
         out = circle_frame(src, t, circ)
     else:
         out = zoom_frame(src, zoom_at(t), face_at(t)).convert('RGBA')
+        pip = next((p for p in PIPS if p[0] <= t < p[1]), None)
+        if pip:
+            out = pip_frame(out, t, pip)
+        for e in BEHIND:
+            if e[0] <= t < e[1]:
+                mp = f'mattes/{int(round(t * FPS)):05d}.png'
+                if os.path.exists(mp):
+                    person = out.copy(); person.putalpha(zoom_frame(Image.open(mp), zoom_at(t), face_at(t)) if not pip else Image.open(mp))
+                    out.alpha_composite(ig.behind_text(t, e, font)); out.alpha_composite(person)
         if TINT[0] <= t < TINT[1]:
             a = min(1, (t - TINT[0]) / 0.3, (TINT[1] - t) / 0.3)
             out.alpha_composite(fade(TINT_L, a))
@@ -474,7 +502,7 @@ def base_frame(src, t, circ):
             if e[0] <= t < e[1]: out.alpha_composite(ig.strike(t, e, font))
         for e in DOCS:
             if e[0] <= t < e[1]: out.alpha_composite(ig.doc_card(t, e, font))
-        for name, fn in (('DONUTS', ig.donut), ('WARNS', ig.warn), ('HEADLINES', ig.headline), ('SPLITS', ig.split_costs), ('NOTEQ', ig.not_equal), ('RESULTS', ig.result_pill), ('DEBTS', ig.debt_counter), ('DISSOLVES', ig.dissolve_word), ('RINGS', ig.ring_timer), ('FLIPS', ig.flip_cards), ('TILES', ig.two_tiles), ('PULSES', ig.pulse_alert), ('FAMILY', ig.family_chain), ('FOLLOW', ig.follow_button), ('TOGGLES', ig.toggle), ('PEOPLE', ig.people_row)):
+        for name, fn in (('DONUTS', ig.donut), ('WARNS', ig.warn), ('HEADLINES', ig.headline), ('SPLITS', ig.split_costs), ('NOTEQ', ig.not_equal), ('RESULTS', ig.result_pill), ('DEBTS', ig.debt_counter), ('DISSOLVES', ig.dissolve_word), ('RINGS', ig.ring_timer), ('FLIPS', ig.flip_cards), ('TILES', ig.two_tiles), ('PULSES', ig.pulse_alert), ('FAMILY', ig.family_chain), ('FOLLOW', ig.follow_button), ('TOGGLES', ig.toggle), ('PEOPLE', ig.people_row), ('BUBBLES', ig.bubbles), ('SIDECARDS', ig.side_cards)):
             for e in globals()[name]:
                 if e[0] <= t < e[1]: out.alpha_composite(fn(t, e, font))
         for e in INCOMES:
