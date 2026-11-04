@@ -531,7 +531,7 @@ def headline(t, e, font):
     t0, t1, lines, t_stamp, stamp_text, cy = e[:6]; sc = e[6] if len(e) > 6 else 1.0
     a = min(1, (t - t0) / 0.25, (t1 - t) / 0.25)
     lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
-    lh = 86 * sc; hw = 430 * sc
+    lh = 86 * sc; hw = max(430 * sc, max(d.textlength(ln, font=font(int(70 * sc))) for ln in lines) / 2 + 45 * sc)
     _glass(d, (W / 2 - hw, cy - lh / 2 * len(lines) - 40 * sc, W / 2 + hw, cy + lh / 2 * len(lines) + 40 * sc), int(34 * sc), a)
     for i, ln in enumerate(lines):
         k = ease(t, t0 + i * 0.12, 0.3)
@@ -578,7 +578,9 @@ def not_equal(t, e, font):
     for (tt, txt, y, sz, col) in [(ta, txa, cy - 120, 64, (255, 255, 255)), (tn, sym, cy, 120, ORANGE), (tb, txb, cy + 120, 64, (255, 255, 255))]:
         k = ease(t, tt, 0.3)
         if k > 0:
-            f = font(int(sz * (0.8 + 0.2 * k)))
+            fz = sz
+            while fz > 30 and d.textlength(txt, font=font(fz)) > W - 300: fz -= 2
+            f = font(int(fz * (0.8 + 0.2 * k)))
             d.text((W / 2, y + 15 * (1 - k)), txt, font=f, fill=col + (int(255 * a * k),), anchor='mm')
     return _shadow(lay, 10, 0.7, 5)
 
@@ -760,7 +762,9 @@ def two_tiles(t, e, font):
     for i, (label, tt, verdict, caption) in enumerate(tiles):
         cx = W / 2 + (-230 if i == 0 else 230); k = ease(t, tt, 0.35)
         _glass(d, (cx - tw / 2, cy - th / 2, cx + tw / 2, cy + th / 2), 30, a)
-        d.text((cx, cy - 18), label, font=font(50), fill=(255, 255, 255, int(255 * a * (1 - 0.4 * k))), anchor='mm')
+        fs = 50
+        while fs > 26 and d.textlength(label, font=font(fs)) > tw - 60: fs -= 2
+        d.text((cx, cy - 18), label, font=font(fs), fill=(255, 255, 255, int(255 * a * (1 - 0.4 * k))), anchor='mm')
         if k > 0:
             col = RED if verdict == 'x' else GREEN
             d.text((cx, cy + 42), caption, font=font(30), fill=col + (int(255 * a * k),), anchor='mm')
@@ -1082,4 +1086,76 @@ def scene_contacts(t, e, font):
             _eye(d, cx, cy, 58, k)
         for j, ln in enumerate(lbl.split('\n')):
             d.text((cx, y0 + 315 + j * 52), ln, font=font(42), fill=NAVY + (int(255 * k),), anchor='mm')
+    return lay
+
+
+def shield_q(t, e, font):
+    """top panel for PIP: shield + 'MELDUNEK' + big question mark"""
+    t0, t1, label, t_q = e
+    k = ease(t, t0 + 0.15, 0.4)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    cx, cy, s = W / 2, 420 + 40 * (1 - k), 230
+    pts = [(cx - s, cy - s * .9), (cx, cy - s * 1.15), (cx + s, cy - s * .9), (cx + s * .85, cy + s * .25), (cx, cy + s * 1.05), (cx - s * .85, cy + s * .25)]
+    d.polygon(pts, fill=(255, 255, 255, int(250 * k)))
+    inner = [(cx + (x - cx) * .82, cy + (y - cy) * .82) for x, y in pts]
+    d.polygon(inner, fill=NAVY + (int(255 * k),))
+    d.text((cx, cy - 20), label, font=font(52), fill=(255, 255, 255, int(255 * k)), anchor='mm')
+    kq = ease(t, t_q, 0.3)
+    if kq > 0:
+        d.text((cx, cy + 90 + 20 * (1 - kq)), '?', font=font(int(150 * (0.7 + 0.3 * kq))), fill=ORANGE + (int(255 * kq),), anchor='mm')
+    return _shadow(lay)
+
+
+def _house_person(d, cx, cy, s, a, person=True):
+    d.polygon([(cx - s, cy - 0.1 * s), (cx, cy - s), (cx + s, cy - 0.1 * s)], fill=(255, 255, 255, int(255 * a)))
+    d.rectangle((cx - 0.8 * s, cy - 0.1 * s, cx + 0.8 * s, cy + 0.85 * s), fill=(255, 255, 255, int(255 * a)))
+    if person:
+        _person(d, cx, cy + 0.45 * s, 0.38 * s, ORANGE + (int(255 * a),))
+
+
+def scene_eviction(t, e, font):
+    """blue-placeholder animation: contract terminated/expired -> tenant still inside -> court -> 'POZEW O EKSMISJĘ'"""
+    t0, t1, cfg = e
+    lay = Image.new('RGBA', (W, H), NAVY + (255,))
+    glow = Image.new('RGBA', (W, H)); g = ImageDraw.Draw(glow)
+    for i, (bx, by, br, col) in enumerate([(250, 500, 420, (40, 70, 200)), (850, 1350, 520, (30, 50, 170)), (600, 900, 300, (244, 122, 58))]):
+        ph = (t - t0) * 0.35 + i * 2.1
+        g.ellipse((bx + 60 * math.sin(ph) - br, by + 50 * math.cos(ph * .8) - br, bx + 60 * math.sin(ph) + br, by + 50 * math.cos(ph * .8) + br), fill=col + (60 if i < 2 else 24,))
+    lay.alpha_composite(glow.filter(ImageFilter.GaussianBlur(120)))
+    d = ImageDraw.Draw(lay)
+    # contract
+    kc = ease(t, t0 + 0.1, 0.4)
+    x0, y0 = 80, 300 + 40 * (1 - kc); cw, ch = 440, 560
+    d.rounded_rectangle((x0, y0, x0 + cw, y0 + ch), 26, fill=(255, 255, 255, int(250 * kc)))
+    d.text((x0 + cw / 2, y0 + 80), 'UMOWA', font=font(54), fill=NAVY + (int(255 * kc),), anchor='mm')
+    d.text((x0 + cw / 2, y0 + 140), 'NAJMU', font=font(42), fill=(110, 115, 135, int(255 * kc)), anchor='mm')
+    for j in range(5):
+        d.rounded_rectangle((x0 + 45, y0 + 210 + j * 58, x0 + cw - 45 - (70 if j == 4 else 0), y0 + 230 + j * 58), 10, fill=(205, 208, 222, int(255 * kc)))
+    for (ts, txt, dy) in [(cfg['t_terminated'], 'WYPOWIEDZIANA', 0), (cfg['t_expired'], 'WYGASŁA', 150)]:
+        if t >= ts:
+            lay.alpha_composite(stamp(t, (ts, t1, txt, (x0 + cw / 2, y0 + 290 + dy), 0.55), font)); d = ImageDraw.Draw(lay)
+    # house with tenant still inside
+    kh = ease(t, cfg['t_tenant'], 0.4)
+    if kh > 0:
+        _house_person(d, 800, 520, 220 * (0.7 + 0.3 * kh), kh)
+        d.text((800, 790), 'LOKATOR NADAL', font=font(42), fill=(255, 255, 255, int(255 * kh)), anchor='mm')
+        d.text((800, 845), 'ZAJMUJE MIESZKANIE', font=font(38), fill=ORANGE + (int(255 * kh),), anchor='mm')
+    # arrow down to court
+    ka = ease(t, cfg['t_court'], 0.5)
+    if ka > 0:
+        ys, ye = 950, 950 + 230 * ka
+        d.line((540, ys, 540, ye), fill=ORANGE + (255,), width=14)
+        if ka > 0.95: d.polygon([(540, 1195), (512, 1157), (568, 1157)], fill=ORANGE + (255,))
+    kg = ease(t, cfg['t_court'] + 0.4, 0.4)
+    if kg > 0:
+        cx, cy = 540, 1350
+        d.rounded_rectangle((cx - 120, cy - 70, cx + 40, cy - 10), 14, fill=(255, 255, 255, int(255 * kg)))
+        d.line((cx - 20, cy - 10, cx + 70, cy + 70), fill=(255, 255, 255, int(255 * kg)), width=22)
+        d.rectangle((cx - 170, cy + 80, cx + 170, cy + 100), fill=ORANGE + (int(255 * kg),))
+        d.text((cx, cy + 160), 'SĄD', font=font(60), fill=(255, 255, 255, int(255 * kg)), anchor='mm')
+    kp = ease(t, cfg['t_pozew'], 0.35)
+    if kp > 0:
+        f = font(60); tw = d.textlength(cfg['pozew'], font=f); y = 1670
+        d.rounded_rectangle((W / 2 - tw / 2 - 46, y - 58, W / 2 + tw / 2 + 46, y + 58), 58, fill=ORANGE + (int(255 * kp),))
+        d.text((W / 2, y + 2), cfg['pozew'], font=f, fill=(255, 255, 255, int(255 * kp)), anchor='mm')
     return lay
