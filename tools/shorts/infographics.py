@@ -1204,3 +1204,62 @@ def ladder(t, e, font):
         for j, ln in enumerate(lbl.split('\n')):
             d.text((x + bw / 2, yb - hh / 2 + (j - (len(lbl.split('\n')) - 1) / 2) * (fs + 8)), ln, font=font(fs), fill=(255, 255, 255, int(255 * a * (1 if on else .45))), anchor='mm')
     return _shadow(lay)
+
+
+def scale_compare(t, e, font):
+    """D: two weights on a horizontal line — 'władza' half-filled bar vs 'kontakt' bar staying full"""
+    t0, t1, t_b, cy = e
+    a = min(1, (t - t0) / 0.3, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    x0, x1 = 140, W - 140
+    for i, (lbl, frac_end, col, tt) in enumerate([('WŁADZA RODZICIELSKA', 0.45, ORANGE, t0 + 0.1), ('KONTAKT Z DZIECKIEM', 1.0, GREEN, t_b)]):
+        k = ease(t, tt, 0.4); y = cy + i * 150
+        if k <= 0: continue
+        d.text((x0, y - 45), lbl, font=font(38), fill=(255, 255, 255, int(255 * a * k)), anchor='lm')
+        d.rounded_rectangle((x0, y, x1, y + 46), 23, fill=(255, 255, 255, int(45 * a * k)))
+        fr = 1.0 - (1.0 - frac_end) * ease(t, tt + 0.4, 0.8)
+        d.rounded_rectangle((x0, y, x0 + (x1 - x0) * fr * k, y + 46), 23, fill=col + (int(240 * a),))
+        tag = 'OGRANICZONA' if i == 0 else 'ZOSTAJE'
+        d.text((x1, y - 45), tag, font=font(32), fill=col + (int(255 * a * ease(t, tt + 0.8, 0.3)),), anchor='rm')
+    return _shadow(lay)
+
+
+def two_doors(t, e, font):
+    """E: two doors side by side; left opens partially (ograniczenie), right stays open (kontakt)"""
+    t0, t1, t_b, cy = e
+    a = min(1, (t - t0) / 0.3, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    for i, (cx, lbl, tt, lock) in enumerate([(330, 'WŁADZA', t0 + 0.1, True), (750, 'KONTAKT', t_b, False)]):
+        k = ease(t, tt, 0.4)
+        if k <= 0: continue
+        w, h = 230, 320; x0, y0 = cx - w / 2, cy - h / 2
+        d.rounded_rectangle((x0 - 14, y0 - 14, x0 + w + 14, y0 + h + 10), 20, fill=NAVY + (int(230 * a * k),), outline=(255, 255, 255, int(150 * a * k)), width=4)
+        op = 0.25 if lock else 0.85
+        ow = w * (1 - op * ease(t, tt + 0.3, 0.7))
+        d.rectangle((x0, y0, x0 + ow, y0 + h), fill=(ORANGE if lock else GREEN) + (int(245 * a * k),))
+        d.ellipse((x0 + ow - 30, y0 + h / 2 - 10, x0 + ow - 10, y0 + h / 2 + 10), fill=(255, 255, 255, int(255 * a * k)))
+        if lock:
+            lx, ly = x0 + w / 2 - 20, y0 + h / 2
+            d.arc((lx - 26, ly - 50, lx + 26, ly + 2), 180, 360, fill=(255, 255, 255, int(255 * a * k)), width=8)
+            d.rounded_rectangle((lx - 34, ly - 22, lx + 34, ly + 34), 8, fill=(255, 255, 255, int(255 * a * k)))
+        d.text((cx, y0 + h + 55), lbl, font=font(42), fill=(255, 255, 255, int(255 * a * k)), anchor='mm')
+    return _shadow(lay)
+
+
+def question_flip(t, e, font):
+    """F: big question pill 'OGRANICZENIE = ZAKAZ?' then the '=' gets struck and becomes '≠' with 'NIE!'"""
+    t0, t1, t_no, cy = e
+    a = min(1, (t - t0) / 0.3, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    kn = ease(t, t_no, 0.25)
+    rows = ['OGRANICZENIE', '=' if kn < 0.5 else '≠', 'ZAKAZ KONTAKTU?' if kn < 0.5 else 'ZAKAZ KONTAKTU']
+    _glass(d, (150, cy - 190, W - 150, cy + 190), 40, a)
+    for i, r in enumerate(rows):
+        col = ORANGE if i == 1 else (255, 255, 255)
+        sz = 110 if i == 1 else 56
+        d.text((W / 2, cy - 120 + i * 120), r, font=font(sz), fill=col + (int(255 * a),), anchor='mm')
+    if kn > 0:
+        f = font(int(44 * (0.7 + 0.3 * kn))); x = W / 2 + 370; y = cy - 190
+        d.ellipse((x - 70, y - 70, x + 70, y + 70), fill=RED + (int(255 * a * kn),))
+        d.text((x, y + 2), 'NIE', font=f, fill=(255, 255, 255, int(255 * a * kn)), anchor='mm')
+    return _shadow(lay)
