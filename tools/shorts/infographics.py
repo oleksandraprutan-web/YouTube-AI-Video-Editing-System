@@ -1189,16 +1189,18 @@ def ladder(t, e, font):
     t0, t1, steps, cy = e
     a = min(1, (t - t0) / 0.3, (t1 - t) / 0.25)
     lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
-    n = len(steps); bw = 300; gap = 25; x0 = (W - n * bw - (n - 1) * gap) / 2
+    n = len(steps); bw = 250; gap = 22; x0 = (W - n * bw - (n - 1) * gap) / 2
     for i, (st, lbl, col) in enumerate(steps):
         k = ease(t, st, 0.35)
-        h = 150 + i * 90; x = x0 + i * (bw + gap); yb = cy + 150
+        h = 120 + i * 65; x = x0 + i * (bw + gap); yb = cy + 150
         on = k > 0
         fillc = (tuple(col) + (int(240 * a),)) if on else (255, 255, 255, int(40 * a))
         card = Image.new('RGBA', (W, H)); cd = ImageDraw.Draw(card)
         hh = h * (0.85 + 0.15 * k) if on else h
         cd.rounded_rectangle((x, yb - hh, x + bw, yb), 24, fill=fillc, outline=(255, 255, 255, int(120 * a)), width=3)
         lay.alpha_composite(card); d = ImageDraw.Draw(lay)
+        fs = 34
+        while fs > 20 and max(d.textlength(ln, font=font(fs)) for ln in lbl.split('\n')) > bw - 30: fs -= 2
         for j, ln in enumerate(lbl.split('\n')):
-            d.text((x + bw / 2, yb - hh / 2 + (j - (len(lbl.split('\n')) - 1) / 2) * 46), ln, font=font(38), fill=(255, 255, 255, int(255 * a * (1 if on else .45))), anchor='mm')
+            d.text((x + bw / 2, yb - hh / 2 + (j - (len(lbl.split('\n')) - 1) / 2) * (fs + 8)), ln, font=font(fs), fill=(255, 255, 255, int(255 * a * (1 if on else .45))), anchor='mm')
     return _shadow(lay)
