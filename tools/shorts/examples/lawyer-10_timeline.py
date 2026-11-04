@@ -17,7 +17,7 @@ RESULTS = [(21.22, 22.90, 'CO TO OZNACZA W PRAKTYCE?', (244, 122, 58), 330)]
 SCENES = [(22.93, 32.03, {'fn': 'scene_eviction', 't_terminated': 24.90, 't_expired': 25.94, 't_tenant': 26.86,
            't_court': 29.90, 't_pozew': 31.06, 'pozew': 'POZEW O EKSMISJĘ'})]
 STRIKES = [(33.78, 37.95, 'NIC MI NIE ZROBISZ', 37.02, (540, 1180))]
-BEHIND += [(38.70, 39.84, ['MOŻESZ!'], 720, (244, 122, 58), 190)]
+BEHIND += [(38.14, 39.84, ['FAKTYCZNIE'], 560, (244, 122, 58), 150)]
 
 SFX = [('msg_in.wav', 3.30, -22, 'start'),
        ('whoosh1.wav', 5.88, -20, 'peak'), ('click2.wav', 7.24, -19, 'start'),
@@ -30,4 +30,4 @@ SFX = [('msg_in.wav', 3.30, -22, 'start'),
        ('whoosh2.wav', 29.90, -22, 'peak'), ('pop_low.wav', 30.30, -19, 'start'), ('text_in_s.wav', 31.06, -25, 'start'),
        ('whoosh_el.wav', 32.03, -22, 'peak'),
        ('msg_in.wav', 33.80, -22, 'start'), ('marker_s.wav', 37.02, -26, 'start'),
-       ('star_s.wav', 38.74, -26, 'start')]
+       ('star_s.wav', 38.16, -26, 'start')]
