@@ -20,7 +20,7 @@ SCENES = [(25.30, 36.18, {'fn': 'scene_contacts', 't_court': 28.62, 't_title': 2
 
 SFX = [('pop1.wav', 0.52, -20, 'start'), ('pop2.wav', 1.16, -20, 'start'), ('msg_in.wav', 2.14, -22, 'start'),
        ('whoosh1.wav', 3.30, -20, 'peak'), ('click1.wav', 3.80, -20, 'start'), ('pencil_s.wav', 3.95, -26, 'start'), ('click2.wav', 5.12, -18, 'start'),
-       ('whoosh_fast.wav', 9.08, -22, 'peak'), ('bass_s.wav', 9.12, -20, 'start'),
+       
        ('whoosh2.wav', 12.76, -22, 'peak'), ('whoosh2.wav', 13.64, -22, 'peak'), ('whoosh2.wav', 14.94, -22, 'peak'),
        ('metal.wav', 15.96, -20, 'start'), ('letters_s.wav', 16.00, -26, 'start'),
        ('click1.wav', 19.82, -21, 'start'), ('marker_s.wav', 20.04, -26, 'start'), ('marker_s.wav', 22.40, -26, 'start'), ('marker_s.wav', 23.82, -26, 'start'),
