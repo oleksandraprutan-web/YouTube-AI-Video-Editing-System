@@ -590,7 +590,9 @@ def result_pill(t, e, font):
     t0, t1, text, col, cy = e
     k = ease(t, t0, 0.3); a = min(1, (t1 - t) / 0.2) * k
     lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
-    f = font(int(52 * (0.85 + 0.15 * k))); tw = d.textlength(text, font=f); h = 110
+    fz = 52
+    while fz > 30 and d.textlength(text, font=font(fz)) > W - 220: fz -= 2
+    f = font(int(fz * (0.85 + 0.15 * k))); tw = d.textlength(text, font=f); h = 110
     d.rounded_rectangle((W / 2 - tw / 2 - 44, cy - h / 2, W / 2 + tw / 2 + 44, cy + h / 2), h // 2, fill=tuple(col) + (int(255 * a),))
     d.text((W / 2, cy + 2), text, font=f, fill=(255, 255, 255, int(255 * a)), anchor='mm')
     return _shadow(lay)
@@ -1159,3 +1161,44 @@ def scene_eviction(t, e, font):
         d.rounded_rectangle((W / 2 - tw / 2 - 46, y - 58, W / 2 + tw / 2 + 46, y + 58), 58, fill=ORANGE + (int(255 * kp),))
         d.text((W / 2, y + 2), cfg['pozew'], font=f, fill=(255, 255, 255, int(255 * kp)), anchor='mm')
     return lay
+
+
+def separate(t, e, font):
+    """two overlapping circles that slide apart at t_split ('two separate issues')"""
+    t0, t1, la, lb, t_split, cap, cy = e
+    a = min(1, (t - t0) / 0.3, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H))
+    ks = ease(t, t_split, 0.7); r = 190
+    for (lbl, col, sgn) in [(la, ORANGE, -1), (lb, (255, 255, 255), 1)]:
+        cx = W / 2 + sgn * (110 + 160 * ks)
+        c = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(c)
+        d.ellipse((cx - r, cy - r, cx + r, cy + r), fill=NAVY + (int(215 * a),), outline=col + (int(255 * a),), width=8)
+        for j, ln in enumerate(lbl.split('\n')):
+            d.text((cx + sgn * 30 * (1 - ks), cy + (j - (len(lbl.split('\n')) - 1) / 2) * 50), ln, font=font(34), fill=col + (int(255 * a),), anchor='mm')
+        lay.alpha_composite(c)
+    kc = ease(t, t_split + 0.3, 0.3)
+    if kc > 0:
+        d = ImageDraw.Draw(lay); f = font(44); tw = d.textlength(cap, font=f); y = cy + r + 70
+        d.rounded_rectangle((W / 2 - tw / 2 - 34, y - 42, W / 2 + tw / 2 + 34, y + 42), 42, fill=ORANGE + (int(255 * a * kc),))
+        d.text((W / 2, y + 2), cap, font=f, fill=(255, 255, 255, int(255 * a * kc)), anchor='mm')
+    return _shadow(lay)
+
+
+def ladder(t, e, font):
+    """escalating steps (left→right, rising): each lights up at its time; last is red"""
+    t0, t1, steps, cy = e
+    a = min(1, (t - t0) / 0.3, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    n = len(steps); bw = 300; gap = 25; x0 = (W - n * bw - (n - 1) * gap) / 2
+    for i, (st, lbl, col) in enumerate(steps):
+        k = ease(t, st, 0.35)
+        h = 150 + i * 90; x = x0 + i * (bw + gap); yb = cy + 150
+        on = k > 0
+        fillc = (tuple(col) + (int(240 * a),)) if on else (255, 255, 255, int(40 * a))
+        card = Image.new('RGBA', (W, H)); cd = ImageDraw.Draw(card)
+        hh = h * (0.85 + 0.15 * k) if on else h
+        cd.rounded_rectangle((x, yb - hh, x + bw, yb), 24, fill=fillc, outline=(255, 255, 255, int(120 * a)), width=3)
+        lay.alpha_composite(card); d = ImageDraw.Draw(lay)
+        for j, ln in enumerate(lbl.split('\n')):
+            d.text((x + bw / 2, yb - hh / 2 + (j - (len(lbl.split('\n')) - 1) / 2) * 46), ln, font=font(38), fill=(255, 255, 255, int(255 * a * (1 if on else .45))), anchor='mm')
+    return _shadow(lay)

@@ -58,7 +58,7 @@ SPLITS = []         # (t0, t1, [(t, label)], t_plus, plus_text, centre_y)
 NOTEQ = []          # (t0, t1, (t, a), (t, '≠'), (t, b), centre_y)
 DEBTS = []; DISSOLVES = []; RINGS = []; FLIPS = []; TILES = []; PULSES = []; FAMILY = []; FOLLOW = []
 TOGGLES = []; PEOPLE = []
-BUBBLES = []; SIDECARDS = []
+BUBBLES = []; SIDECARDS = []; SEPARATE = []; LADDERS = []
 BEHIND = []         # (t0, t1, [lines], centre_y, rgb) text behind the person (needs mattes/)
 PIPS = []           # (t0, t1, {'fn': ig panel fn name, ...}) picture-in-picture: video shrinks to bottom card, panel on top
 RESULTS = []        # (t0, t1, text, rgb, centre_y) standalone result pill
@@ -502,7 +502,7 @@ def base_frame(src, t, circ):
             if e[0] <= t < e[1]: out.alpha_composite(ig.strike(t, e, font))
         for e in DOCS:
             if e[0] <= t < e[1]: out.alpha_composite(ig.doc_card(t, e, font))
-        for name, fn in (('DONUTS', ig.donut), ('WARNS', ig.warn), ('HEADLINES', ig.headline), ('SPLITS', ig.split_costs), ('NOTEQ', ig.not_equal), ('RESULTS', ig.result_pill), ('DEBTS', ig.debt_counter), ('DISSOLVES', ig.dissolve_word), ('RINGS', ig.ring_timer), ('FLIPS', ig.flip_cards), ('TILES', ig.two_tiles), ('PULSES', ig.pulse_alert), ('FAMILY', ig.family_chain), ('FOLLOW', ig.follow_button), ('TOGGLES', ig.toggle), ('PEOPLE', ig.people_row), ('BUBBLES', ig.bubbles), ('SIDECARDS', ig.side_cards)):
+        for name, fn in (('DONUTS', ig.donut), ('WARNS', ig.warn), ('HEADLINES', ig.headline), ('SPLITS', ig.split_costs), ('NOTEQ', ig.not_equal), ('RESULTS', ig.result_pill), ('DEBTS', ig.debt_counter), ('DISSOLVES', ig.dissolve_word), ('RINGS', ig.ring_timer), ('FLIPS', ig.flip_cards), ('TILES', ig.two_tiles), ('PULSES', ig.pulse_alert), ('FAMILY', ig.family_chain), ('FOLLOW', ig.follow_button), ('TOGGLES', ig.toggle), ('PEOPLE', ig.people_row), ('BUBBLES', ig.bubbles), ('SIDECARDS', ig.side_cards), ('SEPARATE', ig.separate), ('LADDERS', ig.ladder)):
             for e in globals()[name]:
                 if e[0] <= t < e[1]: out.alpha_composite(fn(t, e, font))
         for e in INCOMES:
