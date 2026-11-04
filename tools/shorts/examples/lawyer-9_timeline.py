@@ -14,7 +14,7 @@ PIPS = [(3.30, 9.08, {'fn': 'court_doc', 'args': ('POSTANOWIENIE SĄDU', 'MUSISZ
 BEHIND = [(9.12, 9.80, ['NIE', 'ZAWSZE'], 720, (255, 255, 255), 230),
           (15.96, 19.55, ['NIE', 'ZMUSZAJ'], 560, (244, 122, 58), 200)]
 SIDECARDS = [(10.40, 15.80, [(12.76, 'LĘKI', 'L'), (13.64, 'ZACHOWANIE OJCA', 'R'), (14.94, 'INNE PRZYCZYNY', 'L')], 980)]
-CHECKLISTS = [(19.80, 25.20, [(20.04, 'PRZYGOTUJ'), (22.40, 'ZACHĘCAJ'), (23.82, 'SZUKAJ ROZWIĄZAŃ')], 1200)]
+CHECKLISTS = [(19.80, 25.20, [(20.04, 'PRZYGOTUJ'), (22.40, 'ZACHĘCAJ'), (23.82, 'SZUKAJ ROZWIĄZAŃ')], 1220, 'dim')]
 SCENES = [(25.30, 36.18, {'fn': 'scene_contacts', 't_court': 28.62, 't_title': 29.60, 'title': 'ZMIANA KONTAKTÓW',
            'options': [(31.64, 'SKRÓCENIE', 'clock'), (32.68, 'BEZ\nNOCOWAŃ', 'moon'), (34.52, 'NADZÓR\nKURATORA', 'eye')]})]
 

@@ -390,20 +390,28 @@ def doc_card(t, e, font):
 
 
 def checklist(t, e, font):
-    """dark glass card with rows that tick green one by one"""
-    t0, t1, items, cy = e
+    """rows that tick green one by one; style 'glass' (card) or 'dim' (no card, soft dark shade behind)"""
+    t0, t1, items, cy = e[:4]; style = e[4] if len(e) > 4 else 'glass'
     a = min(1, (t1 - t) / 0.25) * ease(t, t0, 0.3)
     lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
-    rh = 112; h = 60 + rh * len(items); x0, x1 = 170, W - 170; y0 = cy - h / 2
-    _glass(d, (x0, y0, x1, y0 + h), 34, a)
+    fs = 54 if style == 'glass' else 44; bs = 72 if style == 'glass' else 58; rh = 112 if style == 'glass' else 88
+    tw = max(d.textlength(txt, font=font(fs)) for _, txt in items)
+    gw = bs + 33 + tw; x0 = (W - gw) / 2; h = 60 + rh * len(items); y0 = cy - h / 2
+    if style == 'glass':
+        _glass(d, (x0 - 45, y0, x0 + gw + 45, y0 + h), 34, a)
+    else:
+        sh = Image.new('L', (W, H)); ImageDraw.Draw(sh).rounded_rectangle((x0 - 70, y0 - 20, x0 + gw + 70, y0 + h + 20), 80, fill=int(170 * a))
+        sh = sh.filter(ImageFilter.GaussianBlur(45))
+        dark = Image.new('RGBA', (W, H), (0, 0, 10, 255)); dark.putalpha(sh); lay.alpha_composite(dark); d = ImageDraw.Draw(lay)
     for i, (it, txt) in enumerate(items):
-        k = ease(t, it, 0.3); yy = y0 + 30 + rh * i + rh / 2; bx = x0 + 45
-        d.rounded_rectangle((bx, yy - 36, bx + 72, yy + 36), 16, outline=(255, 255, 255, int(120 * a)), width=4)
+        k = ease(t, it, 0.3); yy = y0 + 30 + rh * i + rh / 2; bx = x0
+        d.rounded_rectangle((bx, yy - bs / 2, bx + bs, yy + bs / 2), int(bs * .22), outline=(255, 255, 255, int(140 * a)), width=4)
         if k > 0:
-            d.rounded_rectangle((bx, yy - 36, bx + 72, yy + 36), 16, fill=GREEN + (int(255 * a * k),))
-            d.line([(bx + 16, yy + 2), (bx + 31, yy + 18), (bx + 57, yy - 16)], fill=(255, 255, 255, int(255 * a * k)), width=9, joint='curve')
-        d.text((bx + 105, yy + 2), txt, font=font(54), fill=(255, 255, 255, int(255 * a * max(k, 0.3))), anchor='lm')
-    return _shadow(lay)
+            d.rounded_rectangle((bx, yy - bs / 2, bx + bs, yy + bs / 2), int(bs * .22), fill=GREEN + (int(255 * a * k),))
+            q = bs / 72
+            d.line([(bx + 16 * q, yy + 2 * q), (bx + 31 * q, yy + 18 * q), (bx + 57 * q, yy - 16 * q)], fill=(255, 255, 255, int(255 * a * k)), width=max(6, int(9 * q)), joint='curve')
+        d.text((bx + bs + 33, yy + 2), txt, font=font(fs), fill=(255, 255, 255, int(255 * a * max(k, 0.3))), anchor='lm')
+    return _shadow(lay, 10, 0.6, 5) if style == 'dim' else _shadow(lay)
 
 
 def words(t, e, font):
