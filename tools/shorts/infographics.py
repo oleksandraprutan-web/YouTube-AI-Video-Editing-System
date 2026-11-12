@@ -1001,7 +1001,7 @@ def behind_text(t, e, font):
 
 def court_doc(t, e, font):
     """top-half panel for picture-in-picture: court decision document + question"""
-    t0, t1, title, q, t_q = e
+    t0, t1, title, q, t_q = e[:5]; seal = e[5] if len(e) > 5 else 'SĄD'
     k = ease(t, t0 + 0.15, 0.4)
     lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
     x0, y0, x1, y1 = 150, 120 + 50 * (1 - k), W - 150, 740 + 50 * (1 - k)
@@ -1016,7 +1016,7 @@ def court_doc(t, e, font):
     # seal
     sx, sy = x1 - 130, y1 - 100
     d.ellipse((sx - 60, sy - 60, sx + 60, sy + 60), outline=RED + (int(220 * k),), width=8)
-    d.text((sx, sy + 2), 'SĄD', font=font(34), fill=RED + (int(220 * k),), anchor='mm')
+    d.text((sx, sy + 2), seal, font=font(34 if len(seal) <= 4 else 26), fill=RED + (int(220 * k),), anchor='mm')
     kq = ease(t, t_q, 0.3)
     if kq > 0:
         f = font(58); tw = d.textlength(q, font=f); y = y1 + 85
@@ -1263,3 +1263,103 @@ def question_flip(t, e, font):
         d.ellipse((x - 70, y - 70, x + 70, y + 70), fill=RED + (int(255 * a * kn),))
         d.text((x, y + 2), 'NIE', font=f, fill=(255, 255, 255, int(255 * a * kn)), anchor='mm')
     return _shadow(lay)
+
+
+def options3(t, e, font):
+    """three option cards in a row with risk colour + caption"""
+    t0, t1, opts, t_cap, cap, cy = e
+    a = min(1, (t - t0) / 0.3, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    cw, ch, gap = 330, 260, 12; x0 = (W - 3 * cw - 2 * gap) / 2
+    for i, (ot, lbl, sub, col) in enumerate(opts):
+        k = ease(t, ot, 0.35)
+        if k <= 0: continue
+        x = x0 + i * (cw + gap); y = cy - ch / 2 + 50 * (1 - k)
+        card = Image.new('RGBA', (W, H)); cd = ImageDraw.Draw(card)
+        cd.rounded_rectangle((x, y, x + cw, y + ch), 26, fill=(255, 255, 255, int(248 * a)))
+        cd.rounded_rectangle((x, y, x + cw, y + 18), 9, fill=tuple(col) + (int(255 * a),))
+        lay.alpha_composite(card); d = ImageDraw.Draw(lay)
+        lines = lbl.split('\n')
+        fs = 44
+        while fs > 22 and max(d.textlength(l, font=font(fs)) for l in lines) > cw - 30: fs -= 2
+        for j, l in enumerate(lines):
+            d.text((x + cw / 2, y + 95 + (j - (len(lines) - 1) / 2) * (fs + 8)), l, font=font(fs), fill=NAVY + (int(255 * a),), anchor='mm')
+        d.rounded_rectangle((x + 25, y + ch - 70, x + cw - 25, y + ch - 22), 24, fill=tuple(col) + (int(255 * a),))
+        d.text((x + cw / 2, y + ch - 46), sub, font=font(26), fill=(255, 255, 255, int(255 * a)), anchor='mm')
+    kc = ease(t, t_cap, 0.3)
+    if kc > 0:
+        f = font(42); tw = d.textlength(cap, font=f); y = cy + ch / 2 + 75
+        d.rounded_rectangle((W / 2 - tw / 2 - 34, y - 40, W / 2 + tw / 2 + 34, y + 40), 40, fill=ORANGE + (int(255 * a * kc),))
+        d.text((W / 2, y + 2), cap, font=f, fill=(255, 255, 255, int(255 * a * kc)), anchor='mm')
+    return _shadow(lay)
+
+
+def insurance(t, e, font):
+    """shield 'POLISA' + debt bar draining to zero, green check at the end"""
+    t0, t1, t_drain, t_ok, cy = e
+    a = min(1, (t - t0) / 0.3, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    _glass(d, (90, cy - 150, W - 90, cy + 150), 40, a)
+    sx, sy, s = 230, cy, 95
+    pts = [(sx - s, sy - s * .9), (sx, sy - s * 1.15), (sx + s, sy - s * .9), (sx + s * .85, sy + s * .25), (sx, sy + s * 1.05), (sx - s * .85, sy + s * .25)]
+    d.polygon(pts, fill=GREEN + (int(255 * a),))
+    d.text((sx, sy - 5), 'POLISA', font=font(30), fill=(255, 255, 255, int(255 * a)), anchor='mm')
+    bx0, bx1 = 380, W - 140
+    d.text((bx0, cy - 60), 'ZADŁUŻENIE', font=font(38), fill=(255, 255, 255, int(255 * a)), anchor='lm')
+    d.rounded_rectangle((bx0, cy - 10, bx1, cy + 40), 25, fill=(255, 255, 255, int(45 * a)))
+    fr = 1 - ease(t, t_drain, 1.6)
+    if fr > 0.02: d.rounded_rectangle((bx0, cy - 10, bx0 + (bx1 - bx0) * fr, cy + 40), 25, fill=RED + (int(240 * a),))
+    ko = ease(t, t_ok, 0.3)
+    if ko > 0:
+        d.text((bx1, cy - 60), 'SPŁACONE', font=font(36), fill=GREEN + (int(255 * a * ko),), anchor='rm')
+        cx, cyy, r = bx1 - 30, cy + 95, 30 * (0.5 + 0.5 * ko)
+    return _shadow(lay)
+
+
+def scene_kinship(t, e, font):
+    """blue-placeholder animation: MAMA —(pokrewieństwo)— TY; BANK sends a claim arrow to TY which gets blocked"""
+    t0, t1, cfg = e
+    lay = Image.new('RGBA', (W, H), NAVY + (255,))
+    glow = Image.new('RGBA', (W, H)); g = ImageDraw.Draw(glow)
+    for i, (bx, by, br, col) in enumerate([(250, 500, 420, (40, 70, 200)), (850, 1350, 520, (30, 50, 170)), (600, 900, 300, (244, 122, 58))]):
+        ph = (t - t0) * 0.35 + i * 2.1
+        g.ellipse((bx + 60 * math.sin(ph) - br, by + 50 * math.cos(ph * .8) - br, bx + 60 * math.sin(ph) + br, by + 50 * math.cos(ph * .8) + br), fill=col + (60 if i < 2 else 24,))
+    lay.alpha_composite(glow.filter(ImageFilter.GaussianBlur(120)))
+    d = ImageDraw.Draw(lay)
+    # family link
+    km = ease(t, t0 + 0.1, 0.4); kl = ease(t, cfg['t_link'], 0.6)
+    for (x, lbl, k) in [(230, 'MAMA', km), (850, 'TY', km)]:
+        if k <= 0: continue
+        _person(d, x, 640, 150 * (0.7 + 0.3 * k), (255, 255, 255, int(255 * k)))
+        d.text((x, 840), lbl, font=font(56), fill=(255, 255, 255, int(255 * k)), anchor='mm')
+    if kl > 0:
+        xe = 360 + (720 - 360) * kl
+        d.line((360, 640, xe, 640), fill=ORANGE + (255,), width=12)
+        d.text((540, 480), 'POKREWIEŃSTWO', font=font(40), fill=ORANGE + (int(255 * kl),), anchor='mm')
+    # bank
+    kb = ease(t, cfg['t_bank'], 0.4)
+    if kb > 0:
+        bx, by = 300, 1240
+        d.polygon([(bx - 170, by - 60), (bx, by - 150), (bx + 170, by - 60)], fill=(255, 255, 255, int(255 * kb)))
+        for c in range(4):
+            cx = bx - 120 + c * 80
+            d.rectangle((cx - 18, by - 45, cx + 18, by + 80), fill=(255, 255, 255, int(255 * kb)))
+        d.rectangle((bx - 175, by + 85, bx + 175, by + 110), fill=(255, 255, 255, int(255 * kb)))
+        d.text((bx, by + 165), 'BANK', font=font(52), fill=(255, 255, 255, int(255 * kb)), anchor='mm')
+    # claim arrow from bank to TY
+    ka = ease(t, cfg['t_claim'], 0.6)
+    if ka > 0:
+        x0, y0, x1, y1 = 420, 1080, 820, 900
+        xe, ye = x0 + (x1 - x0) * ka, y0 + (y1 - y0) * ka
+        d.line((x0, y0, xe, ye), fill=RED + (255,), width=12)
+        d.text((770, 1080), 'SPŁATA?', font=font(48), fill=RED + (int(255 * ka),), anchor='mm')
+    kx = ease(t, cfg['t_block'], 0.25)
+    if kx > 0:
+        cx, cy, s = 630, 985, 60
+        d.ellipse((cx - s - 10, cy - s - 10, cx + s + 10, cy + s + 10), fill=(255, 255, 255, int(255 * kx)))
+        d.line((cx - s * .6, cy - s * .6, cx + s * .6, cy + s * .6), fill=RED + (int(255 * kx),), width=14)
+        d.line((cx + s * .6, cy - s * .6, cx - s * .6, cy + s * .6), fill=RED + (int(255 * kx),), width=14)
+        f = font(50); tw = d.textlength(cfg['verdict'], font=f); y = 1560
+        d.rounded_rectangle((W / 2 - tw / 2 - 44, y - 54, W / 2 + tw / 2 + 44, y + 54), 54, fill=ORANGE + (int(255 * kx),))
+        d.text((W / 2, y + 2), cfg['verdict'], font=f, fill=(255, 255, 255, int(255 * kx)), anchor='mm')
+    return lay
