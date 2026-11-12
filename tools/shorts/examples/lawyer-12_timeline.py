@@ -8,7 +8,8 @@ FIXES = {93: 'polisy.'}
 
 ZOOMS = [(0, 1.0)]
 CUTS = [6.87, 11.37, 16.23, 20.73, 28.33, 34.5]
-RESULTS = [(1.78, 2.98, 'NIESPŁACONY KREDYT', (225, 25, 30), 420)]
+NOTIFS = [(0.90, 2.98, 'BANK', 'Zaległa rata kredytu', 'Do spłaty: 1 240 zł', 330)]   # author chose variant A
+RESULTS = []
 PIPS = [(3.04, 5.75, {'fn': 'court_doc', 'args': ('UMOWA KREDYTU', 'MUSISZ SPŁACAĆ?', 4.48, 'BANK')})]
 BEHIND = [(5.80, 6.85, ['NIE', 'ZAWSZE'], 440, (255, 255, 255), 190)]
 HEADLINES = [(6.92, 11.30, ['AUTOMATYCZNIE', 'PRZEJMUJESZ DŁUGI'], 10.70, 'NIEPRAWDA', 330, 0.8)]
@@ -20,7 +21,7 @@ OPTIONS3 = [(20.74, 28.20, [(21.00, 'ODRZUCENIE', 'BEZ DŁUGÓW', (46, 196, 110)
 INSURE = [(28.80, 34.40, 30.12, 33.24, 420)]
 RESULTS += [(37.52, 40.47, 'NAJPIERW USTAL OBOWIĄZEK', (244, 122, 58), 560)]
 
-SFX = [('pop_low.wav', 1.78, -19, 'start'),
+SFX = [('msg_in.wav', 0.95, -21, 'start'),
        ('whoosh1.wav', 3.04, -20, 'peak'), ('pencil_s.wav', 3.30, -26, 'start'), ('click2.wav', 4.48, -19, 'start'),
        ('click1.wav', 6.94, -21, 'start'), ('metal.wav', 10.70, -20, 'start'),
        ('whoosh_el.wav', 11.37, -21, 'peak'), ('pop1.wav', 11.74, -21, 'start'), ('pop_low.wav', 13.86, -19, 'start'),
