@@ -1363,3 +1363,21 @@ def scene_kinship(t, e, font):
         d.rounded_rectangle((W / 2 - tw / 2 - 44, y - 54, W / 2 + tw / 2 + 44, y + 54), 54, fill=ORANGE + (int(255 * kx),))
         d.text((W / 2, y + 2), cfg['verdict'], font=f, fill=(255, 255, 255, int(255 * kx)), anchor='mm')
     return lay
+
+
+def notification(t, e, font):
+    """iOS-style push notification sliding down from the top"""
+    t0, t1, app, title, body, cy = e
+    k = ease(t, t0, 0.35); a = min(1, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    x0, x1, h = 60, W - 60, 190; y0 = cy - h / 2 - 160 * (1 - k)
+    card = Image.new('RGBA', (W, H)); cd = ImageDraw.Draw(card)
+    cd.rounded_rectangle((x0, y0, x1, y0 + h), 40, fill=(245, 246, 250, int(245 * a)))
+    lay.alpha_composite(card); d = ImageDraw.Draw(lay)
+    d.rounded_rectangle((x0 + 30, y0 + 30, x0 + 100, y0 + 100), 18, fill=RED + (int(255 * a),))
+    d.text((x0 + 65, y0 + 66), '!', font=font(50), fill=(255, 255, 255, int(255 * a)), anchor='mm')
+    d.text((x0 + 125, y0 + 50), app, font=font(30), fill=(120, 125, 140, int(255 * a)), anchor='lm')
+    d.text((x1 - 35, y0 + 50), 'teraz', font=font(26), fill=(150, 155, 170, int(255 * a)), anchor='rm')
+    d.text((x0 + 125, y0 + 100), title, font=font(40), fill=(20, 20, 30, int(255 * a)), anchor='lm')
+    d.text((x0 + 125, y0 + 148), body, font=font(32), fill=RED + (int(255 * a),), anchor='lm')
+    return _shadow(lay)
