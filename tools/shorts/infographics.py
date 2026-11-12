@@ -1016,7 +1016,7 @@ def court_doc(t, e, font):
     # seal
     sx, sy = x1 - 130, y1 - 100
     d.ellipse((sx - 60, sy - 60, sx + 60, sy + 60), outline=RED + (int(220 * k),), width=8)
-    d.text((sx, sy + 2), seal, font=font(34 if len(seal) <= 4 else 26), fill=RED + (int(220 * k),), anchor='mm')
+    d.text((sx, sy + 2), seal, font=font(34 if len(seal) <= 3 else 22), fill=RED + (int(220 * k),), anchor='mm')
     kq = ease(t, t_q, 0.3)
     if kq > 0:
         f = font(58); tw = d.textlength(q, font=f); y = y1 + 85

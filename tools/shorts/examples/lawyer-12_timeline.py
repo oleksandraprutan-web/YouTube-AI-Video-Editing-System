@@ -19,7 +19,6 @@ OPTIONS3 = [(20.74, 28.20, [(21.00, 'ODRZUCENIE', 'BEZ DŁUGÓW', (46, 196, 110)
                             (22.54, 'INWENTARZ', 'DO WARTOŚCI', (244, 122, 58)),
                             (24.40, 'WPROST', 'CAŁY DŁUG', (225, 25, 30))], 27.14, 'INNE KONSEKWENCJE', 420)]
 INSURE = [(28.80, 34.40, 30.12, 33.24, 420)]
-RESULTS += [(37.52, 40.47, 'NAJPIERW USTAL OBOWIĄZEK', (244, 122, 58), 560)]
 
 SFX = [('msg_in.wav', 0.95, -21, 'start'),
        ('whoosh1.wav', 3.04, -20, 'peak'), ('pencil_s.wav', 3.30, -26, 'start'), ('click2.wav', 4.48, -19, 'start'),
@@ -29,5 +28,4 @@ SFX = [('msg_in.wav', 0.95, -21, 'start'),
        ('whoosh_el.wav', 16.23, -22, 'peak'),
        ('whoosh2.wav', 17.74, -22, 'peak'), ('whoosh2.wav', 19.58, -22, 'peak'),
        ('pop1.wav', 21.00, -21, 'start'), ('pop1.wav', 22.54, -21, 'start'), ('pop_low.wav', 24.40, -19, 'start'), ('click2.wav', 27.14, -20, 'start'),
-       ('pop_low.wav', 28.82, -19, 'start'), ('clock_s.wav', 30.12, -25, 'start'), ('ok.wav', 33.24, -25, 'start'),
-       ('click1.wav', 37.54, -20, 'start')]
+       ('pop_low.wav', 28.82, -19, 'start'), ('clock_s.wav', 30.12, -25, 'start'), ('ok.wav', 33.24, -25, 'start')]
