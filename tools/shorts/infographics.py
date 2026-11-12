@@ -1381,3 +1381,61 @@ def notification(t, e, font):
     d.text((x0 + 125, y0 + 100), title, font=font(40), fill=(20, 20, 30, int(255 * a)), anchor='lm')
     d.text((x0 + 125, y0 + 148), body, font=font(32), fill=RED + (int(255 * a),), anchor='lm')
     return _shadow(lay)
+
+
+def tug(t, e, font):
+    """child in the middle, two parents pulling; at t_pull the child is dragged to one side"""
+    t0, t1, t_pull, label, cy = e
+    a = min(1, (t - t0) / 0.3, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    _glass(d, (90, cy - 180, W - 90, cy + 170), 40, a)
+    kp = ease(t, t_pull, 0.6)
+    wob = 12 * math.sin((t - t0) * 9) * (1 - kp)
+    cxc = W / 2 + wob - 150 * kp
+    for x in (230, 850):
+        _person(d, x, cy, 95, (255, 255, 255, int(255 * a)))
+    d.line((300, cy - 10, cxc - 50, cy - 10), fill=ORANGE + (int(255 * a),), width=8)
+    d.line((cxc + 50, cy - 10, 780, cy - 10), fill=ORANGE + (int(255 * a),), width=8)
+    _person(d, cxc, cy + 15, 62, ORANGE + (int(255 * a),))
+    d.text((W / 2, cy + 120), label, font=font(38), fill=(255, 255, 255, int(255 * a)), anchor='mm')
+    return _shadow(lay)
+
+
+def scene_label(t, e, font):
+    """orange-placeholder animation: person with 'NARCYZ' tag, magnifier inspects tag, tag gets crossed; message pill"""
+    t0, t1, cfg = e
+    lay = Image.new('RGBA', (W, H), NAVY + (255,))
+    glow = Image.new('RGBA', (W, H)); g = ImageDraw.Draw(glow)
+    for i, (bx, by, br, col) in enumerate([(250, 500, 420, (40, 70, 200)), (850, 1350, 520, (30, 50, 170)), (600, 900, 300, (244, 122, 58))]):
+        ph = (t - t0) * 0.35 + i * 2.1
+        g.ellipse((bx + 60 * math.sin(ph) - br, by + 50 * math.cos(ph * .8) - br, bx + 60 * math.sin(ph) + br, by + 50 * math.cos(ph * .8) + br), fill=col + (60 if i < 2 else 24,))
+    lay.alpha_composite(glow.filter(ImageFilter.GaussianBlur(120)))
+    d = ImageDraw.Draw(lay)
+    kpill = ease(t, cfg['t_msg'], 0.35)
+    if kpill > 0:
+        f = font(66); y = 330
+        for j, ln in enumerate(cfg['msg']):
+            tw = d.textlength(ln, font=f)
+            d.text((W / 2, y + j * 84), ln, font=f, fill=(255, 255, 255, int(255 * kpill)), anchor='mm')
+    k = ease(t, t0 + 0.1, 0.4)
+    _person(d, 360, 1000, 260 * (0.8 + 0.2 * k), (255, 255, 255, int(255 * k)))
+    # tag on a string
+    kt = ease(t, t0 + 0.4, 0.4)
+    if kt > 0:
+        tx, ty = 760, 1150 + 25 * math.sin((t - t0) * 2.5)
+        d.line((470, 960, tx, ty - 60), fill=(255, 255, 255, int(200 * kt)), width=4)
+        f = font(64); tw = d.textlength(cfg['tag'], font=f)
+        d.rounded_rectangle((tx - tw / 2 - 36, ty - 60, tx + tw / 2 + 36, ty + 60), 20, fill=ORANGE + (int(255 * kt),))
+        d.text((tx, ty + 2), cfg['tag'], font=f, fill=(255, 255, 255, int(255 * kt)), anchor='mm')
+        km = ease(t, cfg['t_lens'], 0.5)
+        if km > 0:
+            lx, ly = tx - 40 + 40 * km + 25 * math.sin((t - t0) * 3), ty - 260 + 60 * km
+            d.ellipse((lx - 110, ly - 110, lx + 110, ly + 110), outline=(255, 255, 255, int(255 * km)), width=12)
+            d.line((lx + 78, ly + 78, lx + 150, ly + 150), fill=(255, 255, 255, int(255 * km)), width=22)
+        kx = ease(t, cfg['t_x'], 0.25)
+        if kx > 0:
+            s = 85
+            for (p0, p1) in [((tx - s, ty - s), (tx + s, ty + s)), ((tx + s, ty - s), (tx - s, ty + s))]:
+                e2 = (p0[0] + (p1[0] - p0[0]) * kx, p0[1] + (p1[1] - p0[1]) * kx)
+                d.line([p0, e2], fill=RED + (255,), width=16)
+    return lay
