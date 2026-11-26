@@ -70,6 +70,8 @@ CAPS = []           # (t0, t1, t_bar, t_cap, centre_y)
 SCENES = []         # full-frame animations: (t0, t1, {'fn': name, ...cfg})
 PLANS = []          # navy layout: {'t0','t1','title','title_t','items':[(t, text)],'cy'} card on top, soft oval below
 BLURS = []          # privacy blur in source px: (t0, t1, (x0,y0,x1,y1) at t0, (x0,y0,x1,y1) at t1)
+SATURATION = 1.2    # final colour boost (author wants richer colours on phone)
+CONTRAST = 1.03
 BG_DIM = 0.0        # 0..1 darken background behind the person (needs mattes/ for all frames), pro-studio look
 SFX = []            # (file, time, peak_db, 'start'|'peak')
 FIXES = {}          # word index -> corrected text (ASR fixes)
@@ -571,7 +573,8 @@ if __name__ == '__main__':
     dec = subprocess.Popen(['ffmpeg', '-v', 'error', '-i', SRC, '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-r', str(FPS), '-'], stdout=subprocess.PIPE)
     enc = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-',
                             '-i', 'out/mix.wav', '-map', '0:v', '-map', '1:a', '-c:v', 'libx264', '-preset', 'slow' if FINAL else 'medium', '-crf', '14' if FINAL else '19', '-profile:v', 'high',
-                            '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '320k' if FINAL else '192k', '-shortest', '-movflags', '+faststart', 'out/final.mp4' if FINAL else 'out/preview.mp4'], stdin=subprocess.PIPE)
+                            '-vf', f'eq=saturation={SATURATION}:contrast={CONTRAST}', '-pix_fmt', 'yuv420p',
+                            '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv', '-c:a', 'aac', '-b:a', '320k' if FINAL else '192k', '-shortest', '-movflags', '+faststart', 'out/final.mp4' if FINAL else 'out/preview.mp4'], stdin=subprocess.PIPE)
     n = 0
     while True:
         raw = dec.stdout.read(W * H * 3)
