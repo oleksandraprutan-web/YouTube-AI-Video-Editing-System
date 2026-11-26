@@ -1,7 +1,7 @@
 # Lawyer short 15 — "rozwód z obcokrajowcem w Polsce" (29.2 s). 8.67–19.5 blue placeholder → jurisdiction animation.
-SRC = 'src/video.mp4'
+SRC = 'src/video_v2.mp4'
 SUB_SIZE = 62
-STEMS = 'sep/htdemucs/audio'
+STEMS = 'sep2/htdemucs/audio_v2'
 MUSIC_GAIN_DB = -80
 SFX_GAIN_DB = -4
 
