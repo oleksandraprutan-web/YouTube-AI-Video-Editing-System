@@ -1691,7 +1691,7 @@ def scene_passport(t, e, font):
 
 
 # ---------- MODERN set (short 16): gradients, outlined numerals, kinetic type, progress tracker ----------
-GRAD_A, GRAD_B = (255, 140, 60), (255, 70, 110)        # warm orange -> pink accent
+GRAD_A, GRAD_B = (244, 122, 58), (255, 178, 90)        # brand orange gradient (author: orange + navy)
 
 
 def _grad(w, h, c1=GRAD_A, c2=GRAD_B, diag=True):
@@ -1731,7 +1731,7 @@ def _kinetic(lay, t, t0, words, cx, cy, size, font, color=(255, 255, 255), stagg
 def _dark_card(lay, box, r=36, a=1.0, border=True):
     x0, y0, x1, y1 = [int(v) for v in box]
     c = Image.new('RGBA', (W, H)); cd = ImageDraw.Draw(c)
-    cd.rounded_rectangle(box, r, fill=(12, 14, 30, int(205 * a)))
+    cd.rounded_rectangle(box, r, fill=(2, 6, 74, int(220 * a)))
     lay.alpha_composite(c)
     if border:
         g = _grad(x1 - x0, y1 - y0)
@@ -1772,7 +1772,7 @@ def tracker(t, e, font):
     st, lbl = steps[cur]
     d = ImageDraw.Draw(lay)
     num = f'0{cur + 1}'
-    d.text((x0, cy + 75), num, font=font(80), fill=(255, 255, 255, 0), anchor='lm', stroke_width=3, stroke_fill=(255, 255, 255, int(230 * a)))
+    d.text((x0, cy + 75), num, font=font(80), fill=ORANGE + (int(255 * a),), anchor='lm')
     d.text((x0 + 125, cy + 75), f'/ 0{n}', font=font(30), fill=(255, 255, 255, int(150 * a)), anchor='lm')
     sub = Image.new('RGBA', (W, H)); _kinetic(sub, t, st + 0.1, lbl.split(), W / 2 + 70, cy + 72, 44, font, stagger=0.06)
     lay.alpha_composite(_alpha(sub, a))
@@ -1813,9 +1813,9 @@ def chips(t, e, font):
 
 
 def _modern_bg(t, t0, flip=False):
-    g = _grad(W, H, (18, 20, 60), (60, 18, 70)) if not flip else _grad(W, H, (60, 18, 70), (18, 20, 60))
+    g = _grad(W, H, (2, 6, 74), (16, 34, 130)) if not flip else _grad(W, H, (16, 34, 130), (2, 6, 74))
     blob = Image.new('RGBA', (W, H)); b = ImageDraw.Draw(blob)
-    for i, (bx, by, br, col) in enumerate([(200, 400, 380, GRAD_A), (900, 1500, 460, GRAD_B), (700, 900, 260, (90, 120, 255))]):
+    for i, (bx, by, br, col) in enumerate([(200, 400, 380, GRAD_A), (900, 1500, 460, (40, 80, 220)), (700, 900, 260, (60, 110, 255))]):
         ph = (t - t0) * 0.4 + i * 2
         b.ellipse((bx + 70 * math.sin(ph) - br, by + 60 * math.cos(ph) - br, bx + 70 * math.sin(ph) + br, by + 60 * math.cos(ph) + br), fill=col + (70,))
     g.alpha_composite(blob.filter(ImageFilter.GaussianBlur(140)))
@@ -1833,7 +1833,7 @@ def scene_two_homes_modern(t, e, font):
     lay = _modern_bg(t, t0)
     d = ImageDraw.Draw(lay)
     k = ease(t, t0, 0.4)
-    d.text((110, 300), '02', font=font(220), fill=(255, 255, 255, 0), anchor='lm', stroke_width=6, stroke_fill=(255, 255, 255, int(200 * k)))
+    d.text((110, 300), '02', font=font(220), fill=ORANGE + (int(255 * k),), anchor='lm')
     sub = Image.new('RGBA', (W, H)); _kinetic(sub, t, t0 + 0.15, cfg['title'].split(), 690, 300, 64, font, grad_word=0); lay.alpha_composite(sub)
     d = ImageDraw.Draw(lay)
     # two homes
@@ -1873,7 +1873,7 @@ def scene_distance_modern(t, e, font):
     lay = _modern_bg(t, t0, flip=True)
     d = ImageDraw.Draw(lay)
     k = ease(t, t0, 0.4)
-    d.text((110, 300), '04', font=font(220), fill=(255, 255, 255, 0), anchor='lm', stroke_width=6, stroke_fill=(255, 255, 255, int(200 * k)))
+    d.text((110, 300), '04', font=font(220), fill=ORANGE + (int(255 * k),), anchor='lm')
     sub = Image.new('RGBA', (W, H)); _kinetic(sub, t, t0 + 0.15, cfg['title'].split(), 690, 300, 64, font, grad_word=0); lay.alpha_composite(sub)
     _dark_card(lay, (90, 520, W - 90, 1180), 44, k); d = ImageDraw.Draw(lay)
     # route as smooth s-curve
@@ -1897,3 +1897,58 @@ def scene_distance_modern(t, e, font):
         d.text((W / 2, 1410), 'W JEDNĄ STRONĘ', font=font(36), fill=(255, 255, 255, int(200 * kt)), anchor='mm')
     sub = Image.new('RGBA', (W, H)); lay.alpha_composite(chips(t, (t0, t1, cfg['tags'], 1560), font))
     return lay
+
+
+
+def four_count(t, e, font):
+    """four squares pop in one by one (1..4, orange), then navy pill 'ARGUMENTY'"""
+    t0, t1, times, label, t_lbl, cy = e
+    a = min(1, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    n = len(times); sz, gap = 150, 26; x0 = (W - n * sz - (n - 1) * gap) / 2
+    for i, tt in enumerate(times):
+        k = ease(t, tt, 0.3)
+        if k <= 0: continue
+        x = x0 + i * (sz + gap); s2 = sz * (0.6 + 0.4 * k); o = (sz - s2) / 2
+        d.rounded_rectangle((x + o, cy - sz / 2 + o, x + o + s2, cy - sz / 2 + o + s2), 30, fill=ORANGE + (int(255 * a * k),))
+        d.text((x + sz / 2, cy + 4), str(i + 1), font=font(int(96 * (0.6 + 0.4 * k))), fill=(255, 255, 255, int(255 * a * k)), anchor='mm')
+    kl = ease(t, t_lbl, 0.3)
+    if kl > 0:
+        f = font(56); tw = d.textlength(label, font=f); y = cy + sz / 2 + 80 - 20 * (1 - kl)
+        d.rounded_rectangle((W / 2 - tw / 2 - 46, y - 52, W / 2 + tw / 2 + 46, y + 52), 52, fill=NAVY + (int(240 * a * kl),))
+        d.text((W / 2, y + 2), label, font=f, fill=(255, 255, 255, int(255 * a * kl)), anchor='mm')
+    return _shadow(lay)
+
+
+def hook_question(t, e, font):
+    """navy card 'DOBRY RODZIC' gets a green tick -> arrow -> orange card 'OPIEKA NAPRZEMIENNA' -> big '?' pops"""
+    t0, t1, left, t_ok, right, t_right, t_q, cy = e
+    a = min(1, (t - t0) / 0.25, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    cw, ch = 400, 190
+    kl = ease(t, t0 + 0.05, 0.35)
+    lx = 70; d.rounded_rectangle((lx, cy - ch / 2 + 30 * (1 - kl), lx + cw, cy + ch / 2 + 30 * (1 - kl)), 34, fill=NAVY + (int(240 * a * kl),))
+    for j, ln in enumerate(left.split('\n')):
+        d.text((lx + cw / 2, cy + (j - (len(left.split('\n')) - 1) / 2) * 58), ln, font=font(50), fill=(255, 255, 255, int(255 * a * kl)), anchor='mm')
+    ko = ease(t, t_ok, 0.3)
+    if ko > 0:
+        bx, by = lx + cw - 8, cy - ch / 2 + 8; r = 36 * (0.5 + 0.5 * ko)
+        d.ellipse((bx - r, by - r, bx + r, by + r), fill=GREEN + (int(255 * a),))
+        d.line([(bx - 15, by + 2), (bx - 4, by + 13), (bx + 16, by - 11)], fill=(255, 255, 255, int(255 * a * ko)), width=7, joint='curve')
+    kr = ease(t, t_right, 0.35)
+    if kr > 0:
+        ax0, ax1 = lx + cw + 20, lx + cw + 20 + 70 * kr
+        d.line((ax0, cy, ax1, cy), fill=(255, 255, 255, int(255 * a)), width=10)
+        if kr > 0.9: d.polygon([(ax1 + 18, cy), (ax1 - 4, cy - 18), (ax1 - 4, cy + 18)], fill=(255, 255, 255, int(255 * a)))
+        rx = W - 70 - cw
+        d.rounded_rectangle((rx, cy - ch / 2 + 30 * (1 - kr), rx + cw, cy + ch / 2 + 30 * (1 - kr)), 34, fill=ORANGE + (int(250 * a * kr),))
+        fs = 46
+        while fs > 24 and max(d.textlength(l, font=font(fs)) for l in right.split('\n')) > cw - 50: fs -= 2
+        for j, ln in enumerate(right.split('\n')):
+            d.text((rx + cw / 2, cy + (j - (len(right.split('\n')) - 1) / 2) * (fs + 12)), ln, font=font(fs), fill=(255, 255, 255, int(255 * a * kr)), anchor='mm')
+    kq = ease(t, t_q, 0.3)
+    if kq > 0:
+        qx, qy = W - 110, cy - ch / 2 - 30; r = 62 * (0.5 + 0.5 * kq)
+        d.ellipse((qx - r, qy - r, qx + r, qy + r), fill=(255, 255, 255, int(255 * a)))
+        d.text((qx, qy + 4), '?', font=font(int(90 * (0.5 + 0.5 * kq))), fill=NAVY + (int(255 * a),), anchor='mm')
+    return _shadow(lay)

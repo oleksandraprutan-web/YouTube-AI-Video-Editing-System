@@ -58,7 +58,7 @@ SPLITS = []         # (t0, t1, [(t, label)], t_plus, plus_text, centre_y)
 NOTEQ = []          # (t0, t1, (t, a), (t, '≠'), (t, b), centre_y)
 DEBTS = []; DISSOLVES = []; RINGS = []; FLIPS = []; TILES = []; PULSES = []; FAMILY = []; FOLLOW = []
 TOGGLES = []; PEOPLE = []
-BUBBLES = []; SIDECARDS = []; SEPARATE = []; LADDERS = []; SCALES = []; DOORS = []; QFLIPS = []; OPTIONS3 = []; INSURE = []; NOTIFS = []; TUGS = []; FLIGHTS = []; PASSES = []; BIGCOUNT = []; TRACKERS = []; KTITLES = []; CHIPS = []
+BUBBLES = []; SIDECARDS = []; SEPARATE = []; LADDERS = []; SCALES = []; DOORS = []; QFLIPS = []; OPTIONS3 = []; INSURE = []; NOTIFS = []; TUGS = []; FLIGHTS = []; PASSES = []; BIGCOUNT = []; TRACKERS = []; KTITLES = []; CHIPS = []; FOURS = []; HOOKQ = []
 BEHIND = []         # (t0, t1, [lines], centre_y, rgb) text behind the person (needs mattes/)
 PIPS = []           # (t0, t1, {'fn': ig panel fn name, ...}) picture-in-picture: video shrinks to bottom card, panel on top
 RESULTS = []        # (t0, t1, text, rgb, centre_y) standalone result pill
@@ -518,7 +518,7 @@ def base_frame(src, t, circ):
             if e[0] <= t < e[1]: out.alpha_composite(ig.strike(t, e, font))
         for e in DOCS:
             if e[0] <= t < e[1]: out.alpha_composite(ig.doc_card(t, e, font))
-        for name, fn in (('DONUTS', ig.donut), ('WARNS', ig.warn), ('HEADLINES', ig.headline), ('SPLITS', ig.split_costs), ('NOTEQ', ig.not_equal), ('RESULTS', ig.result_pill), ('DEBTS', ig.debt_counter), ('DISSOLVES', ig.dissolve_word), ('RINGS', ig.ring_timer), ('FLIPS', ig.flip_cards), ('TILES', ig.two_tiles), ('PULSES', ig.pulse_alert), ('FAMILY', ig.family_chain), ('FOLLOW', ig.follow_button), ('TOGGLES', ig.toggle), ('PEOPLE', ig.people_row), ('BUBBLES', ig.bubbles), ('SIDECARDS', ig.side_cards), ('SEPARATE', ig.separate), ('LADDERS', ig.ladder), ('SCALES', ig.scale_compare), ('DOORS', ig.two_doors), ('QFLIPS', ig.question_flip), ('OPTIONS3', ig.options3), ('INSURE', ig.insurance), ('NOTIFS', ig.notification), ('TUGS', ig.tug), ('FLIGHTS', ig.flight), ('PASSES', ig.boarding_pass), ('BIGCOUNT', ig.big_count), ('TRACKERS', ig.tracker), ('KTITLES', ig.kinetic_title), ('CHIPS', ig.chips)):
+        for name, fn in (('DONUTS', ig.donut), ('WARNS', ig.warn), ('HEADLINES', ig.headline), ('SPLITS', ig.split_costs), ('NOTEQ', ig.not_equal), ('RESULTS', ig.result_pill), ('DEBTS', ig.debt_counter), ('DISSOLVES', ig.dissolve_word), ('RINGS', ig.ring_timer), ('FLIPS', ig.flip_cards), ('TILES', ig.two_tiles), ('PULSES', ig.pulse_alert), ('FAMILY', ig.family_chain), ('FOLLOW', ig.follow_button), ('TOGGLES', ig.toggle), ('PEOPLE', ig.people_row), ('BUBBLES', ig.bubbles), ('SIDECARDS', ig.side_cards), ('SEPARATE', ig.separate), ('LADDERS', ig.ladder), ('SCALES', ig.scale_compare), ('DOORS', ig.two_doors), ('QFLIPS', ig.question_flip), ('OPTIONS3', ig.options3), ('INSURE', ig.insurance), ('NOTIFS', ig.notification), ('TUGS', ig.tug), ('FLIGHTS', ig.flight), ('PASSES', ig.boarding_pass), ('BIGCOUNT', ig.big_count), ('TRACKERS', ig.tracker), ('KTITLES', ig.kinetic_title), ('CHIPS', ig.chips), ('FOURS', ig.four_count), ('HOOKQ', ig.hook_question)):
             for e in globals()[name]:
                 if e[0] <= t < e[1]: out.alpha_composite(fn(t, e, font))
         for e in INCOMES:
