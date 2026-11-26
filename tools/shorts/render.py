@@ -72,6 +72,7 @@ PLANS = []          # navy layout: {'t0','t1','title','title_t','items':[(t, tex
 BLURS = []          # privacy blur in source px: (t0, t1, (x0,y0,x1,y1) at t0, (x0,y0,x1,y1) at t1)
 SATURATION = 1.2    # final colour boost (author wants richer colours on phone)
 CONTRAST = 1.03
+COLOR_FIX = 'colorbalance=bs=0.04:bm=0.05:bh=0.02:gm=-0.015'   # removes green cast that saturation adds to grey/skin
 BG_DIM = 0.0        # 0..1 darken background behind the person (needs mattes/ for all frames), pro-studio look
 SFX = []            # (file, time, peak_db, 'start'|'peak')
 FIXES = {}          # word index -> corrected text (ASR fixes)
@@ -573,7 +574,7 @@ if __name__ == '__main__':
     dec = subprocess.Popen(['ffmpeg', '-v', 'error', '-i', SRC, '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-r', str(FPS), '-'], stdout=subprocess.PIPE)
     enc = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-',
                             '-i', 'out/mix.wav', '-map', '0:v', '-map', '1:a', '-c:v', 'libx264', '-preset', 'slow' if FINAL else 'medium', '-crf', '14' if FINAL else '19', '-profile:v', 'high',
-                            '-vf', f'eq=saturation={SATURATION}:contrast={CONTRAST}', '-pix_fmt', 'yuv420p',
+                            '-vf', f'eq=saturation={SATURATION}:contrast={CONTRAST},{COLOR_FIX}', '-pix_fmt', 'yuv420p',
                             '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv', '-c:a', 'aac', '-b:a', '320k' if FINAL else '192k', '-shortest', '-movflags', '+faststart', 'out/final.mp4' if FINAL else 'out/preview.mp4'], stdin=subprocess.PIPE)
     n = 0
     while True:
