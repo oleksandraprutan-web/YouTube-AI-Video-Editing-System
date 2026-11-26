@@ -433,7 +433,7 @@ def dim_bg(src, t):
     if _vig is None:
         yy, xx = np.mgrid[0:H, 0:W]
         r = np.sqrt(((xx - W / 2) / (W * 0.62)) ** 2 + ((yy - H * 0.45) / (H * 0.62)) ** 2)
-        _vig = np.clip(1 - BG_DIM - 0.25 * np.clip(r - 0.6, 0, 1), 0, 1)[..., None].astype(np.float32)
+        _vig = np.clip(1 - BG_DIM - 0.12 * np.clip(r - 0.6, 0, 1), 0, 1)[..., None].astype(np.float32)
     a = np.asarray(src).astype(np.float32)
     m = np.asarray(Image.open(mp).filter(ImageFilter.GaussianBlur(3))).astype(np.float32)[..., None] / 255
     out = a * (m + (1 - m) * _vig)
