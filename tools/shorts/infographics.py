@@ -1627,17 +1627,32 @@ def scene_key(t, e, font):
         while fs > 24 and max(d.textlength(l, font=font(fs)) for l in lbl.split('\n')) > w - 110: fs -= 2
         for li, ln in enumerate(lbl.split('\n')):
             d.text((x + w / 2 + (-20 if j == 0 else 25), y + h / 2 + (li - (len(lbl.split('\n')) - 1) / 2) * (fs + 12)), ln, font=font(fs), fill=tc + (int(255 * kp),), anchor='mm')
-    # lock -> opens
-    kl = ease(t, cfg['t_lock'], 0.4); ko = ease(t, cfg['t_open'], 0.4)
+    # lock -> opens (full padlock: shackle + body + keyhole; on open the shackle lifts and the left leg comes out)
+    kl = ease(t, cfg['t_lock'], 0.4); ko = ease(t, cfg['t_open'], 0.45)
     if kl > 0:
-        cx, cy = W / 2, 1200
-        lift = 60 * ko
-        d.arc((cx - 80, cy - 170 - lift, cx + 80, cy - 10 - lift), 180, 360, fill=(255, 255, 255, int(255 * kl)), width=26)
-        d.line((cx - 80 + 0, cy - 90 - lift, cx - 80, cy - 10), fill=(255, 255, 255, int(255 * kl)), width=26) if ko < 0.5 else None
-        d.line((cx + 80, cy - 90 - lift, cx + 80, cy - 10 - lift), fill=(255, 255, 255, int(255 * kl)), width=26)
-        d.rounded_rectangle((cx - 130, cy - 20, cx + 130, cy + 170), 30, fill=(GREEN if ko > 0.5 else ORANGE) + (int(255 * kl),))
-        d.ellipse((cx - 22, cy + 45, cx + 22, cy + 89), fill=NAVY + (int(255 * kl),))
-        if ko > 0: d.text((cx, cy + 290), cfg['res'], font=font(70), fill=(255, 255, 255, int(255 * ko)), anchor='mm')
+        cx, by = W / 2, 1150                       # body top
+        bw, bh, sw = 300, 250, 30                  # body size, shackle stroke
+        ro = 105                                   # shackle outer half-width
+        lift = 70 * ko
+        col_s = (255, 255, 255, int(255 * kl))
+        body_col = (GREEN if ko > 0.5 else ORANGE) + (int(255 * kl),)
+        top = by - 230 - lift
+        # shackle: arc + two legs
+        d.arc((cx - ro, top, cx + ro, top + 2 * ro), 180, 360, fill=col_s, width=sw)
+        leg_bottom = by + 20
+        d.line((cx + ro - sw / 2, top + ro, cx + ro - sw / 2, leg_bottom - lift * 0), fill=col_s, width=sw)
+        if ko < 0.5:
+            d.line((cx - ro + sw / 2, top + ro, cx - ro + sw / 2, leg_bottom), fill=col_s, width=sw)
+        else:
+            d.line((cx - ro + sw / 2, top + ro, cx - ro + sw / 2, top + ro + 50), fill=col_s, width=sw)
+        # body
+        d.rounded_rectangle((cx - bw / 2, by, cx + bw / 2, by + bh), 34, fill=body_col)
+        d.rounded_rectangle((cx - bw / 2 + 14, by + 14, cx + bw / 2 - 14, by + bh - 14), 26, outline=(255, 255, 255, int(70 * kl)), width=4)
+        # keyhole
+        kx, ky = cx, by + bh * 0.42
+        d.ellipse((kx - 30, ky - 30, kx + 30, ky + 30), fill=NAVY + (int(255 * kl),))
+        d.polygon([(kx - 16, ky + 10), (kx + 16, ky + 10), (kx + 24, ky + 85), (kx - 24, ky + 85)], fill=NAVY + (int(255 * kl),))
+        if ko > 0: d.text((cx, by + bh + 110), cfg['res'], font=font(70), fill=(255, 255, 255, int(255 * ko)), anchor='mm')
     return lay
 
 
