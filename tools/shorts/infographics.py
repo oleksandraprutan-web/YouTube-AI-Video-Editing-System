@@ -1439,3 +1439,52 @@ def scene_label(t, e, font):
                 e2 = (p0[0] + (p1[0] - p0[0]) * kx, p0[1] + (p1[1] - p0[1]) * kx)
                 d.line([p0, e2], fill=RED + (255,), width=16)
     return lay
+
+
+def scene_loyalty(t, e, font):
+    """blue-placeholder animation: child shuttles between TATA and MAMA houses; bad words, fear, messages"""
+    t0, t1, cfg = e
+    lay = Image.new('RGBA', (W, H), NAVY + (255,))
+    glow = Image.new('RGBA', (W, H)); g = ImageDraw.Draw(glow)
+    for i, (bx, by, br, col) in enumerate([(250, 500, 420, (40, 70, 200)), (850, 1350, 520, (30, 50, 170)), (600, 900, 300, (244, 122, 58))]):
+        ph = (t - t0) * 0.35 + i * 2.1
+        g.ellipse((bx + 60 * math.sin(ph) - br, by + 50 * math.cos(ph * .8) - br, bx + 60 * math.sin(ph) + br, by + 50 * math.cos(ph * .8) + br), fill=col + (60 if i < 2 else 24,))
+    lay.alpha_composite(glow.filter(ImageFilter.GaussianBlur(120)))
+    d = ImageDraw.Draw(lay)
+    k = ease(t, t0, 0.3)
+    f = font(54); tw = d.textlength(cfg['title'], font=f); y = 250 - 30 * (1 - k)
+    d.rounded_rectangle((W / 2 - tw / 2 - 44, y - 54, W / 2 + tw / 2 + 44, y + 54), 54, fill=ORANGE + (int(255 * k),))
+    d.text((W / 2, y + 2), cfg['title'], font=f, fill=(255, 255, 255, int(255 * k)), anchor='mm')
+    hy = 900; xs = {'TATA': 260, 'MAMA': 820}
+    kh = ease(t, t0 + 0.3, 0.4)
+    for lbl, x in xs.items():
+        _house(d, x, hy, 200 * (0.7 + 0.3 * kh), (255, 255, 255, int(255 * kh)))
+        d.text((x, hy + 230), lbl, font=font(60), fill=(255, 255, 255, int(255 * kh)), anchor='mm')
+    # child position: at TATA, moves to MAMA at t_move, then shuttles with message
+    km = ease(t, cfg['t_move'], 1.0)
+    cx = xs['TATA'] + (xs['MAMA'] - xs['TATA']) * km
+    if t >= cfg['t_msg']:
+        ph = (t - cfg['t_msg']) * 0.9
+        cx = W / 2 + (xs['MAMA'] - W / 2) * math.cos(ph * math.pi)
+    cy = hy + 470
+    _person(d, cx, cy, 120 * kh, ORANGE + (int(255 * kh),))
+    # bad words bubble from TATA
+    kb = ease(t, cfg['t_bad'], 0.3) * (1 - ease(t, cfg['t_move'], 0.3))
+    if kb > 0:
+        bx, by = xs['TATA'] + 80, hy - 330
+        d.rounded_rectangle((bx - 150, by - 65, bx + 150, by + 65), 40, fill=(255, 255, 255, int(250 * kb)))
+        d.polygon([(bx - 60, by + 60), (bx - 20, by + 60), (bx - 90, by + 120)], fill=(255, 255, 255, int(250 * kb)))
+        d.text((bx, by + 2), '#@%!', font=font(60), fill=RED + (int(255 * kb),), anchor='mm')
+    # fear: sealed lips label at MAMA
+    kf = ease(t, cfg['t_fear'], 0.3) * (1 - ease(t, cfg['t_msg'], 0.3))
+    if kf > 0:
+        bx, by = xs['MAMA'] - 80, hy - 330
+        d.rounded_rectangle((bx - 170, by - 65, bx + 170, by + 65), 40, fill=(255, 255, 255, int(250 * kf)))
+        d.text((bx, by + 2), cfg['fear'], font=font(44), fill=NAVY + (int(255 * kf),), anchor='mm')
+    # messages: envelope travelling with the child
+    if t >= cfg['t_msg']:
+        ke = ease(t, cfg['t_msg'], 0.3)
+        _envelope(d, cx, cy - 200, 70, ke)
+        f2 = font(52); lbl = cfg['msg']; tw2 = d.textlength(lbl, font=f2)
+        d.text((W / 2, 1680), lbl, font=f2, fill=ORANGE + (int(255 * ke),), anchor='mm')
+    return lay

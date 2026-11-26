@@ -70,6 +70,7 @@ CAPS = []           # (t0, t1, t_bar, t_cap, centre_y)
 SCENES = []         # full-frame animations: (t0, t1, {'fn': name, ...cfg})
 PLANS = []          # navy layout: {'t0','t1','title','title_t','items':[(t, text)],'cy'} card on top, soft oval below
 BLURS = []          # privacy blur in source px: (t0, t1, (x0,y0,x1,y1) at t0, (x0,y0,x1,y1) at t1)
+BG_DIM = 0.0        # 0..1 darken background behind the person (needs mattes/ for all frames), pro-studio look
 SFX = []            # (file, time, peak_db, 'start'|'peak')
 FIXES = {}          # word index -> corrected text (ASR fixes)
 MERGE = []          # (index, text): merge word index with next into text
@@ -423,8 +424,23 @@ def apply_blurs(src, t):
                 src = Image.composite(src.filter(ImageFilter.GaussianBlur(9)), src, m)
     return src
 
+_vig = None
+def dim_bg(src, t):
+    global _vig
+    if not BG_DIM: return src
+    mp = f'mattes/{int(round(t * FPS)):05d}.png'
+    if not os.path.exists(mp): return src
+    if _vig is None:
+        yy, xx = np.mgrid[0:H, 0:W]
+        r = np.sqrt(((xx - W / 2) / (W * 0.62)) ** 2 + ((yy - H * 0.45) / (H * 0.62)) ** 2)
+        _vig = np.clip(1 - BG_DIM - 0.25 * np.clip(r - 0.6, 0, 1), 0, 1)[..., None].astype(np.float32)
+    a = np.asarray(src).astype(np.float32)
+    m = np.asarray(Image.open(mp).filter(ImageFilter.GaussianBlur(3))).astype(np.float32)[..., None] / 255
+    out = a * (m + (1 - m) * _vig)
+    return Image.fromarray(np.clip(out, 0, 255).astype(np.uint8))
+
 def render_frame(src, t):
-    src = apply_blurs(src, t)
+    src = dim_bg(apply_blurs(src, t), t)
     for c in CIRCLES + [(p['t0'], p['t1'], p) for p in PLANS]:
         if c[1] - 0.25 <= t < c[1] + 0.25:
             k = (t - (c[1] - 0.25)) / 0.5
