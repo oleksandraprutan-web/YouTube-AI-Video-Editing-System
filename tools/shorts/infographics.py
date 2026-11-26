@@ -1484,7 +1484,7 @@ def scene_loyalty(t, e, font):
     # messages: envelope travelling with the child
     if t >= cfg['t_msg']:
         ke = ease(t, cfg['t_msg'], 0.3)
-        _envelope(d, cx, cy - 200, 70, ke)
+        _envelope(d, cx + 150, cy - 30, 60, ke)
         f2 = font(52); lbl = cfg['msg']; tw2 = d.textlength(lbl, font=f2)
         d.text((W / 2, 1680), lbl, font=f2, fill=ORANGE + (int(255 * ke),), anchor='mm')
     return lay
