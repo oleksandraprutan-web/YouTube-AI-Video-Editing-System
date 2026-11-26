@@ -1688,3 +1688,212 @@ def scene_passport(t, e, font):
         d.rectangle((cx - 170, cy + 80, cx + 170, cy + 100), fill=ORANGE + (int(255 * kr),))
         d.text((cx, cy + 170), cfg['res'], font=font(62), fill=(255, 255, 255, int(255 * kr)), anchor='mm')
     return lay
+
+
+# ---------- MODERN set (short 16): gradients, outlined numerals, kinetic type, progress tracker ----------
+GRAD_A, GRAD_B = (255, 140, 60), (255, 70, 110)        # warm orange -> pink accent
+
+
+def _grad(w, h, c1=GRAD_A, c2=GRAD_B, diag=True):
+    x = np.linspace(0, 1, w)[None, :]; y = np.linspace(0, 1, h)[:, None]
+    t = (x * 0.7 + y * 0.3) if diag else x + y * 0
+    arr = np.zeros((h, w, 4), np.uint8)
+    for i in range(3): arr[..., i] = (c1[i] + (c2[i] - c1[i]) * t).astype(np.uint8)
+    arr[..., 3] = 255
+    return Image.fromarray(arr, 'RGBA')
+
+
+def _grad_text(txt, f, c1=GRAD_A, c2=GRAD_B):
+    d0 = ImageDraw.Draw(Image.new('L', (1, 1))); bb = d0.textbbox((0, 0), txt, font=f)
+    w, h = bb[2] - bb[0] + 20, bb[3] - bb[1] + 20
+    m = Image.new('L', (w, h)); ImageDraw.Draw(m).text((10 - bb[0], 10 - bb[1]), txt, font=f, fill=255)
+    g = _grad(w, h, c1, c2); g.putalpha(m); return g
+
+
+def _kinetic(lay, t, t0, words, cx, cy, size, font, color=(255, 255, 255), stagger=0.09, grad_word=None):
+    """words slide up from a mask one by one; returns nothing"""
+    f = font(size); d = ImageDraw.Draw(lay)
+    widths = [d.textlength(w, font=f) for w in words]; gap = size * 0.3
+    total = sum(widths) + gap * (len(words) - 1); x = cx - total / 2
+    for i, (w, ww) in enumerate(zip(words, widths)):
+        k = ease(t, t0 + i * stagger, 0.35)
+        if k > 0:
+            h = int(size * 1.4)
+            tl = Image.new('RGBA', (int(ww) + 20, h)); ImageDraw.Draw(tl).text((10, h * 0.5), w, font=f, fill=color + (255,), anchor='lm')
+            if grad_word is not None and i == grad_word:
+                g = _grad(tl.size[0], tl.size[1]); g.putalpha(tl.split()[3]); tl = g
+            sh = int(h * (1 - k))
+            crop = Image.new('RGBA', tl.size); crop.alpha_composite(tl, (0, sh)) if sh < tl.size[1] else None
+            lay.alpha_composite(crop, (int(x - 10), int(cy - h / 2)))
+        x += ww + gap
+
+
+def _dark_card(lay, box, r=36, a=1.0, border=True):
+    x0, y0, x1, y1 = [int(v) for v in box]
+    c = Image.new('RGBA', (W, H)); cd = ImageDraw.Draw(c)
+    cd.rounded_rectangle(box, r, fill=(12, 14, 30, int(205 * a)))
+    lay.alpha_composite(c)
+    if border:
+        g = _grad(x1 - x0, y1 - y0)
+        m = Image.new('L', (x1 - x0, y1 - y0)); md = ImageDraw.Draw(m)
+        md.rounded_rectangle((0, 0, x1 - x0 - 1, y1 - y0 - 1), r, outline=int(255 * a), width=4)
+        g.putalpha(m); lay.alpha_composite(g, (x0, y0))
+
+
+def big_count(t, e, font):
+    """outlined giant numeral + gradient label sliding in"""
+    t0, t1, num, label, cy = e
+    a = min(1, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    k = ease(t, t0, 0.45)
+    f = font(int(330 * (0.8 + 0.2 * k)))
+    d.text((200, cy), num, font=f, fill=(255, 255, 255, 0), anchor='mm', stroke_width=8, stroke_fill=(255, 255, 255, int(235 * a * k)))
+    _kinetic(lay, t, t0 + 0.2, [label], 720, cy, 84, font, grad_word=0)
+    if a < 1: lay = _alpha(lay, a)
+    return _shadow(lay, 12, 0.5, 6)
+
+
+def tracker(t, e, font):
+    """top progress tracker: 4 segments, current number + label kinetic under it"""
+    t0, t1, steps, cy = e
+    a = min(1, (t - t0) / 0.3, (t1 - t) / 0.3)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    n = len(steps); x0, x1 = 140, W - 140; gap = 18; sw = (x1 - x0 - gap * (n - 1)) / n
+    cur = max([i for i, (st, _) in enumerate(steps) if t >= st] or [0])
+    for i in range(n):
+        xs = x0 + i * (sw + gap)
+        d.rounded_rectangle((xs, cy, xs + sw, cy + 12), 6, fill=(255, 255, 255, int(70 * a)))
+        if i < cur: fr = 1
+        elif i == cur: fr = ease(t, steps[i][0], 0.6)
+        else: fr = 0
+        if fr > 0:
+            g = _grad(max(2, int(sw * fr)), 12); m = Image.new('L', g.size); ImageDraw.Draw(m).rounded_rectangle((0, 0, g.size[0] - 1, 11), 6, fill=int(255 * a)); g.putalpha(m)
+            lay.alpha_composite(g, (int(xs), int(cy)))
+    st, lbl = steps[cur]
+    d = ImageDraw.Draw(lay)
+    num = f'0{cur + 1}'
+    d.text((x0, cy + 75), num, font=font(80), fill=(255, 255, 255, 0), anchor='lm', stroke_width=3, stroke_fill=(255, 255, 255, int(230 * a)))
+    d.text((x0 + 125, cy + 75), f'/ 0{n}', font=font(30), fill=(255, 255, 255, int(150 * a)), anchor='lm')
+    sub = Image.new('RGBA', (W, H)); _kinetic(sub, t, st + 0.1, lbl.split(), W / 2 + 70, cy + 72, 44, font, stagger=0.06)
+    lay.alpha_composite(_alpha(sub, a))
+    return _shadow(lay, 10, 0.55, 4)
+
+
+def kinetic_title(t, e, font):
+    """kinetic headline lines on a soft dark card; gradient accent word index per line"""
+    t0, t1, lines, cy, size = e[:5]; accents = e[5] if len(e) > 5 else {}
+    a = min(1, (t - t0) / 0.25, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H))
+    lh = size * 1.2; hgt = lh * len(lines) + 70
+    fw = max(ImageDraw.Draw(lay).textlength(l, font=font(size)) for l in lines) + 110
+    _dark_card(lay, (W / 2 - fw / 2, cy - hgt / 2, W / 2 + fw / 2, cy + hgt / 2), 40, a)
+    for i, ln in enumerate(lines):
+        _kinetic(lay, t, t0 + 0.1 + i * 0.25, ln.split(), W / 2, cy - lh * (len(lines) - 1) / 2 + i * lh, size, font, grad_word=accents.get(str(i)))
+    return _alpha(_shadow(lay), a) if a < 1 else _shadow(lay)
+
+
+def chips(t, e, font):
+    """pill chips popping in a row with gradient outline"""
+    t0, t1, items, cy = e
+    a = min(1, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    f = font(40); ws = [d.textlength(s, font=f) + 70 for _, s in items]; gap = 20
+    stack = sum(ws) + gap * (len(ws) - 1) > W - 120
+    x = (W - sum(ws) - gap * (len(ws) - 1)) / 2
+    for idx, ((ct, s), w) in enumerate(zip(items, ws)):
+        if stack: x = (W - w) / 2
+        k = ease(t, ct, 0.3)
+        if k > 0:
+            h = 84; y = cy - h / 2 + 20 * (1 - k) + (idx * 104 if stack else 0)
+            _dark_card(lay, (x, y, x + w, y + h), 42, a * k)
+            d = ImageDraw.Draw(lay)
+            d.text((x + w / 2, y + h / 2 + 2), s, font=f, fill=(255, 255, 255, int(255 * a * k)), anchor='mm')
+        if not stack: x += w + gap
+    return _shadow(lay)
+
+
+def _modern_bg(t, t0, flip=False):
+    g = _grad(W, H, (18, 20, 60), (60, 18, 70)) if not flip else _grad(W, H, (60, 18, 70), (18, 20, 60))
+    blob = Image.new('RGBA', (W, H)); b = ImageDraw.Draw(blob)
+    for i, (bx, by, br, col) in enumerate([(200, 400, 380, GRAD_A), (900, 1500, 460, GRAD_B), (700, 900, 260, (90, 120, 255))]):
+        ph = (t - t0) * 0.4 + i * 2
+        b.ellipse((bx + 70 * math.sin(ph) - br, by + 60 * math.cos(ph) - br, bx + 70 * math.sin(ph) + br, by + 60 * math.cos(ph) + br), fill=col + (70,))
+    g.alpha_composite(blob.filter(ImageFilter.GaussianBlur(140)))
+    # subtle grid
+    gr = Image.new('RGBA', (W, H)); gd = ImageDraw.Draw(gr)
+    for x in range(0, W, 90): gd.line((x, 0, x, H), fill=(255, 255, 255, 12), width=1)
+    for y in range(0, H, 90): gd.line((0, y, W, y), fill=(255, 255, 255, 12), width=1)
+    g.alpha_composite(gr)
+    return g
+
+
+def scene_two_homes_modern(t, e, font):
+    """argument 2: child between two homes; age + emotions; 'not every child is ready'"""
+    t0, t1, cfg = e
+    lay = _modern_bg(t, t0)
+    d = ImageDraw.Draw(lay)
+    k = ease(t, t0, 0.4)
+    d.text((110, 300), '02', font=font(220), fill=(255, 255, 255, 0), anchor='lm', stroke_width=6, stroke_fill=(255, 255, 255, int(200 * k)))
+    sub = Image.new('RGBA', (W, H)); _kinetic(sub, t, t0 + 0.15, cfg['title'].split(), 690, 300, 64, font, grad_word=0); lay.alpha_composite(sub)
+    d = ImageDraw.Draw(lay)
+    # two homes
+    kh = ease(t, cfg['t_homes'], 0.5)
+    for x in (270, 810):
+        if kh > 0:
+            _dark_card(lay, (x - 200, 600, x + 200, 1020), 44, kh); d = ImageDraw.Draw(lay)
+            _house(d, x, 820, 140 * (0.7 + 0.3 * kh), (255, 255, 255, int(255 * kh)))
+    # child bouncing between homes on a dashed path
+    if kh > 0:
+        for i in range(0, 30, 2):
+            xa = 270 + (810 - 270) * i / 30; xb = 270 + (810 - 270) * (i + 1) / 30
+            d.line((xa, 1110, xb, 1110), fill=(255, 255, 255, int(120 * kh)), width=4)
+        u = 0.5 + 0.5 * math.sin((t - t0) * 2.2)
+        _person(d, 270 + 540 * u, 1085 - 40 * abs(math.sin((t - t0) * 4.4)), 60, GRAD_A + (int(255 * kh),))
+    # need gauges
+    for j, (tt, lbl, val) in enumerate(cfg['gauges']):
+        kg = ease(t, tt, 0.5)
+        if kg <= 0: continue
+        y = 1260 + j * 130; x0, x1 = 130, W - 130
+        d.text((x0, y), lbl, font=font(40), fill=(255, 255, 255, int(255 * kg)), anchor='lm')
+        d.rounded_rectangle((x0, y + 35, x1, y + 55), 10, fill=(255, 255, 255, 40))
+        fill = int((x1 - x0) * val * ease(t, tt + 0.1, 0.9))
+        if fill > 4:
+            g = _grad(fill, 20); m = Image.new('L', g.size); ImageDraw.Draw(m).rounded_rectangle((0, 0, fill - 1, 19), 10, fill=255); g.putalpha(m)
+            lay.alpha_composite(g, (x0, y + 35))
+        d = ImageDraw.Draw(lay)
+    kv = ease(t, cfg['t_verdict'], 0.35)
+    if kv > 0:
+        sub = Image.new('RGBA', (W, H)); _kinetic(sub, t, cfg['t_verdict'], cfg['verdict'].split(), W / 2, 1620, 50, font, stagger=0.07, grad_word=1); lay.alpha_composite(sub)
+    return lay
+
+
+def scene_distance_modern(t, e, font):
+    """argument 4: stylised map, route draws between two pins, car moves, timer counts minutes; school/routine tags"""
+    t0, t1, cfg = e
+    lay = _modern_bg(t, t0, flip=True)
+    d = ImageDraw.Draw(lay)
+    k = ease(t, t0, 0.4)
+    d.text((110, 300), '04', font=font(220), fill=(255, 255, 255, 0), anchor='lm', stroke_width=6, stroke_fill=(255, 255, 255, int(200 * k)))
+    sub = Image.new('RGBA', (W, H)); _kinetic(sub, t, t0 + 0.15, cfg['title'].split(), 690, 300, 64, font, grad_word=0); lay.alpha_composite(sub)
+    _dark_card(lay, (90, 520, W - 90, 1180), 44, k); d = ImageDraw.Draw(lay)
+    # route as smooth s-curve
+    pts = [(220 + 640 * u, 1020 - 330 * u + 120 * math.sin(u * math.pi * 2)) for u in np.linspace(0, 1, 60)]
+    kr = ease(t, cfg['t_route'], 1.2)
+    n = max(2, int(len(pts) * kr))
+    if kr > 0:
+        g = Image.new('RGBA', (W, H)); gd = ImageDraw.Draw(g); gd.line(pts[:n], fill=(255, 255, 255, 255), width=14, joint='curve')
+        gm = g.split()[3]; gg = _grad(W, H); gg.putalpha(gm); lay.alpha_composite(gg); d = ImageDraw.Draw(lay)
+        cx, cy = pts[n - 1]
+        d.ellipse((cx - 22, cy - 22, cx + 22, cy + 22), fill=(255, 255, 255, 255))
+    for (px, py), lbl in [(pts[0], 'DOM 1'), (pts[-1], 'DOM 2')]:
+        d.ellipse((px - 34, py - 34, px + 34, py + 34), fill=(12, 14, 30, int(255 * k)), outline=(255, 255, 255, int(255 * k)), width=6)
+        d.text((px, py + 70), lbl, font=font(34), fill=(255, 255, 255, int(255 * k)), anchor='mm')
+    # timer
+    kt = ease(t, cfg['t_timer'], 1.0)
+    if kt > 0:
+        mins = int(cfg['minutes'] * kt)
+        tl = _grad_text(f'{mins} MIN', font(120)); lay.alpha_composite(tl, (int(W / 2 - tl.size[0] / 2), 1230))
+        d = ImageDraw.Draw(lay)
+        d.text((W / 2, 1410), 'W JEDNĄ STRONĘ', font=font(36), fill=(255, 255, 255, int(200 * kt)), anchor='mm')
+    sub = Image.new('RGBA', (W, H)); lay.alpha_composite(chips(t, (t0, t1, cfg['tags'], 1560), font))
+    return lay
