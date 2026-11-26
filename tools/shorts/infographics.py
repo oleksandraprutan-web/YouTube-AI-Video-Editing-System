@@ -1570,3 +1570,106 @@ def scene_jurisdiction(t, e, font):
         d.rectangle((cx - 170, cy + 80, cx + 170, cy + 100), fill=ORANGE + (int(255 * kr),))
         d.text((cx, cy + 170), cfg['res'], font=font(62), fill=(255, 255, 255, int(255 * kr)), anchor='mm')
     return lay
+
+
+def boarding_pass(t, e, font):
+    """boarding-pass ticket 'WARSZAWA -> ???' sliding in; 'CEL: ROZWÓD' stamp"""
+    t0, t1, frm, to, t_to, purpose, cy = e
+    k = ease(t, t0, 0.4); a = min(1, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    x0, x1, h = 110 - 300 * (1 - k), W - 110 - 300 * (1 - k), 300; y0 = cy - h / 2
+    card = Image.new('RGBA', (W, H)); cd = ImageDraw.Draw(card)
+    cd.rounded_rectangle((x0, y0, x1, y0 + h), 30, fill=(255, 255, 255, int(250 * a)))
+    cd.rounded_rectangle((x0, y0, x1, y0 + 70), 30, fill=ORANGE + (int(255 * a),)); cd.rectangle((x0, y0 + 40, x1, y0 + 70), fill=ORANGE + (int(255 * a),))
+    for yy in range(int(y0 + 85), int(y0 + h - 15), 22):
+        cd.line((x1 - 230, yy, x1 - 230, yy + 10), fill=(200, 205, 220, int(255 * a)), width=4)
+    lay.alpha_composite(card); d = ImageDraw.Draw(lay)
+    d.text((x0 + 40, y0 + 36), 'BOARDING PASS', font=font(32), fill=(255, 255, 255, int(255 * a)), anchor='lm')
+    d.text((x0 + 40, y0 + 130), frm, font=font(54), fill=NAVY + (int(255 * a),), anchor='lm')
+    fw = d.textlength(frm, font=font(54))
+    _plane(d, x0 + 40 + fw + 55, y0 + 130, 30, 0, ORANGE + (int(255 * a),))
+    kt = ease(t, t_to, 0.3)
+    d.text((x0 + 40 + fw + 110, y0 + 130), to if kt > 0.5 else '…', font=font(54), fill=(RED if kt > 0.5 else NAVY) + (int(255 * a),), anchor='lm')
+    d.text((x0 + 40, y0 + 220), 'CEL:', font=font(36), fill=(120, 125, 140, int(255 * a)), anchor='lm')
+    d.text((x0 + 135, y0 + 220), purpose, font=font(44), fill=NAVY + (int(255 * a),), anchor='lm')
+    _plane(d, x1 - 115, y0 + 185, 44, -0.5, (210, 214, 228, int(255 * a)))
+    return _shadow(lay)
+
+
+def scene_key(t, e, font):
+    """two puzzle halves (citizenship + residence) slide together into a key that unlocks 'POLSKI SĄD'"""
+    t0, t1, cfg = e
+    lay = Image.new('RGBA', (W, H), NAVY + (255,))
+    glow = Image.new('RGBA', (W, H)); g = ImageDraw.Draw(glow)
+    for i, (bx, by, br, col) in enumerate([(250, 500, 420, (40, 70, 200)), (850, 1350, 520, (30, 50, 170)), (600, 900, 300, (244, 122, 58))]):
+        ph = (t - t0) * 0.35 + i * 2.1
+        g.ellipse((bx + 60 * math.sin(ph) - br, by + 50 * math.cos(ph * .8) - br, bx + 60 * math.sin(ph) + br, by + 50 * math.cos(ph * .8) + br), fill=col + (60 if i < 2 else 24,))
+    lay.alpha_composite(glow.filter(ImageFilter.GaussianBlur(120)))
+    d = ImageDraw.Draw(lay)
+    k0 = ease(t, t0, 0.3)
+    f0 = font(54); tw0 = d.textlength(cfg['title'], font=f0); y = 250 - 30 * (1 - k0)
+    d.rounded_rectangle((W / 2 - tw0 / 2 - 44, y - 54, W / 2 + tw0 / 2 + 44, y + 54), 54, fill=ORANGE + (int(255 * k0),))
+    d.text((W / 2, y + 2), cfg['title'], font=f0, fill=(255, 255, 255, int(255 * k0)), anchor='mm')
+    kj = ease(t, cfg['t_join'], 0.6)
+    for j, (tp, lbl, col) in enumerate([(cfg['t_p1'], cfg['p1'], (255, 255, 255)), (cfg['t_p2'], cfg['p2'], ORANGE)]):
+        kp = ease(t, tp, 0.4)
+        if kp <= 0: continue
+        w, h = 400, 300
+        tx = 540 - w - 4 if j == 0 else 544
+        sx = (60 if j == 0 else W - 60 - w)
+        x = sx + (tx - sx) * kj; y = 520 + 60 * (1 - kp)
+        d.rounded_rectangle((x, y, x + w, y + h), 30, fill=col + (int(250 * kp),))
+        nx = x + w if j == 0 else x
+        if j == 0: d.ellipse((nx - 45, y + h / 2 - 45, nx + 45, y + h / 2 + 45), fill=col + (int(250 * kp),))
+        else: d.ellipse((nx - 45, y + h / 2 - 45, nx + 45, y + h / 2 + 45), fill=NAVY + (255,))
+        tc = NAVY if j == 0 else (255, 255, 255)
+        fs = 44
+        while fs > 24 and max(d.textlength(l, font=font(fs)) for l in lbl.split('\n')) > w - 110: fs -= 2
+        for li, ln in enumerate(lbl.split('\n')):
+            d.text((x + w / 2 + (-20 if j == 0 else 25), y + h / 2 + (li - (len(lbl.split('\n')) - 1) / 2) * (fs + 12)), ln, font=font(fs), fill=tc + (int(255 * kp),), anchor='mm')
+    # lock -> opens
+    kl = ease(t, cfg['t_lock'], 0.4); ko = ease(t, cfg['t_open'], 0.4)
+    if kl > 0:
+        cx, cy = W / 2, 1200
+        lift = 60 * ko
+        d.arc((cx - 80, cy - 170 - lift, cx + 80, cy - 10 - lift), 180, 360, fill=(255, 255, 255, int(255 * kl)), width=26)
+        d.line((cx - 80 + 0, cy - 90 - lift, cx - 80, cy - 10), fill=(255, 255, 255, int(255 * kl)), width=26) if ko < 0.5 else None
+        d.line((cx + 80, cy - 90 - lift, cx + 80, cy - 10 - lift), fill=(255, 255, 255, int(255 * kl)), width=26)
+        d.rounded_rectangle((cx - 130, cy - 20, cx + 130, cy + 170), 30, fill=(GREEN if ko > 0.5 else ORANGE) + (int(255 * kl),))
+        d.ellipse((cx - 22, cy + 45, cx + 22, cy + 89), fill=NAVY + (int(255 * kl),))
+        d.text((cx, cy + 290), cfg['res'], font=font(70), fill=(255, 255, 255, int(255 * ko)), anchor='mm')
+    return lay
+
+
+
+def scene_passport(t, e, font):
+    """open passport; two stamps slam in (citizenship, 6 months) -> gavel 'POLSKI SĄD'"""
+    t0, t1, cfg = e
+    lay = Image.new('RGBA', (W, H), NAVY + (255,))
+    glow = Image.new('RGBA', (W, H)); g = ImageDraw.Draw(glow)
+    for i, (bx, by, br, col) in enumerate([(250, 500, 420, (40, 70, 200)), (850, 1350, 520, (30, 50, 170)), (600, 900, 300, (244, 122, 58))]):
+        ph = (t - t0) * 0.35 + i * 2.1
+        g.ellipse((bx + 60 * math.sin(ph) - br, by + 50 * math.cos(ph * .8) - br, bx + 60 * math.sin(ph) + br, by + 50 * math.cos(ph * .8) + br), fill=col + (60 if i < 2 else 24,))
+    lay.alpha_composite(glow.filter(ImageFilter.GaussianBlur(120)))
+    d = ImageDraw.Draw(lay)
+    k = ease(t, t0 + 0.1, 0.5)
+    x0, y0, x1, y1 = 120, 300 + 60 * (1 - k), W - 120, 1150 + 60 * (1 - k)
+    d.rounded_rectangle((x0 - 14, y0 - 14, x1 + 14, y1 + 14), 30, fill=(120, 20, 40, int(255 * k)))
+    d.rounded_rectangle((x0, y0, x1, y1), 22, fill=(250, 246, 236, int(255 * k)))
+    d.line((W / 2, y0, W / 2, y1), fill=(210, 200, 180, int(255 * k)), width=4)
+    d.text((x0 + 200, y0 + 70), 'PASZPORT', font=font(40), fill=(120, 20, 40, int(255 * k)), anchor='mm')
+    d.rounded_rectangle((x0 + 60, y0 + 130, x0 + 340, y0 + 470), 16, fill=(220, 214, 200, int(255 * k)))
+    _person(d, x0 + 200, y0 + 330, 110, (170, 160, 140, int(255 * k)))
+    for j in range(4):
+        d.rounded_rectangle((x0 + 60, y0 + 520 + j * 60, x0 + 340 - (60 if j == 3 else 0), y0 + 540 + j * 60), 10, fill=(215, 208, 192, int(255 * k)))
+    for (ts, txt, pos) in [(cfg['t_s1'], cfg['s1'], (W / 2 + 200, y0 + 260)), (cfg['t_s2'], cfg['s2'], (W / 2 + 200, y0 + 560))]:
+        if t >= ts:
+            lay.alpha_composite(stamp(t, (ts, t1, txt, pos, 0.62), font)); d = ImageDraw.Draw(lay)
+    kr = ease(t, cfg['t_res'], 0.4)
+    if kr > 0:
+        cx, cy = W / 2, 1380
+        d.rounded_rectangle((cx - 120, cy - 70, cx + 40, cy - 10), 14, fill=(255, 255, 255, int(255 * kr)))
+        d.line((cx - 20, cy - 10, cx + 70, cy + 70), fill=(255, 255, 255, int(255 * kr)), width=22)
+        d.rectangle((cx - 170, cy + 80, cx + 170, cy + 100), fill=ORANGE + (int(255 * kr),))
+        d.text((cx, cy + 170), cfg['res'], font=font(62), fill=(255, 255, 255, int(255 * kr)), anchor='mm')
+    return lay
