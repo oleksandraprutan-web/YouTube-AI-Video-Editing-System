@@ -1488,3 +1488,85 @@ def scene_loyalty(t, e, font):
         f2 = font(52); lbl = cfg['msg']; tw2 = d.textlength(lbl, font=f2)
         d.text((W / 2, 1680), lbl, font=f2, fill=ORANGE + (int(255 * ke),), anchor='mm')
     return lay
+
+
+def _plane(d, x, y, s, ang, col):
+    pts = [(1.0, 0), (-0.6, -0.12), (-0.3, -0.6), (-0.45, -0.6), (-0.75, -0.12), (-1.0, -0.1), (-1.1, -0.35), (-1.2, -0.35), (-1.1, 0),
+           (-1.2, 0.35), (-1.1, 0.35), (-1.0, 0.1), (-0.75, 0.12), (-0.45, 0.6), (-0.3, 0.6), (-0.6, 0.12)]
+    c, sn = math.cos(ang), math.sin(ang)
+    d.polygon([(x + s * (px * c - py * sn), y + s * (px * sn + py * c)) for px, py in pts], fill=col)
+
+
+def flight(t, e, font):
+    """two pins (PL -> ?) with a dashed arc and a plane flying along it"""
+    t0, t1, a_lbl, b_lbl, t_fly, cy = e
+    a = min(1, (t - t0) / 0.3, (t1 - t) / 0.25)
+    lay = Image.new('RGBA', (W, H)); d = ImageDraw.Draw(lay)
+    _glass(d, (100, cy - 170, W - 100, cy + 150), 40, a)
+    xa, xb, yb = 250, 830, cy + 60
+    def P(u):
+        x = xa + (xb - xa) * u; y = yb - 220 * math.sin(math.pi * u); return x, y
+    for i in range(0, 40, 2):
+        p0, p1 = P(i / 40), P((i + 1) / 40)
+        d.line((p0, p1), fill=(255, 255, 255, int(170 * a)), width=5)
+    for x, lbl, col in [(xa, a_lbl, (255, 255, 255)), (xb, b_lbl, ORANGE)]:
+        d.ellipse((x - 48, yb - 48, x + 48, yb + 48), fill=col + (int(255 * a),))
+        d.text((x, yb + 2), lbl, font=font(40), fill=(NAVY if col == (255, 255, 255) else (255, 255, 255)) + (int(255 * a),), anchor='mm')
+    u = ease(t, t_fly, 1.4)
+    if u > 0:
+        x, y = P(u); x2, y2 = P(min(1, u + 0.01))
+        _plane(d, x, y, 46, math.atan2(y2 - y, x2 - x), (255, 255, 255, int(255 * a)))
+    return _shadow(lay)
+
+
+def _flag_pl(d, x, y, w, h, a):
+    d.rectangle((x, y, x + w, y + h / 2), fill=(255, 255, 255, int(255 * a)))
+    d.rectangle((x, y + h / 2, x + w, y + h), fill=(220, 20, 60, int(255 * a)))
+
+
+def scene_jurisdiction(t, e, font):
+    """blue-placeholder animation: condition cards (citizen + 6 months) -> = POLSKI SĄD"""
+    t0, t1, cfg = e
+    lay = Image.new('RGBA', (W, H), NAVY + (255,))
+    glow = Image.new('RGBA', (W, H)); g = ImageDraw.Draw(glow)
+    for i, (bx, by, br, col) in enumerate([(250, 500, 420, (40, 70, 200)), (850, 1350, 520, (30, 50, 170)), (600, 900, 300, (244, 122, 58))]):
+        ph = (t - t0) * 0.35 + i * 2.1
+        g.ellipse((bx + 60 * math.sin(ph) - br, by + 50 * math.cos(ph * .8) - br, bx + 60 * math.sin(ph) + br, by + 50 * math.cos(ph * .8) + br), fill=col + (60 if i < 2 else 24,))
+    lay.alpha_composite(glow.filter(ImageFilter.GaussianBlur(120)))
+    d = ImageDraw.Draw(lay)
+    k = ease(t, t0, 0.3)
+    f = font(54); tw = d.textlength(cfg['title'], font=f); y = 250 - 30 * (1 - k)
+    d.rounded_rectangle((W / 2 - tw / 2 - 44, y - 54, W / 2 + tw / 2 + 44, y + 54), 54, fill=ORANGE + (int(255 * k),))
+    d.text((W / 2, y + 2), cfg['title'], font=f, fill=(255, 255, 255, int(255 * k)), anchor='mm')
+    # card 1: citizen
+    for j, (tc, t_ok, lbl) in enumerate([(cfg['t_c1'], cfg['t_c1ok'], cfg['c1']), (cfg['t_c2'], cfg['t_c2ok'], cfg['c2'])]):
+        kc = ease(t, tc, 0.4)
+        if kc <= 0: continue
+        x0, y0 = 90, 420 + j * 330 + 40 * (1 - kc); x1 = W - 90
+        card = Image.new('RGBA', (W, H)); ImageDraw.Draw(card).rounded_rectangle((x0, y0, x1, y0 + 270), 30, fill=(255, 255, 255, int(245 * kc)))
+        lay.alpha_composite(card); d = ImageDraw.Draw(lay)
+        if j == 0:
+            _flag_pl(d, x0 + 50, y0 + 85, 150, 100, kc)
+            d.rectangle((x0 + 50, y0 + 85, x0 + 200, y0 + 185), outline=(200, 205, 220, int(255 * kc)), width=3)
+        else:
+            cx, cy, r = x0 + 125, y0 + 135, 75
+            d.ellipse((cx - r, cy - r, cx + r, cy + r), outline=(220, 222, 235, int(255 * kc)), width=16)
+            kr = ease(t, cfg['t_ring'], 1.2)
+            if kr > 0: d.arc((cx - r, cy - r, cx + r, cy + r), -90, -90 + 360 * kr, fill=ORANGE + (255,), width=16)
+            d.text((cx, cy + 2), cfg['ring'], font=font(46), fill=NAVY + (int(255 * kc),), anchor='mm')
+        for li, ln in enumerate(lbl.split('\n')):
+            d.text((x0 + 250, y0 + 135 + (li - (len(lbl.split('\n')) - 1) / 2) * 56), ln, font=font(46), fill=NAVY + (int(255 * kc),), anchor='lm')
+        ko = ease(t, t_ok, 0.3)
+        if ko > 0:
+            bx, by = x1 - 70, y0 + 135
+            d.ellipse((bx - 42 * ko, by - 42 * ko, bx + 42 * ko, by + 42 * ko), fill=GREEN + (255,))
+            d.line([(bx - 18, by + 2), (bx - 5, by + 16), (bx + 20, by - 14)], fill=(255, 255, 255, int(255 * ko)), width=8, joint='curve')
+    kr = ease(t, cfg['t_res'], 0.4)
+    if kr > 0:
+        d.text((W / 2, 1190), '=', font=font(110), fill=ORANGE + (int(255 * kr),), anchor='mm')
+        cx, cy = W / 2, 1420
+        d.rounded_rectangle((cx - 120, cy - 70, cx + 40, cy - 10), 14, fill=(255, 255, 255, int(255 * kr)))
+        d.line((cx - 20, cy - 10, cx + 70, cy + 70), fill=(255, 255, 255, int(255 * kr)), width=22)
+        d.rectangle((cx - 170, cy + 80, cx + 170, cy + 100), fill=ORANGE + (int(255 * kr),))
+        d.text((cx, cy + 170), cfg['res'], font=font(62), fill=(255, 255, 255, int(255 * kr)), anchor='mm')
+    return lay
