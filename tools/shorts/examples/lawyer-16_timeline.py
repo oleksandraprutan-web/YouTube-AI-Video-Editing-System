@@ -15,17 +15,17 @@ TRACKERS = [(9.82, 14.98, [(9.82, 'PRZEPROWADZKI'), (99, ''), (99, ''), (99, '')
 CHIPS = [(10.82, 14.98, [(10.82, 'CIĄGŁE PRZEPROWADZKI'), (13.36, 'BRAK BEZPIECZEŃSTWA')], 330)]
 SCENES = [(15.00, 20.90, {'fn': 'scene_two_homes_modern', 'title': 'WIEK I EMOCJE', 't_homes': 15.3,
            'gauges': [(15.90, 'WIEK DZIECKA', 0.35), (17.02, 'POTRZEBY EMOCJONALNE', 0.85)],
-           't_verdict': 18.52, 'verdict': 'NIE KAŻDE DZIECKO JEST GOTOWE'}),
+           't_verdict': 99, 'verdict': ''}),
           (28.40, 34.93, {'fn': 'scene_distance_modern', 'title': 'ODLEGŁOŚĆ', 't_route': 29.58, 't_timer': 31.12, 'minutes': 75,
            'tags': [(32.90, 'NAUKA'), (33.88, 'CODZIENNOŚĆ')]})]
-BEHIND = [(21.90, 25.00, ['KONFLIKT'], 520, (255, 120, 90), 190)]
+BEHIND = [(21.90, 25.00, ['KONFLIKT'], 520, (244, 122, 58), 190)]
 CHIPS += [(25.62, 28.38, [(25.62, 'DZIECKO'), (27.34, 'W ŚRODKU SPORU')], 420)]
 BEHIND += [(39.66, 41.05, ['DOBRO', 'DZIECKA'], 470, (255, 140, 60), 175)]
 
 SFX = [('pop1.wav', 0.32, -21, 'start'), ('ok.wav', 0.98, -26, 'start'), ('whoosh2.wav', 2.04, -22, 'peak'), ('pop_low.wav', 3.52, -18, 'start'),
        ('click1.wav', 4.46, -21, 'start'), ('click1.wav', 4.62, -21, 'start'), ('click1.wav', 4.78, -21, 'start'), ('click1.wav', 4.94, -21, 'start'), ('pop_low.wav', 5.10, -19, 'start'),
        ('click1.wav', 9.84, -21, 'start'), ('pop1.wav', 10.82, -21, 'start'), ('pop2.wav', 13.36, -21, 'start'),
-       ('whoosh_el.wav', 15.00, -21, 'peak'), ('click1.wav', 15.90, -22, 'start'), ('click1.wav', 17.02, -22, 'start'), ('text_in_s.wav', 18.52, -25, 'start'),
+       ('whoosh_el.wav', 15.00, -21, 'peak'), ('click1.wav', 15.90, -22, 'start'), ('click1.wav', 17.02, -22, 'start'),
        ('whoosh_el.wav', 20.90, -22, 'peak'), ('click1.wav', 20.95, -21, 'start'), ('pop_low.wav', 21.90, -19, 'start'),
        ('pop1.wav', 25.62, -21, 'start'), ('pop2.wav', 27.34, -21, 'start'),
        ('whoosh_el.wav', 28.40, -21, 'peak'), ('swipe.wav', 29.58, -24, 'start'), ('clock_s.wav', 31.12, -25, 'start'), ('pop1.wav', 32.90, -21, 'start'), ('pop2.wav', 33.88, -21, 'start'),
