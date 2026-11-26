@@ -7,20 +7,18 @@ SFX_GAIN_DB = -4
 
 ZOOMS = [(0, 1.0)]
 CUTS = [4.57, 8.67, 19.5]
-FLIGHTS = [(0.30, 4.50, 'PL', '?', 2.30, 300)]                                  # "musisz jechać do obcego kraju?"
+PASSES = [(0.30, 4.50, 'WARSZAWA', '???', 2.58, 'ROZWÓD', 300)]          # author chose A
 BEHIND = [(7.82, 8.62, ['W POLSCE'], 560, (244, 122, 58), 170)]
-SCENES = [(8.67, 19.50, {'fn': 'scene_jurisdiction', 'title': 'POLSKI SĄD, JEŚLI:',
-           't_c1': 9.00, 't_c1ok': 9.96, 'c1': 'OBYWATELKA\nPOLSKI',
-           't_c2': 10.76, 't_ring': 12.32, 't_c2ok': 14.18, 'c2': 'MIESZKASZ\nW POLSCE', 'ring': '6 M',
-           't_res': 17.66, 'res': 'POLSKI SĄD'})]
+SCENES = [(8.67, 19.50, {'fn': 'scene_key', 'title': 'POLSKI SĄD, JEŚLI:', 't_p1': 9.0, 'p1': 'OBYWATELKA\nPOLSKI',
+           't_p2': 10.76, 'p2': '6 MIESIĘCY\nW POLSCE', 't_join': 15.64, 't_lock': 15.64, 't_open': 17.66, 'res': 'POLSKI SĄD'})]   # author chose D
 TILES = [(19.56, 26.20, [('OBYWATELSTWO', 20.26, 'x', 'NIE MASZ'), ('ROK W POLSCE', 25.36, 'ok', 'WYSTARCZY')], 400)]
 RESULTS = [(27.12, 29.18, 'MIEJSCE ŚLUBU BEZ ZNACZENIA', (46, 196, 110), 420)]
 
-SFX = [('pop1.wav', 0.32, -21, 'start'), ('whoosh_fast.wav', 2.30, -23, 'peak'),
+SFX = [('whoosh1.wav', 0.30, -21, 'peak'), ('pop_low.wav', 2.58, -19, 'start'),
        ('pop_low.wav', 7.82, -19, 'start'),
        ('whoosh_el.wav', 8.67, -21, 'peak'), ('text_in_s.wav', 8.75, -25, 'start'),
-       ('pop1.wav', 9.00, -21, 'start'), ('ok.wav', 9.96, -26, 'start'), ('pop1.wav', 10.76, -21, 'start'),
-       ('clock_s.wav', 12.32, -25, 'start'), ('ok.wav', 14.18, -26, 'start'), ('metal.wav', 17.66, -21, 'start'),
+       ('pop1.wav', 9.00, -21, 'start'), ('pop1.wav', 10.76, -21, 'start'),
+       ('swipe.wav', 15.64, -24, 'start'), ('metal.wav', 16.20, -22, 'start'), ('ok.wav', 17.66, -25, 'start'),
        ('whoosh_el.wav', 19.50, -22, 'peak'),
        ('pop1.wav', 19.58, -21, 'start'), ('fail.wav', 20.26, -27, 'start'), ('ok.wav', 25.36, -26, 'start'),
        ('click2.wav', 27.14, -20, 'start')]

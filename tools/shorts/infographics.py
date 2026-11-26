@@ -1491,8 +1491,8 @@ def scene_loyalty(t, e, font):
 
 
 def _plane(d, x, y, s, ang, col):
-    pts = [(1.0, 0), (-0.6, -0.12), (-0.3, -0.6), (-0.45, -0.6), (-0.75, -0.12), (-1.0, -0.1), (-1.1, -0.35), (-1.2, -0.35), (-1.1, 0),
-           (-1.2, 0.35), (-1.1, 0.35), (-1.0, 0.1), (-0.75, 0.12), (-0.45, 0.6), (-0.3, 0.6), (-0.6, 0.12)]
+    pts = [(1.0, 0), (0.85, -0.1), (0.15, -0.12), (-0.35, -0.75), (-0.55, -0.75), (-0.25, -0.12), (-0.8, -0.12), (-1.0, -0.4), (-1.12, -0.4), (-1.0, 0),
+           (-1.12, 0.4), (-1.0, 0.4), (-0.8, 0.12), (-0.25, 0.12), (-0.55, 0.75), (-0.35, 0.75), (0.15, 0.12), (0.85, 0.1)]
     c, sn = math.cos(ang), math.sin(ang)
     d.polygon([(x + s * (px * c - py * sn), y + s * (px * sn + py * c)) for px, py in pts], fill=col)
 
@@ -1637,7 +1637,7 @@ def scene_key(t, e, font):
         d.line((cx + 80, cy - 90 - lift, cx + 80, cy - 10 - lift), fill=(255, 255, 255, int(255 * kl)), width=26)
         d.rounded_rectangle((cx - 130, cy - 20, cx + 130, cy + 170), 30, fill=(GREEN if ko > 0.5 else ORANGE) + (int(255 * kl),))
         d.ellipse((cx - 22, cy + 45, cx + 22, cy + 89), fill=NAVY + (int(255 * kl),))
-        d.text((cx, cy + 290), cfg['res'], font=font(70), fill=(255, 255, 255, int(255 * ko)), anchor='mm')
+        if ko > 0: d.text((cx, cy + 290), cfg['res'], font=font(70), fill=(255, 255, 255, int(255 * ko)), anchor='mm')
     return lay
 
 
